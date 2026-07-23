@@ -1,0 +1,43 @@
+# ============================================================================
+# Last Chance — repository ignore rules
+# ============================================================================
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Node / TypeScript build output
+dist/
+**/dist/
+*.tsbuildinfo
+
+# Next.js
+.next/
+web/out/
+
+# Flutter / Dart
+mobile/.dart_tool/
+mobile/build/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/.packages
+mobile/pubspec.lock
+
+# Secrets & local env — never commit real values
+.env
+.env.*
+!.env.example
+*.local
+
+# Claude Code local (machine-specific) settings
+.claude/settings.local.json
+
+# Logs & OS cruft
+*.log
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+.vscode/
+*.swp

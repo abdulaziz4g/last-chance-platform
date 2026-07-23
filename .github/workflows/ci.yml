@@ -1,0 +1,133 @@
+# ============================================================================
+# Last Chance — CI/CD
+# PRs: full verification (types, unit tests, LIVE integration smokes against
+#      real PostGIS+Redis service containers, web build, Flutter checks).
+# main: everything above + build & push versioned images to GHCR.
+# ============================================================================
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_DB: lastchance
+          POSTGRES_USER: lastchance
+          POSTGRES_PASSWORD: lastchance_dev_only
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U lastchance" --health-interval 5s
+          --health-timeout 3s --health-retries 12
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s
+          --health-timeout 3s --health-retries 12
+      opensearch:
+        image: opensearchproject/opensearch:2.19.1
+        env:
+          discovery.type: single-node
+          DISABLE_SECURITY_PLUGIN: "true"
+          OPENSEARCH_JAVA_OPTS: "-Xms512m -Xmx512m"
+        ports: ["9200:9200"]
+        options: >-
+          --health-cmd "curl -sf http://localhost:9200/_cluster/health || exit 1"
+          --health-interval 10s --health-timeout 5s --health-retries 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm, cache-dependency-path: backend/package-lock.json }
+
+      - name: Apply database migrations
+        run: |
+          for f in db/migrations/*.sql; do
+            echo "== $f"
+            PGPASSWORD=lastchance_dev_only psql -h localhost -U lastchance -d lastchance \
+              -v ON_ERROR_STOP=1 -q -f "$f"
+          done
+
+      - name: Database invariant smoke tests
+        run: |
+          PGPASSWORD=lastchance_dev_only psql -h localhost -U lastchance -d lastchance \
+            -v ON_ERROR_STOP=1 -q -f db/tests/smoke_test.sql
+
+      - name: Install, type-check, unit-test
+        working-directory: backend
+        run: |
+          npm ci
+          npx tsc -p tsconfig.json --noEmit
+          npx jest --silent
+
+      - name: Integration smokes (booking core, escrow cycle, security+realtime, search)
+        working-directory: backend
+        env:
+          OPENSEARCH_URL: http://localhost:9200
+        run: |
+          npx ts-node -r reflect-metadata scripts/integration-smoke.ts
+          npx ts-node -r reflect-metadata scripts/integration-smoke-payments.ts
+          npx ts-node -r reflect-metadata scripts/integration-smoke-phase6.ts
+          npx ts-node -r reflect-metadata scripts/integration-smoke-search.ts
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm, cache-dependency-path: web/package-lock.json }
+      - name: Build console
+        working-directory: web
+        run: |
+          npm ci
+          npx tsc --noEmit
+          npm run build
+
+  mobile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, cache: true }
+      - name: Analyze + test
+        working-directory: mobile
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter test
+
+  images:
+    # Push versioned images only after every verification job is green.
+    if: github.ref == 'refs/heads/main'
+    needs: [backend, web, mobile]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: backend
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/backend:latest
+            ghcr.io/${{ github.repository }}/backend:${{ github.sha }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: web
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/web:latest
+            ghcr.io/${{ github.repository }}/web:${{ github.sha }}

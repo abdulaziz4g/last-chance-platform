@@ -1,0 +1,7 @@
+# Last Chance — production namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: lastchance
+  labels:
+    app.kubernetes.io/part-of: lastchance

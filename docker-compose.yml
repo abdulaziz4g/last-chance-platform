@@ -1,0 +1,93 @@
+# ============================================================================
+# Last Chance Platform — local development infrastructure
+# Phase 1 scope: PostgreSQL (PostGIS) + Redis.
+# Phase 6 will extend this with OpenSearch, MinIO, and the app services.
+# ============================================================================
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: lastchance-postgres
+    environment:
+      POSTGRES_DB: lastchance
+      POSTGRES_USER: lastchance
+      POSTGRES_PASSWORD: lastchance_dev_only   # dev only — never ships anywhere
+    ports:
+      - "5432:5432"
+    volumes:
+      - lastchance_pgdata:/var/lib/postgresql/data
+      - ./db/migrations:/migrations:ro
+      - ./db/tests:/db-tests:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lastchance -d lastchance"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  redis:
+    image: redis:7-alpine
+    container_name: lastchance-redis
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - lastchance_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  opensearch:
+    image: opensearchproject/opensearch:2.19.1
+    container_name: lastchance-opensearch
+    environment:
+      discovery.type: single-node
+      DISABLE_SECURITY_PLUGIN: "true"   # dev only — production uses a managed domain
+      OPENSEARCH_JAVA_OPTS: "-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - lastchance_osdata:/usr/share/opensearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  # ---- application services (docker compose --profile full up -d --build) ---
+  backend:
+    build: ./backend
+    container_name: lastchance-backend
+    profiles: ["full"]
+    environment:
+      # development keeps the MOCK provider + auth dev-fallback enabled for
+      # local end-to-end runs; production config comes from the K8s manifests.
+      NODE_ENV: development
+      DATABASE_URL: postgres://lastchance:lastchance_dev_only@postgres:5432/lastchance
+      REDIS_URL: redis://redis:6379
+      OPENSEARCH_URL: http://opensearch:9200
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      opensearch:
+        condition: service_healthy
+
+  web:
+    build: ./web
+    container_name: lastchance-web
+    profiles: ["full"]
+    environment:
+      BACKEND_URL: http://backend:3000
+    ports:
+      - "3001:3001"
+    depends_on:
+      - backend
+
+volumes:
+  lastchance_pgdata:
+  lastchance_redisdata:
+  lastchance_osdata:

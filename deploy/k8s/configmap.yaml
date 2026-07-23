@@ -1,0 +1,13 @@
+# Non-secret runtime configuration. Data stores are MANAGED SERVICES
+# (PostgreSQL with PITR + read replica, Redis with AOF + replica) — never
+# in-cluster stateful sets for the money path.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lastchance-config
+  namespace: lastchance
+data:
+  NODE_ENV: "production"
+  PORT: "3000"
+  PAYOUT_EXECUTE_DELAY_MS: "3000"
+  JWT_TTL_SECONDS: "3600"

@@ -1,0 +1,28 @@
+name: lastchance_mobile
+description: Last Chance guest app — hourly micro-stays & flash deals.
+publish_to: "none"
+version: 0.1.0+1
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # State management — Clean Architecture presentation layer. Hand-written
+  # notifiers (no codegen) keep the build toolchain minimal; riverpod_generator
+  # is an optional later refinement.
+  flutter_riverpod: ^2.6.1
+  # HTTP with interceptors (auth header injection lands with Phase-6 JWT).
+  dio: ^5.7.0
+  intl: ^0.20.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  # HMAC signing for the live-API test's mock provider webhooks.
+  crypto: ^3.0.5
+
+flutter:
+  uses-material-design: true

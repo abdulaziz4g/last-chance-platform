@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+/* Class-based dark mode: the inline script in layout.tsx stamps `.dark`
+   on <html> before first paint (no theme flash). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Brand accent — restrained brass, the one warm note in a neutral field. */
+  --color-brass-200: #e7d6b8;
+  --color-brass-300: #d8bd92;
+  --color-brass-400: #c8a878;
+  --color-brass-500: #b49164;
+  --color-brass-600: #96764e;
+  --color-brass-700: #755a3a;
+
+  /* Near-black canvas — softer than pure #000, Apple-dark. */
+  --color-ink-900: #131316;
+  --color-ink-950: #0a0a0c;
+
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display",
+    "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  @apply bg-zinc-50 text-zinc-900 dark:bg-ink-950 dark:text-zinc-100;
+}
+
+/* Money and metrics always align. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  @apply bg-brass-400/30;
+}

@@ -1,0 +1,33 @@
+# Cloudflare fronts everything (WAF, DDoS, CDN, bot management); origin is
+# locked to Cloudflare IPs + authenticated origin pulls. TLS via cert-manager.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: lastchance
+  namespace: lastchance
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: 2m
+    # WebSocket upgrade for /ws/availability
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [api.lastchance.example, console.lastchance.example]
+      secretName: lastchance-tls
+  rules:
+    - host: api.lastchance.example
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: lastchance-backend, port: { number: 80 } }
+    - host: console.lastchance.example
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: lastchance-web, port: { number: 80 } }

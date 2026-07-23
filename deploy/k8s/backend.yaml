@@ -1,0 +1,82 @@
+# ============================================================================
+# Backend API + workers. One deployment runs both HTTP and BullMQ workers in
+# v1; splitting workers into their own deployment is a label change when
+# queue depth demands independent scaling.
+# ============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lastchance-backend
+  namespace: lastchance
+  labels: { app: lastchance-backend }
+spec:
+  replicas: 3
+  strategy:
+    rollingUpdate: { maxSurge: 1, maxUnavailable: 0 } # zero-downtime rollouts
+  selector:
+    matchLabels: { app: lastchance-backend }
+  template:
+    metadata:
+      labels: { app: lastchance-backend }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: backend
+          image: ghcr.io/lastchance/backend:latest # CI stamps the git SHA tag
+          ports: [{ containerPort: 3000 }]
+          envFrom:
+            - configMapRef: { name: lastchance-config }
+            - secretRef: { name: lastchance-secrets }
+          resources:
+            requests: { cpu: 250m, memory: 256Mi }
+            limits: { cpu: "1", memory: 512Mi }
+          readinessProbe:
+            httpGet: { path: /health, port: 3000 }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /health, port: 3000 }
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lastchance-backend
+  namespace: lastchance
+spec:
+  selector: { app: lastchance-backend }
+  ports: [{ port: 80, targetPort: 3000 }]
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: lastchance-backend
+  namespace: lastchance
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: lastchance-backend
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: { type: Utilization, averageUtilization: 65 }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: lastchance-backend
+  namespace: lastchance
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels: { app: lastchance-backend }
