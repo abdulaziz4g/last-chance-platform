@@ -1,9 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Queue } from 'bullmq';
+import { createHmac } from 'node:crypto';
 import {
   HoldExpiredError,
   InvalidTransitionError,
+  ValidationFailedError,
 } from '../../../common/errors/domain-errors';
+import { AppConfigService } from '../../../config/config.service';
 import { DatabaseService } from '../../../infrastructure/database/database.service';
 import {
   PAYMENTS_QUEUE,
@@ -46,8 +49,50 @@ export class WebhookService {
     private readonly ledger: LedgerService,
     private readonly registry: PaymentProviderRegistry,
     private readonly bookings: BookingService,
+    private readonly config: AppConfigService,
     @Inject(PAYMENTS_QUEUE) private readonly queue: Queue<PaymentsJobData>,
   ) {}
+
+  /**
+   * DEV/TEST ONLY. Stands in for a real PSP SDK completing payment: it feeds a
+   * server-signed MOCK `payment.captured` event through the EXACT same intake
+   * pipeline a real provider webhook uses (signature verify → idempotent inbox
+   * → worker → capture + ledger + booking confirm). This is what the mobile
+   * PSP handoff calls after presenting its (mock) payment sheet — so the app's
+   * confirmation is genuinely webhook-driven, never a shortcut. Refuses in
+   * production and for non-MOCK payments.
+   */
+  async simulateMockCapture(paymentId: string): Promise<void> {
+    if (this.config.nodeEnv === 'production') {
+      throw new ValidationFailedError('Capture simulation is disabled in production');
+    }
+    const payment = await this.payments.findById(paymentId);
+    if (!payment) {
+      throw new ValidationFailedError('Payment not found', { paymentId });
+    }
+    if (payment.provider !== 'MOCK' || !payment.providerPaymentId) {
+      throw new ValidationFailedError(
+        'Only MOCK payments with a provider intent can be simulated',
+        { paymentId, provider: payment.provider },
+      );
+    }
+
+    const payload = {
+      id: `evt_sim_${payment.id}`,
+      type: 'payment.captured',
+      data: {
+        providerPaymentId: payment.providerPaymentId,
+        amountMinor: payment.amountMinor,
+        currency: payment.currency,
+      },
+    };
+    const rawBody = Buffer.from(JSON.stringify(payload), 'utf8');
+    const signature = createHmac('sha256', this.config.mockWebhookSecret)
+      .update(rawBody)
+      .digest('hex');
+
+    await this.intake('MOCK', rawBody, { 'x-mock-signature': signature });
+  }
 
   // ---- intake --------------------------------------------------------------
 

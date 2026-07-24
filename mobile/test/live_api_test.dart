@@ -12,6 +12,7 @@ import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lastchance_mobile/core/api/api_client.dart';
+import 'package:lastchance_mobile/core/realtime/realtime_service.dart';
 import 'package:lastchance_mobile/features/booking/data/booking_repository.dart';
 import 'package:lastchance_mobile/features/booking/domain/booking.dart';
 import 'package:lastchance_mobile/features/payment/data/payment_repository.dart';
@@ -94,9 +95,13 @@ void main() {
     expect(webhook.data!['received'], isTrue);
 
     // The watcher — the same stream the payment screen listens to — must
-    // observe the webhook-driven confirmation.
-    final settled = await BookingWatcher(bookings)
-        .watch(booking.id, every: const Duration(milliseconds: 500))
+    // observe the webhook-driven confirmation via WS push.
+    final realtime = RealtimeService('ws://localhost:3000/ws/availability')
+      ..connect();
+    addTearDown(realtime.dispose);
+
+    final settled = await BookingWatcher(bookings, realtime)
+        .watch(booking.id)
         .firstWhere((b) => b.status != BookingStatus.pendingPayment)
         .timeout(const Duration(seconds: 20));
 

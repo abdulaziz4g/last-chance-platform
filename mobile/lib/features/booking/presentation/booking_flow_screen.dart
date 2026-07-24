@@ -51,8 +51,7 @@ class BookingFlowScreen extends ConsumerWidget {
           HoldActive(:final booking, :final paymentInitiated) => HoldActiveView(
               booking: booking,
               paymentInitiated: paymentInitiated,
-              onStartPayment: controller.startPayment,
-              onCompleteDev: controller.completePaymentDev,
+              onPay: controller.startPayment,
               onExpired: controller.onCountdownExpired,
             ),
           HoldConfirmed(:final booking) => HoldConfirmedView(

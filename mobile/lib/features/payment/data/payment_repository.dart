@@ -53,6 +53,16 @@ class PaymentRepository {
       return InitiatedPayment.fromJson(res.data!);
     });
   }
+
+  /// Mock PSP SDK completion: feeds a server-signed capture event through the
+  /// REAL webhook pipeline (signature verify -> idempotent inbox -> BullMQ ->
+  /// ledger + booking confirm). The booking watcher picks up CONFIRMED the
+  /// same way a production Stripe/Mada webhook would drive it.
+  Future<void> simulateCapture({required String paymentId}) {
+    return guardApi(() async {
+      await _dio.post<void>('/payments/$paymentId/simulate-capture');
+    });
+  }
 }
 
 final paymentRepositoryProvider = Provider<PaymentRepository>(

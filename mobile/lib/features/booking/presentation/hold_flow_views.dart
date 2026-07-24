@@ -15,15 +15,13 @@ class HoldActiveView extends StatelessWidget {
     super.key,
     required this.booking,
     required this.paymentInitiated,
-    required this.onStartPayment,
-    required this.onCompleteDev,
+    required this.onPay,
     required this.onExpired,
   });
 
   final Booking booking;
   final bool paymentInitiated;
-  final VoidCallback onStartPayment;
-  final VoidCallback onCompleteDev;
+  final VoidCallback onPay;
   final VoidCallback onExpired;
 
   @override
@@ -64,8 +62,8 @@ class HoldActiveView extends StatelessWidget {
         ),
         const Spacer(),
         FilledButton(
-          onPressed: paymentInitiated ? onCompleteDev : onStartPayment,
-          child: Text(paymentInitiated ? 'Complete payment (dev)' : 'Pay now'),
+          onPressed: paymentInitiated ? null : onPay,
+          child: Text(paymentInitiated ? 'Processing payment…' : 'Pay now'),
         ),
         const SizedBox(height: 8),
         Text(

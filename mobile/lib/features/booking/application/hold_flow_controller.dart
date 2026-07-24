@@ -87,33 +87,23 @@ class HoldFlowController extends AutoDisposeNotifier<HoldFlowState> {
     }
   }
 
-  /// Step 2 — initiate payment. The provider client action would hand off to
-  /// the PSP SDK here; confirmation arrives via the backend webhook, observed
-  /// by the watcher started in step 1.
+  /// Step 2 — initiate payment and hand off to the PSP. `initiate` returns a
+  /// `clientAction` (Stripe client_secret, redirect URL, etc.) that a real PSP
+  /// SDK consumes; capture then arrives at the backend via webhook and the
+  /// watcher sees CONFIRMED. In MOCK mode the `clientAction` carries a
+  /// `paymentId` which we pass to `simulateCapture` to feed a server-signed
+  /// event through the REAL webhook pipeline — same pipeline, just no external
+  /// PSP. The watcher picks up CONFIRMED either way.
   Future<void> startPayment() async {
     final current = state;
     if (current is! HoldActive) return;
     try {
-      await _payments.initiate(bookingId: current.booking.id);
+      final initiated = await _payments.initiate(bookingId: current.booking.id);
       state = HoldActive(current.booking, paymentInitiated: true);
-    } on ApiException catch (e) {
-      if (e.isHoldExpired) {
-        state = HoldExpired(current.booking);
-      } else {
-        state = HoldFailed(e.code, e.message);
-      }
-    }
-  }
-
-  /// Dev-build shortcut standing in for the PSP SDK completion (see
-  /// [BookingRepository.confirmDev]).
-  Future<void> completePaymentDev() async {
-    final current = state;
-    if (current is! HoldActive) return;
-    try {
-      final booking = await _bookings.confirmDev(current.booking.id);
-      _stopWatching();
-      state = HoldConfirmed(booking);
+      // MOCK PSP handoff: simulate the capture that a real PSP SDK would
+      // complete. This drives the real webhook pipeline; the booking watcher
+      // observes CONFIRMED the same way production does.
+      await _payments.simulateCapture(paymentId: initiated.paymentId);
     } on ApiException catch (e) {
       if (e.isHoldExpired) {
         state = HoldExpired(current.booking);
