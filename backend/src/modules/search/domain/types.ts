@@ -14,6 +14,7 @@ export interface UnitSearchDocument {
   propertyType: string;
   unitType: string;
   city: string;
+  cityText: string;
   countryCode: string;
   /** OpenSearch geo_point: { lat, lon }. */
   location: { lat: number; lon: number };

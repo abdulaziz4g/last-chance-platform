@@ -6,6 +6,7 @@ import { UnitSearchDocument } from '../domain/types';
 import {
   UNIT_ALIAS,
   UNIT_INDEX_V1,
+  UNIT_INDEX_CURRENT,
   unitIndexBody,
 } from './unit-index';
 import { rootLogger } from '../../../common/logger/logger';
@@ -32,21 +33,39 @@ export class UnitIndexer {
   ) {}
 
   async ensureIndex(): Promise<void> {
-    const exists = await this.os.indices.exists({ index: UNIT_INDEX_V1 });
+    const exists = await this.os.indices.exists({ index: UNIT_INDEX_CURRENT });
     if (!exists.body) {
       await this.os.indices.create({
-        index: UNIT_INDEX_V1,
+        index: UNIT_INDEX_CURRENT,
         body: unitIndexBody,
       });
-      log.info({ index: UNIT_INDEX_V1 }, 'Created unit index');
+      log.info({ index: UNIT_INDEX_CURRENT }, 'Created unit index');
     }
+
     const aliasExists = await this.os.indices.existsAlias({ name: UNIT_ALIAS });
-    if (!aliasExists.body) {
+    if (aliasExists.body) {
+      const aliasInfo = await this.os.cat.aliases({ name: UNIT_ALIAS, format: 'json' });
+      const currentTarget = (aliasInfo.body as { index: string }[])[0]?.index;
+      if (currentTarget && currentTarget !== UNIT_INDEX_CURRENT) {
+        await this.os.indices.updateAliases({
+          body: {
+            actions: [
+              { remove: { index: currentTarget, alias: UNIT_ALIAS } },
+              { add: { index: UNIT_INDEX_CURRENT, alias: UNIT_ALIAS } },
+            ],
+          },
+        });
+        log.info(
+          { alias: UNIT_ALIAS, from: currentTarget, to: UNIT_INDEX_CURRENT },
+          'Migrated search alias to new index version',
+        );
+      }
+    } else {
       await this.os.indices.putAlias({
-        index: UNIT_INDEX_V1,
+        index: UNIT_INDEX_CURRENT,
         name: UNIT_ALIAS,
       });
-      log.info({ alias: UNIT_ALIAS, index: UNIT_INDEX_V1 }, 'Bound search alias');
+      log.info({ alias: UNIT_ALIAS, index: UNIT_INDEX_CURRENT }, 'Bound search alias');
     }
   }
 
@@ -151,6 +170,7 @@ export class UnitIndexer {
       propertyType: r.property_type,
       unitType: r.unit_type,
       city: r.city,
+      cityText: r.city,
       countryCode: r.country_code,
       location: { lat: r.lat, lon: r.lon },
       supportsHourly: r.supports_hourly,

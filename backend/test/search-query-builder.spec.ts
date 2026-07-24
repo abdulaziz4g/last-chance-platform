@@ -20,10 +20,28 @@ describe('buildSearchBody', () => {
     expect(body.aggs).toHaveProperty('city');
   });
 
-  it('adds a fuzzy multi_match for text', () => {
+  it('adds a fuzzy multi_match for text across Latin and Arabic fields', () => {
     const body = buildSearchBody({ text: 'riyadh villa' });
-    const must = boolOf(body).must[0] as { multi_match: { fuzziness: string } };
+    const must = boolOf(body).must[0] as {
+      multi_match: { fuzziness: string; fields: string[] };
+    };
     expect(must.multi_match.fuzziness).toBe('AUTO');
+    expect(must.multi_match.fields).toContain('propertyName^2');
+    expect(must.multi_match.fields).toContain('propertyName.ar^2');
+    expect(must.multi_match.fields).toContain('unitName');
+    expect(must.multi_match.fields).toContain('unitName.ar');
+    expect(must.multi_match.fields).toContain('cityText^1.5');
+    expect(must.multi_match.fields).toContain('cityText.ar^1.5');
+  });
+
+  it('routes Arabic text through the same multi_match', () => {
+    const body = buildSearchBody({ text: 'فيلا الرياض' });
+    const must = boolOf(body).must[0] as {
+      multi_match: { query: string; fields: string[] };
+    };
+    expect(must.multi_match.query).toBe('فيلا الرياض');
+    expect(must.multi_match.fields).toContain('propertyName.ar^2');
+    expect(must.multi_match.fields).toContain('unitName.ar');
   });
 
   it('translates mode, guests, instant-book and amenity AND filters', () => {

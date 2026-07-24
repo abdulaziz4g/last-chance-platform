@@ -17,7 +17,14 @@ export function buildSearchBody(q: SearchQuery): Record<string, unknown> {
     must.push({
       multi_match: {
         query: q.text,
-        fields: ['propertyName^2', 'unitName', 'city^1.5'],
+        fields: [
+          'propertyName^2',
+          'propertyName.ar^2',
+          'unitName',
+          'unitName.ar',
+          'cityText^1.5',
+          'cityText.ar^1.5',
+        ],
         fuzziness: 'AUTO',
       },
     });
