@@ -54,6 +54,15 @@ services:
       timeout: 5s
       retries: 30
 
+  jaeger:
+    image: jaegertracing/jaeger:2
+    container_name: lastchance-jaeger
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "16686:16686"   # Jaeger UI
+      - "4318:4318"     # OTLP HTTP receiver (traces + metrics)
+
   # ---- application services (docker compose --profile full up -d --build) ---
   backend:
     build: ./backend
@@ -66,6 +75,7 @@ services:
       DATABASE_URL: postgres://lastchance:lastchance_dev_only@postgres:5432/lastchance
       REDIS_URL: redis://redis:6379
       OPENSEARCH_URL: http://opensearch:9200
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
     ports:
       - "3000:3000"
     depends_on:
@@ -75,6 +85,8 @@ services:
         condition: service_healthy
       opensearch:
         condition: service_healthy
+      jaeger:
+        condition: service_started
 
   web:
     build: ./web
