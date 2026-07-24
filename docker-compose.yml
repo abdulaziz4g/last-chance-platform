@@ -55,7 +55,7 @@ services:
       retries: 30
 
   jaeger:
-    image: jaegertracing/jaeger:2
+    image: jaegertracing/all-in-one:latest
     container_name: lastchance-jaeger
     environment:
       COLLECTOR_OTLP_ENABLED: "true"
