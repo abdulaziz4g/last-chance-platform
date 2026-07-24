@@ -4,13 +4,8 @@ import { dateTime, money, timeWindow } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
 
-export default async function HostBookingsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ hostId?: string }>;
-}) {
-  const { hostId } = await searchParams;
-  const host = await getHostOverview(hostId);
+export default async function HostBookingsPage() {
+  const host = await getHostOverview();
   if (!host) return <p className="text-zinc-500">No host profile found.</p>;
 
   return (

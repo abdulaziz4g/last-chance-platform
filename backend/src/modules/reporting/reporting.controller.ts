@@ -11,14 +11,7 @@ import {
 const listQuery = z.object({
   limit: z.coerce.number().int().min(1).max(200).default(50),
 });
-const hostQuery = z.object({ hostId: z.string().uuid().optional() });
 
-/**
- * Dashboard read endpoints (host + admin), ADMIN-gated. Hosts get their own
- * HOST-scoped surface when the console grows real host auth; today the web
- * console operates with the ADMIN identity. Internal — not in the public
- * OpenAPI document.
- */
 @Roles('ADMIN')
 @Controller()
 export class ReportingController {
@@ -63,11 +56,5 @@ export class ReportingController {
   webhooks(@Query() query: unknown): Promise<Record<string, unknown>[]> {
     const { limit } = parseWith(listQuery, query);
     return this.reporting.recentWebhookEvents(limit);
-  }
-
-  @Get('host/overview')
-  host(@Query() query: unknown): Promise<Record<string, unknown> | null> {
-    const { hostId } = parseWith(hostQuery, query);
-    return this.reporting.hostOverview(hostId);
   }
 }

@@ -189,20 +189,16 @@ export class ReportingRepository {
     return res.rows;
   }
 
-  /** Host snapshot; hostId omitted -> most recent host (dev convenience). */
-  async hostOverview(hostId?: string): Promise<Record<string, unknown> | null> {
+  async hostOverview(hostId: string): Promise<Record<string, unknown> | null> {
     const host = await this.db.query<{
       user_id: string;
       display_name: string;
       rating_avg: number | null;
       rating_count: number;
     }>(
-      hostId
-        ? `SELECT user_id, display_name, rating_avg, rating_count
-           FROM host_profiles WHERE user_id = $1`
-        : `SELECT user_id, display_name, rating_avg, rating_count
-           FROM host_profiles ORDER BY created_at DESC LIMIT 1`,
-      hostId ? [hostId] : [],
+      `SELECT user_id, display_name, rating_avg, rating_count
+       FROM host_profiles WHERE user_id = $1`,
+      [hostId],
     );
     const h = host.rows[0];
     if (!h) return null;

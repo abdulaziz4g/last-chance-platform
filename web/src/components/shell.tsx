@@ -7,15 +7,18 @@ export interface NavItem {
   label: string;
 }
 
-/** Shared dashboard chrome: fixed sidebar, airy content column. */
 export function Shell({
   area,
   nav,
   children,
+  userEmail,
+  logoutAction,
 }: {
   area: string;
   nav: NavItem[];
   children: ReactNode;
+  userEmail?: string;
+  logoutAction?: () => Promise<void>;
 }) {
   return (
     <div className="flex min-h-dvh">
@@ -43,11 +46,23 @@ export function Shell({
 
         <div className="mt-auto space-y-4">
           <ThemeToggle />
-          <p className="text-[10px] leading-relaxed text-zinc-400 dark:text-zinc-600">
-            Development build.
-            <br />
-            All times UTC · amounts in minor units at the API.
-          </p>
+          {userEmail && (
+            <div className="space-y-1">
+              <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
+                {userEmail}
+              </p>
+              {logoutAction && (
+                <form action={logoutAction}>
+                  <button
+                    type="submit"
+                    className="text-xs text-zinc-400 transition-colors hover:text-zinc-700 dark:text-zinc-600 dark:hover:text-zinc-300"
+                  >
+                    Sign out
+                  </button>
+                </form>
+              )}
+            </div>
+          )}
         </div>
       </aside>
 

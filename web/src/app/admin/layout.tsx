@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 import { Shell } from '@/components/shell';
+import { getSession } from '@/lib/session';
+import { logoutAction } from '@/app/login/actions';
 
 const NAV = [
   { href: '/admin', label: 'Overview' },
@@ -8,9 +10,19 @@ const NAV = [
   { href: '/host', label: '→ Host studio' },
 ];
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
+export default async function AdminLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const session = await getSession();
   return (
-    <Shell area="Operations" nav={NAV}>
+    <Shell
+      area="Operations"
+      nav={NAV}
+      userEmail={session?.email}
+      logoutAction={logoutAction}
+    >
       {children}
     </Shell>
   );

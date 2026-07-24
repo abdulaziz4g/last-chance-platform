@@ -1,18 +1,17 @@
-/**
- * Server-side API client. All dashboard data flows Server Component ->
- * NestJS over the internal network; the browser never talks to the API
- * directly in this phase (no CORS surface, no leaked endpoints).
- *
- * AUTH NOTE: dev actor headers until platform JWT auth lands; the call
- * sites will not change — only the header source will.
- */
+import { getSession } from './session';
 
 const API_BASE = process.env.BACKEND_URL ?? 'http://localhost:3000';
+
+async function authHeaders(): Promise<Record<string, string>> {
+  const session = await getSession();
+  if (session) return { authorization: `Bearer ${session.token}` };
+  return { 'x-actor-type': 'ADMIN' };
+}
 
 async function api<T>(path: string): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     cache: 'no-store',
-    headers: { 'x-actor-type': 'ADMIN' },
+    headers: await authHeaders(),
   });
   if (!res.ok) {
     throw new Error(`API ${path} responded ${res.status}`);
@@ -21,10 +20,11 @@ async function api<T>(path: string): Promise<T> {
 }
 
 async function apiPost<T>(path: string, body: unknown): Promise<T> {
+  const headers = await authHeaders();
   const res = await fetch(`${API_BASE}${path}`, {
     cache: 'no-store',
     method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-actor-type': 'GUEST' },
+    headers: { ...headers, 'content-type': 'application/json' },
     body: JSON.stringify(body),
   });
   if (!res.ok) {
@@ -152,8 +152,10 @@ export const getAdminLedger = (
   api(`/admin/ledger?limit=${limit}`);
 export const getAdminWebhooks = (limit = 50): Promise<WebhookRow[]> =>
   api(`/admin/webhooks?limit=${limit}`);
-export const getHostOverview = (hostId?: string): Promise<HostOverview | null> =>
-  api(`/host/overview${hostId ? `?hostId=${hostId}` : ''}`);
+export const getHostOverview = (): Promise<HostOverview | null> =>
+  api('/host/overview');
+export const getHostBookings = (limit = 50): Promise<BookingRow[]> =>
+  api(`/host/bookings?limit=${limit}`);
 
 // ---- discovery (public search) --------------------------------------------
 
