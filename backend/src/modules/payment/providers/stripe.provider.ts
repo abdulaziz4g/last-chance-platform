@@ -38,8 +38,17 @@ export class StripePaymentProvider implements PaymentProviderPort {
       currency: params.currency.toLowerCase(),
       'metadata[payment_id]': params.paymentId,
       'metadata[booking_code]': params.bookingCode,
-      'automatic_payment_methods[enabled]': 'true',
     });
+
+    // Mada cards: restrict to card + mada for lowest interchange on Saudi
+    // debit. Other methods use Stripe's automatic_payment_methods.
+    if (params.method === 'MADA') {
+      body.set('payment_method_types[]', 'card');
+      body.set('payment_method_options[card][network]', 'mada');
+    } else {
+      body.set('automatic_payment_methods[enabled]', 'true');
+    }
+
     const res = await fetch(`${STRIPE_API}/payment_intents`, {
       method: 'POST',
       headers: {

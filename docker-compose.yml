@@ -76,6 +76,9 @@ services:
       REDIS_URL: redis://redis:6379
       OPENSEARCH_URL: http://opensearch:9200
       OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+      # Stripe — uncomment and set for live payment testing:
+      # STRIPE_SECRET_KEY: sk_test_...
+      # STRIPE_WEBHOOK_SECRET: whsec_...
     ports:
       - "3000:3000"
     depends_on:

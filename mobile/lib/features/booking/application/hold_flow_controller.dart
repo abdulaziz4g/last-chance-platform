@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_exception.dart';
 import '../../deals/data/deal_repository.dart';
+import '../../payment/application/payment_gateway_service.dart';
 import '../../payment/data/payment_repository.dart';
 import '../data/booking_repository.dart';
 import '../domain/booking.dart';
@@ -56,6 +57,7 @@ class HoldFlowController extends AutoDisposeNotifier<HoldFlowState> {
 
   BookingRepository get _bookings => ref.read(bookingRepositoryProvider);
   PaymentRepository get _payments => ref.read(paymentRepositoryProvider);
+  PaymentGatewayService get _gateway => ref.read(paymentGatewayProvider);
   DealRepository get _deals => ref.read(dealRepositoryProvider);
   BookingWatcher get _watcher => ref.read(bookingWatcherProvider);
 
@@ -88,22 +90,20 @@ class HoldFlowController extends AutoDisposeNotifier<HoldFlowState> {
   }
 
   /// Step 2 — initiate payment and hand off to the PSP. `initiate` returns a
-  /// `clientAction` (Stripe client_secret, redirect URL, etc.) that a real PSP
-  /// SDK consumes; capture then arrives at the backend via webhook and the
-  /// watcher sees CONFIRMED. In MOCK mode the `clientAction` carries a
-  /// `paymentId` which we pass to `simulateCapture` to feed a server-signed
-  /// event through the REAL webhook pipeline — same pipeline, just no external
-  /// PSP. The watcher picks up CONFIRMED either way.
+  /// `clientAction` whose shape depends on the provider (Stripe client_secret,
+  /// MOCK confirm, etc.). The gateway service routes to the right PSP SDK;
+  /// capture then arrives at the backend via webhook and the watcher sees
+  /// CONFIRMED regardless of provider.
   Future<void> startPayment() async {
     final current = state;
     if (current is! HoldActive) return;
     try {
       final initiated = await _payments.initiate(bookingId: current.booking.id);
       state = HoldActive(current.booking, paymentInitiated: true);
-      // MOCK PSP handoff: simulate the capture that a real PSP SDK would
-      // complete. This drives the real webhook pipeline; the booking watcher
-      // observes CONFIRMED the same way production does.
-      await _payments.simulateCapture(paymentId: initiated.paymentId);
+      final result = await _gateway.completePayment(initiated);
+      if (result is PaymentCancelled) {
+        state = HoldFailed('PAYMENT_CANCELLED', result.reason);
+      }
     } on ApiException catch (e) {
       if (e.isHoldExpired) {
         state = HoldExpired(current.booking);

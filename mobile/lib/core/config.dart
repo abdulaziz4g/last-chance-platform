@@ -23,6 +23,21 @@ class LcConfig {
     return '$scheme://${uri.authority}/ws/availability';
   }
 
+  /// Payment provider: MOCK for dev, STRIPE for production.
+  static const String paymentProvider = String.fromEnvironment(
+    'LC_PSP',
+    defaultValue: 'MOCK',
+  );
+
+  /// Stripe publishable key — required when LC_PSP=STRIPE.
+  static const String stripePublishableKey = String.fromEnvironment(
+    'LC_STRIPE_PK',
+    defaultValue: '',
+  );
+
+  static bool get isStripeEnabled =>
+      paymentProvider == 'STRIPE' && stripePublishableKey.isNotEmpty;
+
   static const String demoGuestId = String.fromEnvironment('LC_GUEST_ID');
   static const String demoUnitId = String.fromEnvironment('LC_UNIT_ID');
 

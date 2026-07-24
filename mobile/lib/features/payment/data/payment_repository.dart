@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/api/api_exception.dart';
+import '../../../core/config.dart';
 
 class InitiatedPayment {
   const InitiatedPayment({
@@ -38,15 +39,16 @@ class PaymentRepository {
 
   Future<InitiatedPayment> initiate({
     required String bookingId,
-    String provider = 'MOCK',
+    String? provider,
     String method = 'MADA',
   }) {
+    final psp = provider ?? LcConfig.paymentProvider;
     return guardApi(() async {
       final res = await _dio.post<Map<String, dynamic>>(
         '/payments/initiate',
         data: <String, dynamic>{
           'bookingId': bookingId,
-          'provider': provider,
+          'provider': psp,
           'method': method,
         },
       );
