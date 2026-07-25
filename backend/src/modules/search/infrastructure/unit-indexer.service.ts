@@ -140,6 +140,7 @@ export class UnitIndexer {
       rating_avg: number | null;
       rating_count: number;
       instant_book: boolean;
+      photos: unknown;
     }>(
       `SELECT u.id AS unit_id, u.property_id, p.host_id,
               u.name AS unit_name, p.name AS property_name,
@@ -151,7 +152,7 @@ export class UnitIndexer {
               u.base_hourly_rate_minor AS hourly_rate_minor,
               u.base_nightly_rate_minor AS nightly_rate_minor,
               p.amenities,
-              p.rating_avg, p.rating_count, u.instant_book
+              p.rating_avg, p.rating_count, u.instant_book, u.photos
        FROM units u
        JOIN properties p ON p.id = u.property_id
        WHERE u.status = 'ACTIVE' AND u.deleted_at IS NULL
@@ -183,6 +184,7 @@ export class UnitIndexer {
       ratingAvg: r.rating_avg,
       ratingCount: r.rating_count,
       instantBook: r.instant_book,
+      photos: Array.isArray(r.photos) ? (r.photos as string[]) : [],
       indexedAt: now,
     }));
   }

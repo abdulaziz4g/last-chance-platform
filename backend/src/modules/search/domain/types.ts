@@ -28,6 +28,8 @@ export interface UnitSearchDocument {
   ratingAvg: number | null;
   ratingCount: number;
   instantBook: boolean;
+  /** Carried for result cards only — stored, never queried or filtered on. */
+  photos: string[];
   /** Only ACTIVE units of ACTIVE, non-deleted properties are indexed. */
   indexedAt: string;
 }
@@ -72,6 +74,8 @@ export interface SearchResultItem {
   ratingAvg: number | null;
   ratingCount: number;
   instantBook: boolean;
+  /** Cover image first; empty when the host has not uploaded any. */
+  photos: string[];
   /** Present only when the query carried an availability window. */
   available: boolean | null;
 }

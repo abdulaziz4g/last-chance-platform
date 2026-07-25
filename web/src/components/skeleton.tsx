@@ -68,17 +68,20 @@ export function SkeletonTable({
 /** Mirrors the discover unit card. */
 export function SkeletonUnitCard() {
   return (
-    <Card className="flex flex-col p-5">
-      <Skeleton className="h-3.5 w-32" />
-      <Skeleton className="mt-2 h-2.5 w-40" />
-      <div className="mt-3 flex gap-1.5">
-        <Skeleton className="h-5 w-12" />
-        <Skeleton className="h-5 w-12" />
-        <Skeleton className="h-5 w-16" />
+    <Card className="flex flex-col overflow-hidden">
+      <Skeleton className="aspect-[3/2] w-full rounded-none" />
+      <div className="p-5">
+        <Skeleton className="h-3.5 w-32" />
+        <Skeleton className="mt-2 h-2.5 w-40" />
+        <div className="mt-3 flex gap-1.5">
+          <Skeleton className="h-5 w-12" />
+          <Skeleton className="h-5 w-12" />
+          <Skeleton className="h-5 w-16" />
+        </div>
+        <Skeleton className="mt-4 h-6 w-28" />
+        <Skeleton className="mt-1.5 h-2.5 w-24" />
+        <Skeleton className="mt-4 h-9 w-full rounded-lg" />
       </div>
-      <Skeleton className="mt-4 h-6 w-28" />
-      <Skeleton className="mt-1.5 h-2.5 w-24" />
-      <Skeleton className="mt-4 h-9 w-full rounded-lg" />
     </Card>
   );
 }

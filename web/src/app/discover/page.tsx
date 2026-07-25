@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Card, StatusChip } from '@/components/ui';
 import {
   getActiveDeals,
@@ -129,7 +130,24 @@ export default async function DiscoverPage({
           {results.items.map((u) => {
             const rate = modeIsHourly ? u.hourlyRateMinor : u.nightlyRateMinor;
             return (
-              <Card key={u.unitId} className="flex flex-col p-5">
+              <Card key={u.unitId} className="flex flex-col overflow-hidden">
+                <div className="relative aspect-[3/2] bg-zinc-100 dark:bg-white/[0.04]">
+                  {u.photos.length > 0 ? (
+                    <Image
+                      src={u.photos[0]}
+                      alt={`${u.propertyName} — ${u.unitName}`}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <span className="absolute inset-0 flex items-center justify-center text-[11px] text-zinc-400 dark:text-zinc-600">
+                      No photo
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex flex-1 flex-col p-5">
                 <div className="mb-3 flex items-start justify-between gap-2">
                   <div>
                     <p className="text-sm font-semibold">{u.propertyName}</p>
@@ -181,6 +199,7 @@ export default async function DiscoverPage({
                 >
                   View stay
                 </Link>
+                </div>
               </Card>
             );
           })}

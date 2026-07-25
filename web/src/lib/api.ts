@@ -33,7 +33,7 @@ async function apiPost<T>(path: string, body: unknown): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-type SafeResult<T> =
+export type SafeResult<T> =
   | { ok: true; data: T }
   | { ok: false; error: string };
 
@@ -225,6 +225,7 @@ export interface SearchResultItem {
   ratingAvg: number | null;
   ratingCount: number;
   instantBook: boolean;
+  photos: string[];
   available: boolean | null;
 }
 
@@ -355,6 +356,69 @@ export interface UnitDetail {
 
 export const getUnitDetail = (unitId: string): Promise<UnitDetail> =>
   api(`/units/${unitId}`);
+
+// ---- unit photos ------------------------------------------------------------
+
+export const getUnitPhotos = (unitId: string): Promise<string[]> =>
+  api(`/units/${unitId}/photos`);
+
+/**
+ * Streams the file straight through to the API. `fetch` sets the multipart
+ * boundary itself when handed a FormData, so the content-type header must be
+ * left alone here.
+ */
+export async function uploadUnitPhoto(
+  unitId: string,
+  file: File,
+): Promise<SafeResult<{ photos: string[] }>> {
+  const form = new FormData();
+  form.append('file', file);
+
+  const headers = await authHeaders();
+  try {
+    const res = await fetch(`${API_BASE}/units/${unitId}/photos`, {
+      method: 'POST',
+      headers,
+      body: form,
+      cache: 'no-store',
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      let msg = `Upload failed (${res.status})`;
+      try {
+        const parsed = JSON.parse(text);
+        msg = parsed?.error?.message ?? parsed?.message ?? msg;
+      } catch {
+        /* keep the status message */
+      }
+      return { ok: false, error: msg };
+    }
+    return { ok: true, data: (await res.json()) as { photos: string[] } };
+  } catch {
+    return { ok: false, error: 'Could not reach the server.' };
+  }
+}
+
+export async function deleteUnitPhoto(
+  unitId: string,
+  url: string,
+): Promise<SafeResult<{ photos: string[] }>> {
+  const headers = await authHeaders();
+  try {
+    const res = await fetch(`${API_BASE}/units/${unitId}/photos`, {
+      method: 'DELETE',
+      headers: { ...headers, 'content-type': 'application/json' },
+      body: JSON.stringify({ url }),
+      cache: 'no-store',
+    });
+    if (!res.ok) {
+      return { ok: false, error: `Could not remove the photo (${res.status})` };
+    }
+    return { ok: true, data: (await res.json()) as { photos: string[] } };
+  } catch {
+    return { ok: false, error: 'Could not reach the server.' };
+  }
+}
 
 // ---- cancellation -----------------------------------------------------------
 

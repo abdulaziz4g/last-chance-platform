@@ -5,6 +5,7 @@ import { money } from '@/lib/format';
 import { Card, SectionTitle, StatusChip } from '@/components/ui';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { DealCountdown } from './deal-countdown';
+import { PhotoGallery } from './photo-gallery';
 
 export const dynamic = 'force-dynamic';
 
@@ -107,25 +108,10 @@ export default async function UnitDetailPage({
         </p>
       </div>
 
-      {unit.photos.length > 0 ? (
-        <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          {unit.photos.slice(0, 3).map((src) => (
-            // Remote host photos: plain <img> avoids a next.config allowlist
-            // per host. Swap to next/image when the CDN domain is fixed.
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={src}
-              src={src}
-              alt=""
-              className="h-52 w-full rounded-2xl object-cover"
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="mb-8 flex h-40 items-center justify-center rounded-2xl border border-dashed border-zinc-200 text-xs text-zinc-400 dark:border-white/[0.08] dark:text-zinc-600">
-          No photos yet
-        </div>
-      )}
+      <PhotoGallery
+        photos={unit.photos}
+        alt={`${property.name} — ${unit.name}`}
+      />
 
       {activeDeal && (
         <Card className="mb-8 border-brass-400/30 bg-gradient-to-b from-brass-400/[0.08] to-transparent p-5 dark:border-brass-500/25">

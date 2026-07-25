@@ -6,6 +6,7 @@ import { logoutAction } from '@/app/login/actions';
 const NAV = [
   { href: '/host', label: 'Overview' },
   { href: '/host/bookings', label: 'Bookings' },
+  { href: '/host/units', label: 'Units' },
   { href: '/host/deals', label: 'Flash deals' },
   { href: '/admin', label: '→ Operations console' },
 ];

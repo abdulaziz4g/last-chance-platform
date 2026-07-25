@@ -33,6 +33,7 @@ interface OsHit {
     ratingAvg: number | null;
     ratingCount: number;
     instantBook: boolean;
+    photos?: string[];
     turnaroundMinutes?: number;
   };
   sort?: unknown[];
@@ -108,6 +109,7 @@ export class SearchService {
       ratingAvg: hit._source.ratingAvg,
       ratingCount: hit._source.ratingCount,
       instantBook: hit._source.instantBook,
+      photos: hit._source.photos ?? [],
       available: null,
     }));
 

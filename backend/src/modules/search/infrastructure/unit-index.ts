@@ -72,6 +72,9 @@ export const unitIndexBody = {
       ratingAvg: { type: 'half_float' },
       ratingCount: { type: 'integer' },
       instantBook: { type: 'boolean' },
+      // Returned with the hit but never searched or aggregated on; `index:
+      // false` keeps them out of the inverted index entirely.
+      photos: { type: 'keyword', index: false, doc_values: false },
       indexedAt: { type: 'date' },
     },
   },
