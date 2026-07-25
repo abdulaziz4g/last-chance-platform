@@ -176,10 +176,10 @@ export default async function DiscoverPage({
                 </div>
 
                 <Link
-                  href={`/book/${u.unitId}`}
+                  href={`/units/${u.unitId}`}
                   className="mt-4 block rounded-lg bg-brass-500 px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-brass-600 dark:bg-brass-600 dark:hover:bg-brass-500"
                 >
-                  Book now
+                  View stay
                 </Link>
               </Card>
             );

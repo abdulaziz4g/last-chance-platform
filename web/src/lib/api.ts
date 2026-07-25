@@ -286,6 +286,76 @@ export interface FlashDealView {
 
 export const getActiveDeals = (): Promise<FlashDealView[]> => api('/deals/active');
 
+// ---- unit detail ------------------------------------------------------------
+
+export interface UnitDetail {
+  unit: {
+    id: string;
+    name: string;
+    unitType: string;
+    status: string;
+    supportsHourly: boolean;
+    supportsNightly: boolean;
+    maxGuests: number;
+    bedrooms: number | null;
+    beds: number | null;
+    bathrooms: number | null;
+    areaSqm: number | null;
+    currency: string;
+    hourlyRateMinor: number | null;
+    nightlyRateMinor: number | null;
+    minHourlyDurationMinutes: number;
+    turnaroundMinutes: number;
+    instantBook: boolean;
+    photos: string[];
+  };
+  property: {
+    id: string;
+    name: string;
+    slug: string;
+    description: string | null;
+    propertyType: string;
+    city: string;
+    countryCode: string;
+    addressLine1: string | null;
+    timezone: string;
+    lat: number;
+    lon: number;
+    amenities: string[];
+    policies: Record<string, unknown>;
+    defaultCheckInTime: string;
+    defaultCheckOutTime: string;
+    ratingAvg: number | null;
+    ratingCount: number;
+  };
+  host: {
+    id: string;
+    displayName: string;
+    bio: string | null;
+    isSuperhost: boolean;
+    ratingAvg: number | null;
+    ratingCount: number;
+  };
+  reviews: {
+    id: string;
+    overallRating: number;
+    comment: string | null;
+    hostReply: string | null;
+    createdAt: string;
+    authorName: string;
+  }[];
+  activeDeal: {
+    id: string;
+    title: string;
+    discountPct: number;
+    endsAt: string;
+    quantityRemaining: number;
+  } | null;
+}
+
+export const getUnitDetail = (unitId: string): Promise<UnitDetail> =>
+  api(`/units/${unitId}`);
+
 // ---- booking flow -----------------------------------------------------------
 
 export interface Booking {

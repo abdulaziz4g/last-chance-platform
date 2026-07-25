@@ -18,6 +18,7 @@ import { BookingModule } from './modules/booking/booking.module';
 import { PaymentModule } from './modules/payment/payment.module';
 import { ReportingModule } from './modules/reporting/reporting.module';
 import { SearchModule } from './modules/search/search.module';
+import { InventoryModule } from './modules/inventory/inventory.module';
 import { DealsModule } from './modules/deals/deals.module';
 import { DocsModule } from './modules/docs/docs.module';
 import { HealthModule } from './modules/health/health.module';
@@ -43,6 +44,7 @@ import { HealthModule } from './modules/health/health.module';
     ReportingModule,
     RealtimeModule,
     SearchModule,
+    InventoryModule,
     DealsModule,
     DocsModule,
     HealthModule,

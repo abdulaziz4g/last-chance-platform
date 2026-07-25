@@ -70,6 +70,16 @@ export class BookingNotFoundError extends DomainError {
   }
 }
 
+/** No bookable unit with that id — absent, deleted, or not publicly listed. */
+export class UnitNotFoundError extends DomainError {
+  readonly code = 'UNIT_NOT_FOUND';
+  readonly httpStatus = 404;
+
+  constructor(unitId: string) {
+    super('Unit not found', { unitId });
+  }
+}
+
 export class UnitNotBookableError extends DomainError {
   readonly code = 'UNIT_NOT_BOOKABLE';
   readonly httpStatus = 422;
