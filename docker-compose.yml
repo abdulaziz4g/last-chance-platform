@@ -76,9 +76,13 @@ services:
       REDIS_URL: redis://redis:6379
       OPENSEARCH_URL: http://opensearch:9200
       OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
-      # Stripe — uncomment and set for live payment testing:
+      # Stripe — uncomment and set for live payment testing. All three are
+      # required: the registry only enables STRIPE when the secret and webhook
+      # secret are present, and checkout needs the publishable key to collect
+      # card details. With none set, payments stay on the dev MOCK provider.
       # STRIPE_SECRET_KEY: sk_test_...
       # STRIPE_WEBHOOK_SECRET: whsec_...
+      # STRIPE_PUBLISHABLE_KEY: pk_test_...
     ports:
       - "3000:3000"
     depends_on:

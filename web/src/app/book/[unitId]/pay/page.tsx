@@ -1,4 +1,4 @@
-import { getBooking } from '@/lib/api';
+import { getBooking, getPaymentConfig } from '@/lib/api';
 import { money, timeWindow } from '@/lib/format';
 import { Card, StatusChip } from '@/components/ui';
 import { PayForm } from './pay-form';
@@ -38,6 +38,10 @@ export default async function PayPage({
       </main>
     );
   }
+
+  // Which PSP drives checkout is a server decision — the client is told, not
+  // asked, so a tampered form cannot select a provider that is not enabled.
+  const paymentConfig = await getPaymentConfig();
 
   return (
     <main className="mx-auto max-w-lg px-5 py-8 sm:px-6 sm:py-10">
@@ -122,7 +126,13 @@ export default async function PayPage({
         </p>
       )}
 
-      <PayForm bookingId={bookingId} unitId={unitId} />
+      <PayForm
+        bookingId={bookingId}
+        unitId={unitId}
+        provider={paymentConfig.provider}
+        publishableKey={paymentConfig.publishableKey}
+        currency={booking.currency}
+      />
     </main>
   );
 }

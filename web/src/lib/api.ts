@@ -436,6 +436,24 @@ export const initiatePayment = (params: {
   method: string;
 }): Promise<InitiatePaymentResult> => apiPost('/payments/initiate', params);
 
+export interface PaymentClientConfig {
+  provider: 'MOCK' | 'STRIPE';
+  enabled: string[];
+  publishableKey: string | null;
+}
+
+/**
+ * Which PSP checkout should drive. Falls back to MOCK if the API cannot be
+ * reached — the checkout page then still renders, and initiating will surface
+ * the real failure rather than a blank screen.
+ */
+export const getPaymentConfig = (): Promise<PaymentClientConfig> =>
+  api<PaymentClientConfig>('/payments/config').catch(() => ({
+    provider: 'MOCK' as const,
+    enabled: ['MOCK'],
+    publishableKey: null,
+  }));
+
 export const simulateCapture = (paymentId: string): Promise<{ accepted: boolean }> =>
   apiPost(`/payments/${paymentId}/simulate-capture`, {});
 

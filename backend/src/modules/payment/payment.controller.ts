@@ -10,9 +10,21 @@ import {
 import { PaymentService, InitiatePaymentResult } from './application/payment.service';
 import { PayoutService } from './application/payout.service';
 import { WebhookService } from './application/webhook.service';
-import { Payment, Payout } from './domain/types';
+import { PaymentProviderRegistry } from './providers/provider.registry';
+import { Payment, PaymentProviderName, Payout } from './domain/types';
 import { ValidationFailedError } from '../../common/errors/domain-errors';
+import { AppConfigService } from '../../config/config.service';
+import { Public } from '../../common/auth/decorators';
 import { initiatePaymentSchema, parseWith } from './payment.schemas';
+
+/** What a checkout client needs to know before it can collect a payment. */
+export interface PaymentClientConfig {
+  /** The provider a client should ask for. STRIPE wins when configured. */
+  provider: PaymentProviderName;
+  enabled: PaymentProviderName[];
+  /** Publishable key for Stripe.js; null unless STRIPE is the active provider. */
+  publishableKey: string | null;
+}
 
 @Controller()
 export class PaymentController {
@@ -20,7 +32,31 @@ export class PaymentController {
     private readonly paymentService: PaymentService,
     private readonly payoutService: PayoutService,
     private readonly webhookService: WebhookService,
+    private readonly registry: PaymentProviderRegistry,
+    private readonly config: AppConfigService,
   ) {}
+
+  /**
+   * Lets the checkout page pick a flow without hardcoding one. A real PSP is
+   * preferred whenever its credentials are present; MOCK is what remains in a
+   * dev box with no keys, and is never registered in production.
+   */
+  @Public()
+  @Get('payments/config')
+  clientConfig(): PaymentClientConfig {
+    const enabled = this.registry.enabledNames();
+    const provider: PaymentProviderName = enabled.includes('STRIPE')
+      ? 'STRIPE'
+      : 'MOCK';
+    return {
+      provider,
+      enabled,
+      publishableKey:
+        provider === 'STRIPE'
+          ? (this.config.stripePublishableKey ?? null)
+          : null,
+    };
+  }
 
   /** Start payment for a held booking; returns the provider client action. */
   @Post('payments/initiate')

@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/session';
-import { apiPostSafe } from '@/lib/api';
+import { apiPostSafe, getPaymentConfig } from '@/lib/api';
 import type { Booking, InitiatePaymentResult } from '@/lib/api';
 
 export async function holdAction(
@@ -32,16 +32,31 @@ export async function holdAction(
   redirect(`/book/${unitId}/pay?bookingId=${result.data.id}`);
 }
 
+export interface PayActionState {
+  error?: string;
+  /**
+   * Set only for real PSPs: the browser must collect card details itself and
+   * confirm directly with the provider, so the secret comes back to the client
+   * rather than the server completing the payment.
+   */
+  stripe?: { clientSecret: string; paymentId: string };
+}
+
 export async function payAction(
-  _prev: { error?: string } | null,
+  _prev: PayActionState | null,
   formData: FormData,
-): Promise<{ error?: string }> {
+): Promise<PayActionState> {
   const bookingId = formData.get('bookingId') as string;
   const method = formData.get('method') as string;
 
+  // Resolved here rather than read from the form: a hidden field is the
+  // client's to edit, and downgrading a real PSP to the dev provider must not
+  // be a thing a posted form can ask for.
+  const { provider } = await getPaymentConfig();
+
   const result = await apiPostSafe<InitiatePaymentResult>('/payments/initiate', {
     bookingId,
-    provider: 'MOCK',
+    provider,
     method,
   });
 
@@ -50,12 +65,32 @@ export async function payAction(
   const clientAction = result.data.clientAction;
   const paymentId = result.data.payment.id;
 
-  if (clientAction?.type === 'MOCK_CONFIRM') {
-    const capture = await apiPostSafe<{ accepted: boolean }>(
-      `/payments/${paymentId}/simulate-capture`,
-      {},
-    );
-    if (!capture.ok) return { error: capture.error };
+  switch (clientAction?.type) {
+    case 'MOCK_CONFIRM': {
+      // The dev PSP has no sheet to present; drive its server-signed capture
+      // through the same webhook pipeline a real provider would use.
+      const capture = await apiPostSafe<{ accepted: boolean }>(
+        `/payments/${paymentId}/simulate-capture`,
+        {},
+      );
+      if (!capture.ok) return { error: capture.error };
+      break;
+    }
+
+    case 'STRIPE_CLIENT_SECRET': {
+      const clientSecret = clientAction.clientSecret as string | undefined;
+      if (!clientSecret) {
+        return { error: 'The payment provider did not return a client secret.' };
+      }
+      // Hand back to the browser — confirmation happens there, and the booking
+      // is settled by Stripe's webhook, not by this request.
+      return { stripe: { clientSecret, paymentId } };
+    }
+
+    default:
+      return {
+        error: `Unsupported payment action: ${clientAction?.type ?? 'none'}`,
+      };
   }
 
   redirect(`/book/confirmation?bookingId=${bookingId}`);

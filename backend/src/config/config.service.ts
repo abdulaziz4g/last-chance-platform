@@ -17,6 +17,8 @@ const envSchema = z.object({
   MOCK_WEBHOOK_SECRET: z.string().default('mock_dev_secret'),
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  /** Safe to ship to browsers; required for Stripe.js card collection. */
+  STRIPE_PUBLISHABLE_KEY: z.string().optional(),
   /** Delay before executing a created payout (real platforms hold days). */
   PAYOUT_EXECUTE_DELAY_MS: z.coerce.number().int().min(0).default(3000),
   JWT_SECRET: z.string().min(16).default('dev_jwt_secret_change_me_32chars'),
@@ -71,6 +73,10 @@ export class AppConfigService {
 
   get stripeWebhookSecret(): string | undefined {
     return this.env.STRIPE_WEBHOOK_SECRET;
+  }
+
+  get stripePublishableKey(): string | undefined {
+    return this.env.STRIPE_PUBLISHABLE_KEY;
   }
 
   get payoutExecuteDelayMs(): number {
