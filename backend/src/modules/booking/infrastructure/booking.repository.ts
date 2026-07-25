@@ -219,6 +219,17 @@ export class BookingRepository {
     return res.rows[0] ? toBooking(res.rows[0]) : null;
   }
 
+  async listByGuest(guestId: string, limit: number): Promise<Booking[]> {
+    const res = await this.db.query<BookingRow>(
+      `SELECT ${BOOKING_COLUMNS} FROM bookings
+       WHERE guest_id = $1
+       ORDER BY created_at DESC
+       LIMIT $2`,
+      [guestId, limit],
+    );
+    return res.rows.map(toBooking);
+  }
+
   /** Safety-net sweep via the Phase 1 SQL function (SKIP LOCKED batches). */
   async sweepStaleHolds(): Promise<string[]> {
     const res = await this.db.query<{ fn_expire_stale_holds: string }>(

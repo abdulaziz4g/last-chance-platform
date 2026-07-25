@@ -62,7 +62,15 @@ export default async function DiscoverPage({
             Discover
           </p>
         </div>
-        <ThemeToggle />
+        <div className="flex items-center gap-4">
+          <Link
+            href="/bookings"
+            className="text-sm text-zinc-500 transition-colors hover:text-brass-500 dark:text-zinc-400 dark:hover:text-brass-400"
+          >
+            My bookings
+          </Link>
+          <ThemeToggle />
+        </div>
       </header>
 
       <DealStrip deals={deals} />
@@ -176,6 +184,13 @@ export default async function DiscoverPage({
                         ) : null}
                       </div>
                     </div>
+
+                    <Link
+                      href={`/book/${u.unitId}`}
+                      className="mt-4 block rounded-lg bg-brass-500 px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-brass-600 dark:bg-brass-600 dark:hover:bg-brass-500"
+                    >
+                      Book now
+                    </Link>
                   </Card>
                 );
               })}

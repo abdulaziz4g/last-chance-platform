@@ -297,6 +297,10 @@ export class BookingService {
     return this.mustFind(bookingId);
   }
 
+  async listByGuest(guestId: string, limit = 50): Promise<Booking[]> {
+    return this.bookings.listByGuest(guestId, limit);
+  }
+
   private async simpleTransition(
     bookingId: string,
     to: 'CHECKED_IN' | 'COMPLETED',

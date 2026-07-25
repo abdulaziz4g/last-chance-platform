@@ -31,6 +31,23 @@ export default async function Home() {
           </p>
         </Link>
 
+        {session && (
+          <Link
+            href="/bookings"
+            className="group rounded-2xl border border-zinc-200 bg-white p-8 transition-all hover:border-brass-400 hover:shadow-lg dark:border-white/[0.06] dark:bg-ink-900 dark:hover:border-brass-500/50"
+          >
+            <p className="text-sm font-semibold uppercase tracking-[0.18em]">
+              My bookings
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+              View your upcoming stays, payment status and booking history.
+            </p>
+            <p className="mt-6 text-xs text-brass-500 opacity-0 transition-opacity group-hover:opacity-100 dark:text-brass-400">
+              Enter →
+            </p>
+          </Link>
+        )}
+
         {isHost && (
           <Link
             href="/host"
@@ -67,12 +84,20 @@ export default async function Home() {
       </div>
 
       {!session && (
-        <Link
-          href="/login"
-          className="mt-8 text-sm text-brass-500 transition-colors hover:text-brass-600 dark:text-brass-400 dark:hover:text-brass-300"
-        >
-          Sign in →
-        </Link>
+        <div className="mt-8 flex items-center gap-6">
+          <Link
+            href="/login"
+            className="text-sm text-brass-500 transition-colors hover:text-brass-600 dark:text-brass-400 dark:hover:text-brass-300"
+          >
+            Sign in →
+          </Link>
+          <Link
+            href="/register"
+            className="text-sm text-zinc-500 transition-colors hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300"
+          >
+            Create account →
+          </Link>
+        </div>
       )}
     </main>
   );

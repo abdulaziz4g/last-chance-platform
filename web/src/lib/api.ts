@@ -33,6 +33,35 @@ async function apiPost<T>(path: string, body: unknown): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+type SafeResult<T> =
+  | { ok: true; data: T }
+  | { ok: false; error: string };
+
+export async function apiPostSafe<T>(
+  path: string,
+  body: unknown,
+): Promise<SafeResult<T>> {
+  const headers = await authHeaders();
+  const res = await fetch(`${API_BASE}${path}`, {
+    cache: 'no-store',
+    method: 'POST',
+    headers: { ...headers, 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    let msg: string;
+    try {
+      const parsed = JSON.parse(text);
+      msg = parsed.message ?? parsed.error ?? text;
+    } catch {
+      msg = text || `Request failed (${res.status})`;
+    }
+    return { ok: false, error: typeof msg === 'string' ? msg : String(msg) };
+  }
+  return { ok: true, data: (await res.json()) as T };
+}
+
 export interface AdminOverview {
   activeHolds: number;
   confirmedUpcoming: number;
@@ -235,3 +264,125 @@ export interface FlashDealView {
 }
 
 export const getActiveDeals = (): Promise<FlashDealView[]> => api('/deals/active');
+
+// ---- booking flow -----------------------------------------------------------
+
+export interface Booking {
+  id: string;
+  bookingCode: string;
+  guestId: string;
+  unitId: string;
+  propertyId: string;
+  bookingType: 'HOURLY' | 'NIGHTLY';
+  status: string;
+  source: string;
+  checkInUtc: string;
+  checkOutUtc: string;
+  guestsCount: number;
+  holdExpiresAt: string | null;
+  currency: string;
+  baseAmountMinor: number;
+  cleaningFeeMinor: number;
+  serviceFeeMinor: number;
+  taxesMinor: number;
+  discountMinor: number;
+  totalAmountMinor: number;
+  commissionPct: number;
+  commissionMinor: number;
+  hostPayoutMinor: number;
+  flashDealId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface HoldParams {
+  guestId: string;
+  unitId: string;
+  bookingType: 'HOURLY' | 'NIGHTLY';
+  checkInUtc: string;
+  checkOutUtc: string;
+  guestsCount: number;
+}
+
+export const createHold = (params: HoldParams): Promise<Booking> =>
+  apiPost('/bookings/hold', params);
+
+export const getBooking = (id: string): Promise<Booking> =>
+  api(`/bookings/${id}`);
+
+export interface Payment {
+  id: string;
+  bookingId: string;
+  provider: string;
+  method: string;
+  status: string;
+  amountMinor: number;
+  currency: string;
+  capturedAt: string | null;
+  createdAt: string;
+}
+
+export interface InitiatePaymentResult {
+  payment: Payment;
+  clientAction: Record<string, unknown> | null;
+}
+
+export const initiatePayment = (params: {
+  bookingId: string;
+  provider: string;
+  method: string;
+}): Promise<InitiatePaymentResult> => apiPost('/payments/initiate', params);
+
+export const simulateCapture = (paymentId: string): Promise<{ accepted: boolean }> =>
+  apiPost(`/payments/${paymentId}/simulate-capture`, {});
+
+export const getPayment = (id: string): Promise<Payment> =>
+  api(`/payments/${id}`);
+
+// ---- guest bookings ---------------------------------------------------------
+
+export const getGuestBookings = (limit = 50): Promise<Booking[]> =>
+  api(`/bookings/mine?limit=${limit}`);
+
+// ---- deal claiming ----------------------------------------------------------
+
+export interface ClaimParams {
+  guestId: string;
+  bookingType: 'HOURLY' | 'NIGHTLY';
+  checkInUtc: string;
+  checkOutUtc: string;
+  guestsCount: number;
+}
+
+export const claimDeal = (dealId: string, params: ClaimParams): Promise<Booking> =>
+  apiPost(`/deals/${dealId}/claim`, params);
+
+// ---- host deal creation -----------------------------------------------------
+
+export interface CreateDealParams {
+  unitId: string;
+  title: string;
+  discountPct: number;
+  startsAt: string;
+  endsAt: string;
+  quantityTotal: number;
+  applicableStayFrom?: string | null;
+  applicableStayTo?: string | null;
+}
+
+export interface FlashDeal {
+  id: string;
+  unitId: string;
+  hostId: string;
+  title: string;
+  discountPct: number;
+  status: string;
+  startsAt: string;
+  endsAt: string;
+  quantityTotal: number;
+  quantityClaimed: number;
+  createdAt: string;
+}
+
+export const createDeal = (params: CreateDealParams): Promise<FlashDeal> =>
+  apiPost('/deals', params);

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import type { FlashDealView } from '@/lib/api';
 import { money } from '@/lib/format';
@@ -83,6 +84,14 @@ export function DealStrip({ deals }: { deals: FlashDealView[] }) {
                   </p>
                 </div>
               </div>
+              {secondsLeft > 0 && d.quantityRemaining > 0 && (
+                <Link
+                  href={`/deals/${d.id}/claim`}
+                  className="mt-3 block rounded-lg bg-brass-500 px-3 py-1.5 text-center text-xs font-semibold text-white transition-colors hover:bg-brass-600 dark:bg-brass-600 dark:hover:bg-brass-500"
+                >
+                  Claim deal
+                </Link>
+              )}
             </div>
           );
         })}

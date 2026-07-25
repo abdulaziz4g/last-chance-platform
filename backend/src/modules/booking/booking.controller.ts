@@ -6,11 +6,15 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Query,
+  Req,
 } from '@nestjs/common';
 import { BookingService } from './application/booking.service';
 import { Booking } from './domain/types';
 import { parseWith as parse } from '../../common/validation';
 import { RateLimit } from '../../common/auth/decorators';
+import type { AuthenticatedRequest } from '../../common/auth/jwt-auth.guard';
+import { UnauthorizedError } from '../../common/errors/domain-errors';
 import {
   cancelBookingSchema as cancelSchema,
   confirmBookingSchema as confirmSchema,
@@ -64,6 +68,18 @@ export class BookingController {
   @HttpCode(200)
   complete(@Param('id', ParseUUIDPipe) id: string): Promise<Booking> {
     return this.bookings.complete(id);
+  }
+
+  @Get('mine')
+  mine(
+    @Req() req: AuthenticatedRequest,
+    @Query('limit') limit?: string,
+  ): Promise<Booking[]> {
+    if (!req.authClaims) throw new UnauthorizedError('Bearer token required');
+    return this.bookings.listByGuest(
+      req.authClaims.sub,
+      Math.min(Number(limit) || 50, 100),
+    );
   }
 
   @Get(':id')

@@ -21,10 +21,24 @@ export function middleware(request: NextRequest) {
   const role = (claims?.['role'] as string) ?? '';
   const isAdmin = role === 'ADMIN';
 
-  if (pathname === '/login') {
+  if (pathname === '/login' || pathname === '/register') {
     if (isAuthenticated) {
       const dest = isAdmin ? '/admin' : actorType === 'HOST' ? '/host' : '/discover';
       return NextResponse.redirect(new URL(dest, request.url));
+    }
+    return NextResponse.next();
+  }
+
+  if (pathname.startsWith('/bookings') || pathname.startsWith('/book/')) {
+    if (!isAuthenticated) {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+    return NextResponse.next();
+  }
+
+  if (pathname.startsWith('/bookings') || pathname.startsWith('/book/')) {
+    if (!isAuthenticated) {
+      return NextResponse.redirect(new URL('/login', request.url));
     }
     return NextResponse.next();
   }
@@ -53,5 +67,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/login', '/admin/:path*', '/host/:path*'],
+  matcher: ['/login', '/register', '/bookings', '/book/:path*', '/admin/:path*', '/host/:path*'],
 };
