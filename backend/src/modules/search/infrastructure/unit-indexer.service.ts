@@ -40,6 +40,8 @@ export class UnitIndexer {
         body: unitIndexBody,
       });
       log.info({ index: UNIT_INDEX_CURRENT }, 'Created unit index');
+    } else {
+      await this.syncAdditiveMappings();
     }
 
     const aliasExists = await this.os.indices.existsAlias({ name: UNIT_ALIAS });
@@ -67,6 +69,45 @@ export class UnitIndexer {
       });
       log.info({ alias: UNIT_ALIAS, index: UNIT_INDEX_CURRENT }, 'Bound search alias');
     }
+  }
+
+  /**
+   * Applies fields the index does not have yet.
+   *
+   * Creating the index is a one-time event, so a field added to the mapping
+   * later never reached an index that already existed — the document still
+   * round-trips through `_source`, which is why this is easy to miss, but
+   * OpenSearch's dynamic mapping then invents its own mapping for the field.
+   * For `photos` that would mean every URL landing in the inverted index, the
+   * exact opposite of the `index: false` it is declared with.
+   *
+   * Only additive changes work this way: OpenSearch will not redefine an
+   * existing field. Changing a field's type still needs an index version bump
+   * and the alias migration below.
+   */
+  private async syncAdditiveMappings(): Promise<void> {
+    const current = await this.os.indices.getMapping({
+      index: UNIT_INDEX_CURRENT,
+    });
+    const live =
+      (current.body as Record<string, { mappings?: { properties?: object } }>)[
+        UNIT_INDEX_CURRENT
+      ]?.mappings?.properties ?? {};
+
+    const declared = unitIndexBody.mappings.properties as Record<string, unknown>;
+    const missing = Object.fromEntries(
+      Object.entries(declared).filter(([field]) => !(field in live)),
+    );
+    if (Object.keys(missing).length === 0) return;
+
+    await this.os.indices.putMapping({
+      index: UNIT_INDEX_CURRENT,
+      body: { properties: missing },
+    });
+    log.info(
+      { index: UNIT_INDEX_CURRENT, fields: Object.keys(missing) },
+      'Added missing fields to unit index mapping',
+    );
   }
 
   /** Full rebuild via bulk indexing. Returns the number of docs indexed. */
