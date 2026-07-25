@@ -14,7 +14,10 @@ import { Booking } from './domain/types';
 import { parseWith as parse } from '../../common/validation';
 import { RateLimit } from '../../common/auth/decorators';
 import type { AuthenticatedRequest } from '../../common/auth/jwt-auth.guard';
-import { UnauthorizedError } from '../../common/errors/domain-errors';
+import {
+  ForbiddenError,
+  UnauthorizedError,
+} from '../../common/errors/domain-errors';
 import { AppConfigService } from '../../config/config.service';
 import {
   cancelBookingSchema as cancelSchema,
@@ -59,6 +62,17 @@ export class BookingController {
     );
   }
 
+  /** Lifecycle steps that belong to the property side of the booking. */
+  private async requireHostOrAdmin(
+    bookingId: string,
+    req: AuthenticatedRequest,
+  ): Promise<void> {
+    const actor = await this.actorFor(bookingId, req);
+    if (actor === 'GUEST') {
+      throw new ForbiddenError('Only the host can perform this action');
+    }
+  }
+
   @Post('hold')
   @RateLimit(20, 60)
   @HttpCode(201)
@@ -94,15 +108,28 @@ export class BookingController {
     return this.bookings.cancel(id, actor, reason ?? null);
   }
 
+  /**
+   * Arrival is recorded by the party at the property, not by the guest —
+   * self-check-in would start the chain that ends in a payout.
+   */
   @Post(':id/check-in')
   @HttpCode(200)
-  checkIn(@Param('id', ParseUUIDPipe) id: string): Promise<Booking> {
+  async checkIn(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: AuthenticatedRequest,
+  ): Promise<Booking> {
+    await this.requireHostOrAdmin(id, req);
     return this.bookings.checkIn(id);
   }
 
+  /** Completing a stay releases the escrow payout, so guests cannot call it. */
   @Post(':id/complete')
   @HttpCode(200)
-  complete(@Param('id', ParseUUIDPipe) id: string): Promise<Booking> {
+  async complete(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: AuthenticatedRequest,
+  ): Promise<Booking> {
+    await this.requireHostOrAdmin(id, req);
     return this.bookings.complete(id);
   }
 

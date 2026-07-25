@@ -1,6 +1,9 @@
+import { Suspense } from 'react';
 import { DataTable, Mono, SectionTitle, StatusChip } from '@/components/ui';
 import { getHostOverview } from '@/lib/api';
 import { dateTime, money, timeWindow } from '@/lib/format';
+import { HostBookingActions } from './booking-actions';
+import { ActionFlash } from '@/components/action-flash';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,10 +13,23 @@ export default async function HostBookingsPage() {
 
   return (
     <div className="space-y-6">
+      <Suspense fallback={null}>
+        <ActionFlash />
+      </Suspense>
+
       <h1 className="text-xl font-semibold">Bookings</h1>
       <SectionTitle>All recent bookings for {host.displayName}</SectionTitle>
       <DataTable
-        head={['Code', 'Guest', 'Property / unit', 'Type', 'Window', 'Total', 'Status']}
+        head={[
+          'Code',
+          'Guest',
+          'Property / unit',
+          'Type',
+          'Window',
+          'Total',
+          'Status',
+          'Actions',
+        ]}
         rows={host.bookings.map((b) => [
           <Mono key="c">{b.bookingCode}</Mono>,
           b.guestName,
@@ -28,6 +44,7 @@ export default async function HostBookingsPage() {
             {money(b.totalAmountMinor, b.currency)}
           </span>,
           <StatusChip key="s" status={b.status} />,
+          <HostBookingActions key="a" bookingId={b.id} status={b.status} />,
         ])}
       />
       <p className="text-xs text-zinc-500">

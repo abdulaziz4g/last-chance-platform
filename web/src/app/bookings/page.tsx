@@ -2,7 +2,8 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import { canGuestCancel, getGuestBookings } from '@/lib/api';
 import { CancelBooking } from './cancel-booking';
-import { CancelledFlash } from './cancelled-flash';
+import { ActionFlash } from '@/components/action-flash';
+import { logoutAction } from '@/app/login/actions';
 import { money, timeWindow } from '@/lib/format';
 import { Card, StatusChip, Mono, SectionTitle } from '@/components/ui';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -23,7 +24,7 @@ export default async function MyBookingsPage() {
   return (
     <div className="mx-auto max-w-4xl px-5 py-8 sm:px-6 sm:py-10">
       <Suspense fallback={null}>
-        <CancelledFlash />
+        <ActionFlash />
       </Suspense>
 
       <header className="mb-8 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
@@ -42,6 +43,16 @@ export default async function MyBookingsPage() {
           >
             Discover →
           </Link>
+          {/* The only sign-out a guest has: the host and admin shells carry
+              their own, but guests never see those. */}
+          <form action={logoutAction}>
+            <button
+              type="submit"
+              className="text-sm whitespace-nowrap text-zinc-500 transition-colors hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+            >
+              Sign out
+            </button>
+          </form>
           <ThemeToggle />
         </div>
       </header>

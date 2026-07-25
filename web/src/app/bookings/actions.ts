@@ -28,5 +28,7 @@ export async function cancelBookingAction(
   // control, so that component unmounts before its effect could fire. Hand the
   // message to the page via the URL instead, where something stable owns it.
   revalidatePath('/bookings');
-  redirect(`/bookings?cancelled=${encodeURIComponent(result.data.bookingCode)}`);
+  redirect(
+    `/bookings?done=cancelled&code=${encodeURIComponent(result.data.bookingCode)}`,
+  );
 }
