@@ -3,6 +3,7 @@ import { Queue } from 'bullmq';
 import type { PoolClient } from 'pg';
 import {
   BookingNotFoundError,
+  ForbiddenError,
   HoldExpiredError,
   StaleStateError,
   UnitUnavailableError,
@@ -199,6 +200,32 @@ export class BookingService {
     });
     log.info({ bookingId, paymentRef }, 'Booking confirmed');
     return confirmed;
+  }
+
+  /**
+   * Resolves what role the caller actually holds on this booking, from the
+   * database rather than from anything the client asserted. Admins are
+   * trusted by role; everyone else must be a party to the booking.
+   *
+   * Returning the role (not a boolean) is what lets `cancel` record who
+   * really cancelled — a caller cannot label itself ADMIN to dodge a policy.
+   */
+  async authorizeActor(
+    bookingId: string,
+    userId: string,
+    isAdmin: boolean,
+  ): Promise<'GUEST' | 'HOST' | 'ADMIN'> {
+    if (isAdmin) return 'ADMIN';
+
+    const parties = await this.bookings.findParties(bookingId);
+    if (!parties) throw new BookingNotFoundError(bookingId);
+
+    if (parties.guestId === userId) return 'GUEST';
+    if (parties.hostId === userId) return 'HOST';
+
+    // Deliberately the same shape as any other forbidden action: revealing
+    // "this booking exists but is not yours" would confirm a guessed id.
+    throw new ForbiddenError('This booking is not yours');
   }
 
   async cancel(

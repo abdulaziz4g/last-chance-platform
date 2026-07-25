@@ -219,6 +219,26 @@ export class BookingRepository {
     return res.rows[0] ? toBooking(res.rows[0]) : null;
   }
 
+  /**
+   * Who this booking belongs to, for authorization. Kept separate from the
+   * Booking read model: the host is a property attribute, not a booking one,
+   * and callers deciding "may this actor act here" should not have to know
+   * that join.
+   */
+  async findParties(
+    id: string,
+  ): Promise<{ guestId: string; hostId: string } | null> {
+    const res = await this.db.query<{ guest_id: string; host_id: string }>(
+      `SELECT b.guest_id, p.host_id
+         FROM bookings b
+         JOIN properties p ON p.id = b.property_id
+        WHERE b.id = $1`,
+      [id],
+    );
+    const r = res.rows[0];
+    return r ? { guestId: r.guest_id, hostId: r.host_id } : null;
+  }
+
   async listByGuest(guestId: string, limit: number): Promise<Booking[]> {
     const res = await this.db.query<BookingRow>(
       `SELECT ${BOOKING_COLUMNS} FROM bookings

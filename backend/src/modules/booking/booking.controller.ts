@@ -15,6 +15,7 @@ import { parseWith as parse } from '../../common/validation';
 import { RateLimit } from '../../common/auth/decorators';
 import type { AuthenticatedRequest } from '../../common/auth/jwt-auth.guard';
 import { UnauthorizedError } from '../../common/errors/domain-errors';
+import { AppConfigService } from '../../config/config.service';
 import {
   cancelBookingSchema as cancelSchema,
   confirmBookingSchema as confirmSchema,
@@ -28,7 +29,35 @@ import {
 
 @Controller('bookings')
 export class BookingController {
-  constructor(private readonly bookings: BookingService) {}
+  constructor(
+    private readonly bookings: BookingService,
+    private readonly config: AppConfigService,
+  ) {}
+
+  /**
+   * The caller's real role on this booking, resolved from the token against
+   * the booking's guest and host.
+   *
+   * With no token the JwtAuthGuard has already either rejected the request
+   * (production) or waved it through under the documented dev fallback. In
+   * that second case we treat the caller as an operator, exactly as the rest
+   * of the console's x-actor-type path does — rather than inventing a subject
+   * we do not have. Production never reaches that branch.
+   */
+  private async actorFor(
+    bookingId: string,
+    req: AuthenticatedRequest,
+  ): Promise<'GUEST' | 'HOST' | 'ADMIN'> {
+    if (!req.authClaims) {
+      if (this.config.authDevFallback) return 'ADMIN';
+      throw new UnauthorizedError('Bearer token required');
+    }
+    return this.bookings.authorizeActor(
+      bookingId,
+      req.authClaims.sub,
+      req.authClaims.role === 'ADMIN',
+    );
+  }
 
   @Post('hold')
   @RateLimit(20, 60)
@@ -48,14 +77,21 @@ export class BookingController {
     return this.bookings.confirm(id, paymentRef);
   }
 
+  /**
+   * Who cancelled is derived from the verified token, never from the body —
+   * trusting a client-supplied `cancelledBy` would let any caller cancel any
+   * booking and label the act however it liked.
+   */
   @Post(':id/cancel')
   @HttpCode(200)
-  cancel(
+  async cancel(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: unknown,
+    @Req() req: AuthenticatedRequest,
   ): Promise<Booking> {
-    const { cancelledBy, reason } = parse(cancelSchema, body);
-    return this.bookings.cancel(id, cancelledBy, reason ?? null);
+    const { reason } = parse(cancelSchema, body);
+    const actor = await this.actorFor(id, req);
+    return this.bookings.cancel(id, actor, reason ?? null);
   }
 
   @Post(':id/check-in')
@@ -82,8 +118,13 @@ export class BookingController {
     );
   }
 
+  /** Readable only by its guest, its host, or an admin. */
   @Get(':id')
-  getById(@Param('id', ParseUUIDPipe) id: string): Promise<Booking> {
+  async getById(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: AuthenticatedRequest,
+  ): Promise<Booking> {
+    await this.actorFor(id, req);
     return this.bookings.getById(id);
   }
 }

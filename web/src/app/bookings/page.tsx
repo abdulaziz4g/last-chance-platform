@@ -1,5 +1,8 @@
+import { Suspense } from 'react';
 import Link from 'next/link';
-import { getGuestBookings } from '@/lib/api';
+import { canGuestCancel, getGuestBookings } from '@/lib/api';
+import { CancelBooking } from './cancel-booking';
+import { CancelledFlash } from './cancelled-flash';
 import { money, timeWindow } from '@/lib/format';
 import { Card, StatusChip, Mono, SectionTitle } from '@/components/ui';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -19,6 +22,10 @@ export default async function MyBookingsPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-5 py-8 sm:px-6 sm:py-10">
+      <Suspense fallback={null}>
+        <CancelledFlash />
+      </Suspense>
+
       <header className="mb-8 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
         <div>
           <Link href="/" className="text-[13px] font-semibold tracking-[0.32em]">
@@ -78,14 +85,23 @@ export default async function MyBookingsPage() {
                 </p>
               </div>
 
-              {b.status === 'PENDING_PAYMENT' && (
-                <div className="mt-3 border-t border-zinc-100 pt-3 dark:border-white/[0.06]">
-                  <Link
-                    href={`/book/${b.unitId}/pay?bookingId=${b.id}`}
-                    className="text-xs font-medium text-brass-500 hover:text-brass-600 dark:text-brass-400"
-                  >
-                    Complete payment →
-                  </Link>
+              {(b.status === 'PENDING_PAYMENT' || canGuestCancel(b.status)) && (
+                <div className="mt-3 space-y-3 border-t border-zinc-100 pt-3 dark:border-white/[0.06]">
+                  {b.status === 'PENDING_PAYMENT' && (
+                    <Link
+                      href={`/book/${b.unitId}/pay?bookingId=${b.id}`}
+                      className="block text-xs font-medium text-brass-500 hover:text-brass-600 dark:text-brass-400"
+                    >
+                      Complete payment →
+                    </Link>
+                  )}
+                  {canGuestCancel(b.status) && (
+                    <CancelBooking
+                      bookingId={b.id}
+                      bookingCode={b.bookingCode}
+                      status={b.status}
+                    />
+                  )}
                 </div>
               )}
             </Card>

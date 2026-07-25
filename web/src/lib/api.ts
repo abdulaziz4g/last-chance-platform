@@ -356,6 +356,18 @@ export interface UnitDetail {
 export const getUnitDetail = (unitId: string): Promise<UnitDetail> =>
   api(`/units/${unitId}`);
 
+// ---- cancellation -----------------------------------------------------------
+
+/**
+ * Statuses a guest may cancel from, mirroring the booking FSM whitelist
+ * (`booking_fsm_transitions`). The server is authoritative — this only decides
+ * whether to offer the control.
+ */
+const GUEST_CANCELLABLE = new Set(['DRAFT', 'PENDING_PAYMENT', 'CONFIRMED']);
+
+export const canGuestCancel = (status: string): boolean =>
+  GUEST_CANCELLABLE.has(status);
+
 // ---- booking flow -----------------------------------------------------------
 
 export interface Booking {

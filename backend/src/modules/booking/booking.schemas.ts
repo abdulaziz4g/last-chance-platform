@@ -24,8 +24,12 @@ export const confirmBookingSchema = z.object({
   paymentRef: z.string().min(1).max(200),
 });
 
+/**
+ * No `cancelledBy`: the acting party is resolved from the caller's token
+ * against the booking's real guest/host, so it cannot be asserted by the
+ * client. Only the free-text reason comes from the request.
+ */
 export const cancelBookingSchema = z.object({
-  cancelledBy: z.enum(['GUEST', 'HOST', 'ADMIN', 'SYSTEM']),
   reason: z.string().max(1000).nullish(),
 });
 
