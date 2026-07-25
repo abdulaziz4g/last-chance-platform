@@ -5,6 +5,7 @@ import { getUnitDetail, type UnitDetail } from '@/lib/api';
 import { money } from '@/lib/format';
 import { Card, SectionTitle, StatusChip } from '@/components/ui';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { SITE_URL } from '@/lib/site';
 import { DealCountdown } from './deal-countdown';
 import { PhotoGallery } from './photo-gallery';
 
@@ -66,10 +67,16 @@ function buildListingJsonLd(
   const { unit, property, host } = detail;
   const rate = unit.hourlyRateMinor ?? unit.nightlyRateMinor;
 
+  // Structured data has no document base to resolve against — unlike the
+  // metadata API, which applies metadataBase for us. A relative @id or photo
+  // here is simply unusable to a crawler, so both are made absolute.
+  const absolute = (path: string) =>
+    path.startsWith('http') ? path : `${SITE_URL}${path}`;
+
   return {
     '@context': 'https://schema.org',
     '@type': 'LodgingBusiness',
-    '@id': `/units/${unitId}`,
+    '@id': absolute(`/units/${unitId}`),
     name: `${property.name} — ${unit.name}`,
     ...(property.description ? { description: property.description } : {}),
     address: {
@@ -82,7 +89,9 @@ function buildListingJsonLd(
       latitude: property.lat,
       longitude: property.lon,
     },
-    ...(unit.photos.length > 0 ? { photo: unit.photos } : {}),
+    ...(unit.photos.length > 0
+      ? { photo: unit.photos.map(absolute), image: absolute(unit.photos[0]) }
+      : {}),
     ...(property.amenities.length > 0
       ? {
           amenityFeature: property.amenities.map((a) => ({
@@ -111,8 +120,7 @@ function buildListingJsonLd(
           },
         }
       : {}),
-    numberOfRooms: unit.bedrooms ?? undefined,
-    petsAllowed: undefined,
+    ...(unit.bedrooms != null ? { numberOfRooms: unit.bedrooms } : {}),
     ...(host.displayName
       ? { provider: { '@type': 'Organization', name: host.displayName } }
       : {}),

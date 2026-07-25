@@ -12,6 +12,10 @@ export async function cancelBookingAction(
 ): Promise<{ error?: string }> {
   const bookingId = formData.get('bookingId') as string;
   const reason = ((formData.get('reason') as string) ?? '').trim();
+  // Which page the reader was on. Stripping the flash keys from the URL is not
+  // enough on its own — the redirect has to carry the page back, or cancelling
+  // from page two silently returns them to page one.
+  const page = Number(formData.get('page')) || 1;
 
   if (!bookingId) return { error: 'Missing booking reference.' };
 
@@ -28,7 +32,10 @@ export async function cancelBookingAction(
   // control, so that component unmounts before its effect could fire. Hand the
   // message to the page via the URL instead, where something stable owns it.
   revalidatePath('/bookings');
-  redirect(
-    `/bookings?done=cancelled&code=${encodeURIComponent(result.data.bookingCode)}`,
-  );
+  const query = new URLSearchParams({
+    done: 'cancelled',
+    code: result.data.bookingCode,
+  });
+  if (page > 1) query.set('page', String(page));
+  redirect(`/bookings?${query.toString()}`);
 }

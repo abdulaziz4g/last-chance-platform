@@ -267,6 +267,29 @@ export const SEARCH_PAGE_SIZE = 12;
 export const searchUnits = (params: SearchParams): Promise<SearchResults> =>
   apiPost('/search/units', params);
 
+/** The API's own ceiling on pageSize; asking for more is a 400. */
+export const SEARCH_MAX_PAGE_SIZE = 100;
+
+/**
+ * Search without a session, for callers outside a request scope — the sitemap
+ * is generated on a revalidation timer, where reading cookies is not allowed
+ * and would not mean anything anyway. This endpoint is public.
+ */
+export async function searchUnitsPublic(
+  params: SearchParams,
+): Promise<SearchResults> {
+  const res = await fetch(`${API_BASE}/search/units`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(params),
+    cache: 'no-store',
+  });
+  if (!res.ok) {
+    throw new Error(`API /search/units responded ${res.status}`);
+  }
+  return res.json() as Promise<SearchResults>;
+}
+
 // ---- flash deals ----------------------------------------------------------
 
 export interface FlashDealView {

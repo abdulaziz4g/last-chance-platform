@@ -135,6 +135,7 @@ export default async function MyBookingsPage({
                       bookingId={b.id}
                       bookingCode={b.bookingCode}
                       status={b.status}
+                      page={page}
                     />
                   )}
                 </div>

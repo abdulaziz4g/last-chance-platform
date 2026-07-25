@@ -13,10 +13,13 @@ export function CancelBooking({
   bookingId,
   bookingCode,
   status,
+  page,
 }: {
   bookingId: string;
   bookingCode: string;
   status: string;
+  /** Carried through the action so the redirect can return here. */
+  page: number;
 }) {
   const [open, setOpen] = useState(false);
   // Success never lands here — the action redirects and CancelledFlash
@@ -43,6 +46,7 @@ export function CancelBooking({
   return (
     <form action={formAction} className="space-y-3">
       <input type="hidden" name="bookingId" value={bookingId} />
+      <input type="hidden" name="page" value={page} />
 
       <div className="rounded-lg bg-rose-500/[0.06] px-4 py-3 ring-1 ring-inset ring-rose-500/20">
         <p className="text-sm font-medium text-rose-700 dark:text-rose-300">
