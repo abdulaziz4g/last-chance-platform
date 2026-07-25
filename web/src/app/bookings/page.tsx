@@ -1,6 +1,12 @@
 import { Suspense } from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
-import { canGuestCancel, getGuestBookings } from '@/lib/api';
+import {
+  BOOKINGS_PAGE_SIZE,
+  canGuestCancel,
+  getGuestBookings,
+} from '@/lib/api';
+import { Pagination } from '@/components/pagination';
 import { CancelBooking } from './cancel-booking';
 import { ActionFlash } from '@/components/action-flash';
 import { logoutAction } from '@/app/login/actions';
@@ -12,14 +18,32 @@ import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
-export default async function MyBookingsPage() {
+export const metadata: Metadata = {
+  title: 'My bookings',
+  // Someone's reservations are not for the index, whatever robots.txt says.
+  robots: { index: false, follow: false },
+};
+
+export default async function MyBookingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
   const session = await getSession();
   if (!session) redirect('/login');
+
+  const sp = await searchParams;
+  const requested = Number(sp.page);
+  const page =
+    Number.isFinite(requested) && requested >= 1 ? Math.floor(requested) : 1;
 
   // Deliberately unguarded: an empty list and an unreachable API look identical
   // to the reader, and "No bookings yet" is a lie to someone holding a
   // reservation. Let bookings/error.tsx say what actually happened.
-  const bookings = await getGuestBookings(50);
+  const { items: bookings, total } = await getGuestBookings(
+    BOOKINGS_PAGE_SIZE,
+    (page - 1) * BOOKINGS_PAGE_SIZE,
+  );
 
   return (
     <div className="mx-auto max-w-4xl px-5 py-8 sm:px-6 sm:py-10">
@@ -58,7 +82,7 @@ export default async function MyBookingsPage() {
       </header>
 
       <SectionTitle>
-        {bookings.length} {bookings.length === 1 ? 'booking' : 'bookings'}
+        {total} {total === 1 ? 'booking' : 'bookings'}
       </SectionTitle>
 
       {bookings.length === 0 ? (
@@ -119,6 +143,14 @@ export default async function MyBookingsPage() {
           ))}
         </div>
       )}
+
+      <Pagination
+        basePath="/bookings"
+        params={sp}
+        page={page}
+        pageSize={BOOKINGS_PAGE_SIZE}
+        total={total}
+      />
     </div>
   );
 }

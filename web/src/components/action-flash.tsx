@@ -52,8 +52,16 @@ export function ActionFlash() {
     if (build && BOOKING_CODE.test(code)) {
       toast(build(code), 'success');
     }
-    router.replace(pathname, { scroll: false });
-  }, [key, code, toast, router, pathname]);
+
+    // Strip only the flash keys — anything else in the query string is the
+    // reader's state (which page they were on, what they filtered by) and
+    // dropping it would move them somewhere they did not ask to go.
+    const rest = new URLSearchParams(params.toString());
+    rest.delete('done');
+    rest.delete('code');
+    const qs = rest.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }, [key, code, params, toast, router, pathname]);
 
   return null;
 }

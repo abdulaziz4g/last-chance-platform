@@ -257,7 +257,12 @@ export interface SearchParams {
   lon?: number;
   radiusKm?: number;
   sort?: 'relevance' | 'price_asc' | 'price_desc' | 'rating' | 'distance';
+  page?: number;
+  pageSize?: number;
 }
+
+/** Result cards are laid out three-up, so a page is a whole number of rows. */
+export const SEARCH_PAGE_SIZE = 12;
 
 export const searchUnits = (params: SearchParams): Promise<SearchResults> =>
   apiPost('/search/units', params);
@@ -526,8 +531,14 @@ export const getPayment = (id: string): Promise<Payment> =>
 
 // ---- guest bookings ---------------------------------------------------------
 
-export const getGuestBookings = (limit = 50): Promise<Booking[]> =>
-  api(`/bookings/mine?limit=${limit}`);
+/** A guest's own bookings are few; a page fits comfortably on one screen. */
+export const BOOKINGS_PAGE_SIZE = 10;
+
+export const getGuestBookings = (
+  limit = BOOKINGS_PAGE_SIZE,
+  offset = 0,
+): Promise<{ items: Booking[]; total: number }> =>
+  api(`/bookings/mine?limit=${limit}&offset=${offset}`);
 
 // ---- deal claiming ----------------------------------------------------------
 

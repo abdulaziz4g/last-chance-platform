@@ -137,11 +137,13 @@ export class BookingController {
   mine(
     @Req() req: AuthenticatedRequest,
     @Query('limit') limit?: string,
-  ): Promise<Booking[]> {
+    @Query('offset') offset?: string,
+  ): Promise<{ items: Booking[]; total: number }> {
     if (!req.authClaims) throw new UnauthorizedError('Bearer token required');
     return this.bookings.listByGuest(
       req.authClaims.sub,
       Math.min(Number(limit) || 50, 100),
+      Math.max(Number(offset) || 0, 0),
     );
   }
 

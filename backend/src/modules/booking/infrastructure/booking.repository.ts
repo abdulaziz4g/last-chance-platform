@@ -239,15 +239,28 @@ export class BookingRepository {
     return r ? { guestId: r.guest_id, hostId: r.host_id } : null;
   }
 
-  async listByGuest(guestId: string, limit: number): Promise<Booking[]> {
-    const res = await this.db.query<BookingRow>(
-      `SELECT ${BOOKING_COLUMNS} FROM bookings
-       WHERE guest_id = $1
-       ORDER BY created_at DESC
-       LIMIT $2`,
-      [guestId, limit],
+  /**
+   * One page of a guest's bookings, newest first, with the unpaginated total.
+   * The count rides along in the same statement so the page and its total
+   * always describe the same snapshot.
+   */
+  async listByGuest(
+    guestId: string,
+    limit: number,
+    offset = 0,
+  ): Promise<{ items: Booking[]; total: number }> {
+    const res = await this.db.query<BookingRow & { total_count: string }>(
+      `SELECT ${BOOKING_COLUMNS}, COUNT(*) OVER () AS total_count
+         FROM bookings
+        WHERE guest_id = $1
+        ORDER BY created_at DESC
+        LIMIT $2 OFFSET $3`,
+      [guestId, limit, offset],
     );
-    return res.rows.map(toBooking);
+    return {
+      items: res.rows.map(toBooking),
+      total: res.rows[0] ? Number(res.rows[0].total_count) : 0,
+    };
   }
 
   /** Safety-net sweep via the Phase 1 SQL function (SKIP LOCKED batches). */

@@ -1,7 +1,13 @@
+import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { Shell } from '@/components/shell';
 import { getSession } from '@/lib/session';
 import { logoutAction } from '@/app/login/actions';
+
+export const metadata: Metadata = {
+  title: 'Operations',
+  robots: { index: false, follow: false },
+};
 
 const NAV = [
   { href: '/admin', label: 'Overview' },

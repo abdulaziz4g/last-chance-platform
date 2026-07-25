@@ -1,17 +1,27 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Card, StatusChip } from '@/components/ui';
 import {
   getActiveDeals,
   searchUnits,
+  SEARCH_PAGE_SIZE,
   type FlashDealView,
   type SearchParams,
 } from '@/lib/api';
+import { Pagination } from '@/components/pagination';
 import { money } from '@/lib/format';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { DealStrip } from '@/components/deal-strip';
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  title: 'Discover stays',
+  description:
+    'Search hourly and nightly stays across Saudi Arabia by city, price and amenities — and catch flash deals before they expire.',
+  alternates: { canonical: '/discover' },
+};
 
 /**
  * Public discovery — OpenSearch-backed. Server Component: filters come in as
@@ -24,6 +34,13 @@ export default async function DiscoverPage({
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const sp = await searchParams;
+  // A junk ?page= should show page one, not an error — clamp rather than trust.
+  const requestedPage = Number(sp.page);
+  const page =
+    Number.isFinite(requestedPage) && requestedPage >= 1
+      ? Math.min(Math.floor(requestedPage), 500)
+      : 1;
+
   const params: SearchParams = {
     text: sp.text || undefined,
     city: sp.city || undefined,
@@ -36,6 +53,8 @@ export default async function DiscoverPage({
       sp.sort === 'rating'
         ? sp.sort
         : undefined,
+    page,
+    pageSize: SEARCH_PAGE_SIZE,
   };
 
   // Search failing is the page failing — discover/error.tsx handles it and can
@@ -205,6 +224,14 @@ export default async function DiscoverPage({
           })}
         </div>
       )}
+
+      <Pagination
+        basePath="/discover"
+        params={sp}
+        page={results.page}
+        pageSize={results.pageSize}
+        total={results.total}
+      />
     </div>
   );
 }

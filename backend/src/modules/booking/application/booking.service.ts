@@ -324,8 +324,12 @@ export class BookingService {
     return this.mustFind(bookingId);
   }
 
-  async listByGuest(guestId: string, limit = 50): Promise<Booking[]> {
-    return this.bookings.listByGuest(guestId, limit);
+  async listByGuest(
+    guestId: string,
+    limit = 50,
+    offset = 0,
+  ): Promise<{ items: Booking[]; total: number }> {
+    return this.bookings.listByGuest(guestId, limit, offset);
   }
 
   private async simpleTransition(

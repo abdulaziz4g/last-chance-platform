@@ -1,6 +1,7 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getUnitDetail } from '@/lib/api';
+import { getUnitDetail, type UnitDetail } from '@/lib/api';
 import { money } from '@/lib/format';
 import { Card, SectionTitle, StatusChip } from '@/components/ui';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -8,6 +9,115 @@ import { DealCountdown } from './deal-countdown';
 import { PhotoGallery } from './photo-gallery';
 
 export const dynamic = 'force-dynamic';
+
+/** Fetched twice per request (metadata + page); React dedupes within a render. */
+async function loadDetail(unitId: string): Promise<UnitDetail | null> {
+  try {
+    return await getUnitDetail(unitId);
+  } catch {
+    return null;
+  }
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ unitId: string }>;
+}): Promise<Metadata> {
+  const { unitId } = await params;
+  const detail = await loadDetail(unitId);
+  if (!detail) return { title: 'Stay not found' };
+
+  const { unit, property } = detail;
+  const rate = unit.hourlyRateMinor ?? unit.nightlyRateMinor;
+  const per = unit.hourlyRateMinor != null ? 'hour' : 'night';
+
+  const title = `${property.name} — ${unit.name}`;
+  const description = property.description
+    ? property.description.slice(0, 155)
+    : `${unit.name} in ${property.city}. Sleeps ${unit.maxGuests}${
+        rate != null ? `, from ${money(rate, unit.currency)} per ${per}` : ''
+      }.`;
+
+  return {
+    title,
+    description,
+    alternates: { canonical: `/units/${unitId}` },
+    openGraph: {
+      type: 'website',
+      title,
+      description,
+      url: `/units/${unitId}`,
+      images: unit.photos.length > 0 ? [{ url: unit.photos[0] }] : undefined,
+    },
+  };
+}
+
+/**
+ * schema.org LodgingBusiness — what gets a listing a rich result rather than a
+ * plain blue link. Only fields we actually hold are emitted: inventing a
+ * rating or a price would be structured-data spam, and search engines
+ * penalise markup that disagrees with the visible page.
+ */
+function buildListingJsonLd(
+  detail: UnitDetail,
+  unitId: string,
+): Record<string, unknown> {
+  const { unit, property, host } = detail;
+  const rate = unit.hourlyRateMinor ?? unit.nightlyRateMinor;
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'LodgingBusiness',
+    '@id': `/units/${unitId}`,
+    name: `${property.name} — ${unit.name}`,
+    ...(property.description ? { description: property.description } : {}),
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: property.city,
+      addressCountry: property.countryCode,
+    },
+    geo: {
+      '@type': 'GeoCoordinates',
+      latitude: property.lat,
+      longitude: property.lon,
+    },
+    ...(unit.photos.length > 0 ? { photo: unit.photos } : {}),
+    ...(property.amenities.length > 0
+      ? {
+          amenityFeature: property.amenities.map((a) => ({
+            '@type': 'LocationFeatureSpecification',
+            name: a,
+          })),
+        }
+      : {}),
+    ...(property.ratingAvg != null && property.ratingCount > 0
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: property.ratingAvg,
+            reviewCount: property.ratingCount,
+          },
+        }
+      : {}),
+    ...(rate != null
+      ? {
+          priceRange: money(rate, unit.currency),
+          makesOffer: {
+            '@type': 'Offer',
+            price: (rate / 100).toFixed(2),
+            priceCurrency: unit.currency,
+            availability: 'https://schema.org/InStock',
+          },
+        }
+      : {}),
+    numberOfRooms: unit.bedrooms ?? undefined,
+    petsAllowed: undefined,
+    ...(host.displayName
+      ? { provider: { '@type': 'Organization', name: host.displayName } }
+      : {}),
+  };
+}
 
 /** jsonb `policies` has no fixed shape; render only the primitive entries. */
 function readablePolicies(
@@ -58,6 +168,7 @@ export default async function UnitDetailPage({
   }
 
   const { unit, property, host, reviews, activeDeal } = detail;
+  const jsonLd = buildListingJsonLd(detail, unitId);
   const policies = readablePolicies(property.policies);
 
   const hourly = unit.supportsHourly ? unit.hourlyRateMinor : null;
@@ -70,6 +181,15 @@ export default async function UnitDetailPage({
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-8 sm:px-6 sm:py-10">
+      {/* Values come from our own database, not from user input that could
+          close the script tag — but stringify escaping is cheap insurance. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c'),
+        }}
+      />
+
       <header className="mb-8 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
         <div>
           <Link href="/" className="text-[13px] font-semibold tracking-[0.32em]">

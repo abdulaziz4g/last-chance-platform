@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { Shell } from '@/components/shell';
 import { getSession } from '@/lib/session';
@@ -10,6 +11,11 @@ const NAV = [
   { href: '/host/deals', label: 'Flash deals' },
   { href: '/admin', label: '→ Operations console' },
 ];
+
+export const metadata: Metadata = {
+  title: 'Host studio',
+  robots: { index: false, follow: false },
+};
 
 export default async function HostLayout({
   children,
