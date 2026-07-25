@@ -22,7 +22,7 @@ export function SkeletonStat() {
 
 export function SkeletonStatRow({
   count = 6,
-  className = 'grid grid-cols-2 gap-4 lg:grid-cols-3',
+  className = 'grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3',
 }: {
   count?: number;
   className?: string;

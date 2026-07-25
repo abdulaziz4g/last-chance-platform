@@ -12,16 +12,14 @@ export default async function MyBookingsPage() {
   const session = await getSession();
   if (!session) redirect('/login');
 
-  let bookings: Awaited<ReturnType<typeof getGuestBookings>>;
-  try {
-    bookings = await getGuestBookings(50);
-  } catch {
-    bookings = [];
-  }
+  // Deliberately unguarded: an empty list and an unreachable API look identical
+  // to the reader, and "No bookings yet" is a lie to someone holding a
+  // reservation. Let bookings/error.tsx say what actually happened.
+  const bookings = await getGuestBookings(50);
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-10">
-      <header className="mb-8 flex items-center justify-between">
+    <div className="mx-auto max-w-4xl px-5 py-8 sm:px-6 sm:py-10">
+      <header className="mb-8 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
         <div>
           <Link href="/" className="text-[13px] font-semibold tracking-[0.32em]">
             LAST&nbsp;CHANCE
@@ -30,10 +28,10 @@ export default async function MyBookingsPage() {
             My bookings
           </p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex shrink-0 items-center gap-4">
           <Link
             href="/discover"
-            className="text-sm text-brass-500 transition-colors hover:text-brass-600 dark:text-brass-400 dark:hover:text-brass-300"
+            className="text-sm whitespace-nowrap text-brass-500 transition-colors hover:text-brass-600 dark:text-brass-400 dark:hover:text-brass-300"
           >
             Discover →
           </Link>

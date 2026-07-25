@@ -35,7 +35,7 @@ export default async function ConfirmationPage({
   const isConfirmed = booking.status === 'CONFIRMED' || booking.status === 'CHECKED_IN' || booking.status === 'COMPLETED';
 
   return (
-    <main className="mx-auto max-w-lg px-6 py-10">
+    <main className="mx-auto max-w-lg px-5 py-8 sm:px-6 sm:py-10">
       <div className="mb-8 text-center">
         <p className="text-4xl">{isConfirmed ? '✓' : '⏳'}</p>
         <h1 className="mt-3 text-xl font-semibold">
@@ -59,8 +59,10 @@ export default async function ConfirmationPage({
             <span className="text-zinc-500 dark:text-zinc-400">Type</span>
             <span>{booking.bookingType}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-zinc-500 dark:text-zinc-400">Window</span>
+          <div className="flex justify-between gap-3">
+            <span className="shrink-0 text-zinc-500 dark:text-zinc-400">
+              Window
+            </span>
             <span className="text-right text-xs">
               {timeWindow(booking.checkInUtc, booking.checkOutUtc)}
             </span>

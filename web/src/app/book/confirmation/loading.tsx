@@ -3,7 +3,7 @@ import { Skeleton } from '@/components/skeleton';
 
 export default function Loading() {
   return (
-    <main className="mx-auto max-w-lg px-6 py-10">
+    <main className="mx-auto max-w-lg px-5 py-8 sm:px-6 sm:py-10">
       <div className="mb-8 flex flex-col items-center">
         <Skeleton className="h-10 w-10 rounded-full" />
         <Skeleton className="mt-4 h-5 w-48" />

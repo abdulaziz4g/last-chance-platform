@@ -18,7 +18,7 @@ export default async function PayPage({
 
   if (!bookingId) {
     return (
-      <main className="mx-auto max-w-lg px-6 py-10">
+      <main className="mx-auto max-w-lg px-5 py-8 sm:px-6 sm:py-10">
         <Card className="px-6 py-10 text-center text-zinc-500">
           Missing booking ID. Please start from the booking page.
         </Card>
@@ -31,7 +31,7 @@ export default async function PayPage({
     booking = await getBooking(bookingId);
   } catch {
     return (
-      <main className="mx-auto max-w-lg px-6 py-10">
+      <main className="mx-auto max-w-lg px-5 py-8 sm:px-6 sm:py-10">
         <Card className="px-6 py-10 text-center text-zinc-500">
           Booking not found or expired.
         </Card>
@@ -40,7 +40,7 @@ export default async function PayPage({
   }
 
   return (
-    <main className="mx-auto max-w-lg px-6 py-10">
+    <main className="mx-auto max-w-lg px-5 py-8 sm:px-6 sm:py-10">
       <header className="mb-8">
         <p className="text-[13px] font-semibold tracking-[0.32em]">LAST&nbsp;CHANCE</p>
         <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.24em] text-brass-500 dark:text-brass-400">
@@ -61,8 +61,10 @@ export default async function PayPage({
             <span className="text-zinc-500 dark:text-zinc-400">Type</span>
             <span>{booking.bookingType}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-zinc-500 dark:text-zinc-400">Window</span>
+          <div className="flex justify-between gap-3">
+            <span className="shrink-0 text-zinc-500 dark:text-zinc-400">
+              Window
+            </span>
             <span className="text-right text-xs">
               {timeWindow(booking.checkInUtc, booking.checkOutUtc)}
             </span>

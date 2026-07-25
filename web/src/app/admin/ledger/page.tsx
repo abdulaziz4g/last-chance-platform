@@ -26,7 +26,7 @@ export default async function LedgerPage() {
         </p>
       </header>
 
-      <section className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {balances.map((b) => (
           <Card key={`${b.account}-${b.currency}`} className="px-5 py-4">
             <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">

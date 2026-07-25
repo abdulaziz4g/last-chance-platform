@@ -22,7 +22,7 @@ export default function ClaimDealPage() {
   useActionToast(state);
 
   return (
-    <main className="mx-auto max-w-lg px-6 py-10">
+    <main className="mx-auto max-w-lg px-5 py-8 sm:px-6 sm:py-10">
       <header className="mb-8">
         <Link href="/discover" className="text-[13px] font-semibold tracking-[0.32em]">
           LAST&nbsp;CHANCE
@@ -50,7 +50,7 @@ export default function ClaimDealPage() {
             </select>
           </label>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="block">
               <span className="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                 Check-in
