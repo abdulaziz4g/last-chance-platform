@@ -4,6 +4,7 @@ import { useActionState } from 'react';
 import { createDealAction } from './actions';
 import type { HostUnit } from '@/lib/api';
 import { Card } from '@/components/ui';
+import { useActionToast } from '@/components/toast';
 
 function inOneHour(): string {
   const d = new Date();
@@ -22,16 +23,11 @@ const inputCls =
 
 export function DealForm({ units }: { units: HostUnit[] }) {
   const [state, formAction, pending] = useActionState(createDealAction, null);
+  useActionToast(state);
 
   return (
     <Card className="p-5">
       <form action={formAction} className="space-y-4">
-        {state?.error && (
-          <p className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-600 dark:bg-red-950/30 dark:text-red-400">
-            {state.error}
-          </p>
-        )}
-
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label className="block">
             <span className="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">

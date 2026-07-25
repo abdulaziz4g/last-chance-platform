@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react';
 import { payAction } from '../actions';
+import { useActionToast } from '@/components/toast';
 
 export function PayForm({
   bookingId,
@@ -11,17 +12,12 @@ export function PayForm({
   unitId: string;
 }) {
   const [state, formAction, pending] = useActionState(payAction, null);
+  useActionToast(state);
 
   return (
     <form action={formAction} className="space-y-4">
       <input type="hidden" name="bookingId" value={bookingId} />
       <input type="hidden" name="unitId" value={unitId} />
-
-      {state?.error && (
-        <p className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-600 dark:bg-red-950/30 dark:text-red-400">
-          {state.error}
-        </p>
-      )}
 
       <fieldset className="space-y-3 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-white/[0.06] dark:bg-ink-900">
         <legend className="px-2 text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">

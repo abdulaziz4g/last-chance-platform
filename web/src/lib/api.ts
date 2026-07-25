@@ -37,29 +37,50 @@ type SafeResult<T> =
   | { ok: true; data: T }
   | { ok: false; error: string };
 
+/**
+ * POST that reports failure as a value rather than an exception — the shape
+ * server actions need, since a thrown action rejects with no state for the
+ * form to render. Network faults (API down, DNS, timeout) are failures too:
+ * they must come back as `ok: false`, not escape as a rejected promise.
+ */
 export async function apiPostSafe<T>(
   path: string,
   body: unknown,
 ): Promise<SafeResult<T>> {
-  const headers = await authHeaders();
-  const res = await fetch(`${API_BASE}${path}`, {
-    cache: 'no-store',
-    method: 'POST',
-    headers: { ...headers, 'content-type': 'application/json' },
-    body: JSON.stringify(body),
-  });
+  let res: Response;
+  try {
+    const headers = await authHeaders();
+    res = await fetch(`${API_BASE}${path}`, {
+      cache: 'no-store',
+      method: 'POST',
+      headers: { ...headers, 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  } catch {
+    return {
+      ok: false,
+      error: 'Cannot reach the server. Check your connection and try again.',
+    };
+  }
+
   if (!res.ok) {
-    const text = await res.text();
+    const text = await res.text().catch(() => '');
     let msg: string;
     try {
       const parsed = JSON.parse(text);
-      msg = parsed.message ?? parsed.error ?? text;
+      // The API nests its message under `error` (see domain-errors).
+      msg = parsed?.error?.message ?? parsed?.message ?? parsed?.error ?? text;
     } catch {
       msg = text || `Request failed (${res.status})`;
     }
-    return { ok: false, error: typeof msg === 'string' ? msg : String(msg) };
+    return { ok: false, error: typeof msg === 'string' && msg ? msg : `Request failed (${res.status})` };
   }
-  return { ok: true, data: (await res.json()) as T };
+
+  try {
+    return { ok: true, data: (await res.json()) as T };
+  } catch {
+    return { ok: false, error: 'The server returned an unreadable response.' };
+  }
 }
 
 export interface AdminOverview {

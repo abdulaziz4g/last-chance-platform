@@ -1,13 +1,13 @@
 'use server';
 
-import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
 import { apiPostSafe } from '@/lib/api';
 import type { FlashDeal } from '@/lib/api';
 
 export async function createDealAction(
-  _prev: { error?: string; success?: boolean } | null,
+  _prev: { error?: string; success?: string } | null,
   formData: FormData,
-): Promise<{ error?: string; success?: boolean }> {
+): Promise<{ error?: string; success?: string }> {
   const unitId = formData.get('unitId') as string;
   const title = formData.get('title') as string;
   const discountPct = Number(formData.get('discountPct'));
@@ -36,5 +36,8 @@ export async function createDealAction(
 
   if (!result.ok) return { error: result.error };
 
-  redirect('/host/deals');
+  // Stay on the page: the host usually creates several deals in a row, and the
+  // refreshed table below the form is the confirmation.
+  revalidatePath('/host/deals');
+  return { success: `“${title}” is live — ${discountPct}% off, ${quantityTotal} slots.` };
 }
