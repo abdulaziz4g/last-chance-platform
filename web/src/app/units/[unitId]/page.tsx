@@ -6,7 +6,7 @@ import { money } from '@/lib/format';
 import { Card, SectionTitle, StatusChip } from '@/components/ui';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { SITE_URL } from '@/lib/site';
-import { DealCountdown } from './deal-countdown';
+import { LiveDeal } from './live-deal';
 import { PhotoGallery } from './photo-gallery';
 
 export const dynamic = 'force-dynamic';
@@ -243,27 +243,14 @@ export default async function UnitDetailPage({
 
       {activeDeal && (
         <Card className="mb-8 border-brass-400/30 bg-gradient-to-b from-brass-400/[0.08] to-transparent p-5 dark:border-brass-500/25">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-brass-400" />
-                <p className="text-sm font-semibold">{activeDeal.title}</p>
-                <span className="rounded-full bg-brass-400 px-2 py-0.5 text-[11px] font-bold text-ink-950">
-                  −{activeDeal.discountPct}%
-                </span>
-              </div>
-              <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                {activeDeal.quantityRemaining} left ·{' '}
-                <DealCountdown endsAt={activeDeal.endsAt} />
-              </p>
-            </div>
-            <Link
-              href={`/deals/${activeDeal.id}/claim`}
-              className="rounded-lg bg-brass-500 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brass-600 dark:bg-brass-600 dark:hover:bg-brass-500"
-            >
-              Claim deal
-            </Link>
-          </div>
+          <LiveDeal
+            unitId={unit.id}
+            dealId={activeDeal.id}
+            title={activeDeal.title}
+            discountPct={activeDeal.discountPct}
+            endsAt={activeDeal.endsAt}
+            quantityRemaining={activeDeal.quantityRemaining}
+          />
         </Card>
       )}
 

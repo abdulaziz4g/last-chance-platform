@@ -1,9 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { FlashDealView } from '@/lib/api';
 import { money } from '@/lib/format';
+import { useRealtime } from './use-realtime';
+import { isDealEvent, type RealtimeEvent } from '@/lib/realtime';
 
 /**
  * Live flash-deal strip. Seeds each countdown from the server's
@@ -28,14 +30,40 @@ export function DealStrip({ deals }: { deals: FlashDealView[] }) {
     return () => clearInterval(t);
   }, []);
 
+  /**
+   * Remaining stock, overlaid on the server's numbers as claims land. Keyed by
+   * deal id rather than replacing the list: the server render stays the source
+   * of truth for which deals exist and what they cost — this only tracks the
+   * one field that moves while someone is looking at the page.
+   */
+  const [claimed, setClaimed] = useState<Record<string, number>>({});
+
+  const status = useRealtime(
+    { all: true },
+    useCallback((event: RealtimeEvent) => {
+      if (!isDealEvent(event)) return;
+      setClaimed((prev) =>
+        prev[event.dealId] === event.quantityRemaining
+          ? prev
+          : { ...prev, [event.dealId]: event.quantityRemaining },
+      );
+    }, []),
+  );
+
   if (deals.length === 0) return null;
 
   return (
     <section className="mb-8">
       <div className="mb-3 flex items-center gap-2">
-        <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-brass-400" />
+        <span
+          className={`inline-flex h-2 w-2 rounded-full ${
+            status === 'live'
+              ? 'animate-pulse bg-brass-400'
+              : 'bg-zinc-300 dark:bg-zinc-700'
+          }`}
+        />
         <h2 className="text-[11px] font-semibold uppercase tracking-[0.24em] text-brass-500 dark:text-brass-400">
-          Flash deals · live
+          Flash deals{status === 'live' ? ' · live' : ''}
         </h2>
       </div>
       <div className="flex gap-3 overflow-x-auto pb-2">
@@ -45,6 +73,9 @@ export function DealStrip({ deals }: { deals: FlashDealView[] }) {
           const rate = d.baseHourlyRateMinor ?? d.baseNightlyRateMinor;
           const netRate =
             rate != null ? Math.round(rate * (1 - d.discountPct / 100)) : null;
+          // A live claim count supersedes the one this page was rendered with.
+          const remaining = claimed[d.id] ?? d.quantityRemaining;
+          const soldOut = remaining <= 0;
           return (
             <div
               key={d.id}
@@ -71,8 +102,16 @@ export function DealStrip({ deals }: { deals: FlashDealView[] }) {
                       </span>
                     </p>
                   ) : null}
-                  <p className="mt-0.5 text-[11px] text-zinc-500">
-                    {d.quantityRemaining} of {d.quantityTotal} left
+                  <p
+                    className={`mt-0.5 text-[11px] ${
+                      soldOut
+                        ? 'font-medium text-rose-500'
+                        : 'text-zinc-500'
+                    }`}
+                  >
+                    {soldOut
+                      ? 'Sold out'
+                      : `${remaining} of ${d.quantityTotal} left`}
                   </p>
                 </div>
                 <div className="text-right">
@@ -84,7 +123,7 @@ export function DealStrip({ deals }: { deals: FlashDealView[] }) {
                   </p>
                 </div>
               </div>
-              {secondsLeft > 0 && d.quantityRemaining > 0 && (
+              {secondsLeft > 0 && !soldOut && (
                 <Link
                   href={`/deals/${d.id}/claim`}
                   className="mt-3 block rounded-lg bg-brass-500 px-3 py-1.5 text-center text-xs font-semibold text-white transition-colors hover:bg-brass-600 dark:bg-brass-600 dark:hover:bg-brass-500"
