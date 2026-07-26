@@ -1,4 +1,5 @@
 import { Skeleton, SkeletonTable } from '@/components/skeleton';
+import { REPORT_PAGE_SIZE } from '@/lib/api';
 
 export default function Loading() {
   return (
@@ -10,17 +11,17 @@ export default function Loading() {
 
       <section>
         <Skeleton className="mb-3 h-3 w-32" />
-        <SkeletonTable rows={6} cols={7} />
+        <SkeletonTable rows={REPORT_PAGE_SIZE} cols={7} />
       </section>
 
       <section>
         <Skeleton className="mb-3 h-3 w-28" />
-        <SkeletonTable rows={5} cols={6} />
+        <SkeletonTable rows={REPORT_PAGE_SIZE} cols={6} />
       </section>
 
       <section>
         <Skeleton className="mb-3 h-3 w-36" />
-        <SkeletonTable rows={5} cols={6} />
+        <SkeletonTable rows={REPORT_PAGE_SIZE} cols={6} />
       </section>
     </div>
   );

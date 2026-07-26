@@ -82,7 +82,11 @@ export function Shell({
         </div>
       </aside>
 
-      <main className="w-full px-5 py-8 lg:ml-60 lg:px-10 lg:py-10">
+      {/* No `w-full`: as a block, main already fills the space its margin
+          leaves. Asking for 100% of the viewport *and* a 15rem left margin
+          makes it 15rem too wide, which is a horizontal scrollbar across every
+          console page from `lg` up. */}
+      <main className="px-5 py-8 lg:ml-60 lg:px-10 lg:py-10">
         <div className="mx-auto max-w-6xl">{children}</div>
       </main>
     </div>

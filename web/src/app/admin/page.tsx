@@ -5,15 +5,27 @@ import {
   StatCard,
   StatusChip,
 } from '@/components/ui';
-import { getAdminBookings, getAdminOverview } from '@/lib/api';
+import {
+  getAdminBookings,
+  getAdminOverview,
+  REPORT_PAGE_SIZE,
+} from '@/lib/api';
 import { dateTime, money, timeWindow } from '@/lib/format';
+import { Pagination } from '@/components/pagination';
 
 export const dynamic = 'force-dynamic';
 
-export default async function AdminOverviewPage() {
+export default async function AdminOverviewPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
+  const sp = await searchParams;
+  const page = Math.max(1, Number(sp.page) || 1);
+
   const [overview, bookings] = await Promise.all([
     getAdminOverview(),
-    getAdminBookings(30),
+    getAdminBookings(page),
   ]);
 
   return (
@@ -61,7 +73,7 @@ export default async function AdminOverviewPage() {
         <SectionTitle>Recent bookings</SectionTitle>
         <DataTable
           head={['Code', 'Guest', 'Property / unit', 'Window', 'Total', 'Status', 'Created']}
-          rows={bookings.map((b) => [
+          rows={bookings.items.map((b) => [
             <Mono key="c">{b.bookingCode}</Mono>,
             b.guestName,
             `${b.propertyName} · ${b.unitName}`,
@@ -76,6 +88,13 @@ export default async function AdminOverviewPage() {
               {dateTime(b.createdAt)}
             </span>,
           ])}
+        />
+        <Pagination
+          basePath="/admin"
+          params={sp}
+          page={page}
+          pageSize={REPORT_PAGE_SIZE}
+          total={bookings.total}
         />
       </section>
     </div>

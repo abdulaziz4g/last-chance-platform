@@ -31,6 +31,32 @@ export interface BookingListItem {
   guestName: string;
 }
 
+/** One page of rows plus the unpaginated total, for page controls. */
+export interface Paged<T> {
+  items: T[];
+  total: number;
+}
+
+/**
+ * Separates the `COUNT(*) OVER ()` column from the rows it travelled with.
+ *
+ * The count rides inside the same statement so a page and its total always
+ * describe one snapshot — computing them separately lets rows appear or vanish
+ * between the two queries, which shows up as a page control that disagrees
+ * with the page beneath it. The column is stripped here so callers never see
+ * a bookkeeping field in their data.
+ */
+function paged<T extends Record<string, unknown>>(
+  rows: (T & { total_count?: string })[],
+): Paged<T> {
+  const total = rows[0] ? Number(rows[0].total_count) : 0;
+  const items = rows.map((row) => {
+    const { total_count: _count, ...rest } = row;
+    return rest as unknown as T;
+  });
+  return { items, total };
+}
+
 @Injectable()
 export class ReportingRepository {
   constructor(private readonly db: DatabaseService) {}
@@ -69,7 +95,11 @@ export class ReportingRepository {
     };
   }
 
-  async recentBookings(limit: number, hostId?: string): Promise<BookingListItem[]> {
+  async recentBookings(
+    limit: number,
+    hostId?: string,
+    offset = 0,
+  ): Promise<Paged<BookingListItem>> {
     const res = await this.db.query<{
       id: string;
       booking_code: string;
@@ -83,68 +113,81 @@ export class ReportingRepository {
       unit_name: string;
       property_name: string;
       guest_name: string;
+      total_count: string;
     }>(
       `SELECT b.id, b.booking_code, b.status::text, b.booking_type::text,
               b.check_in_utc, b.check_out_utc, b.total_amount_minor,
               b.currency, b.created_at,
               u.name AS unit_name, p.name AS property_name,
-              g.full_name AS guest_name
+              g.full_name AS guest_name,
+              COUNT(*) OVER () AS total_count
        FROM bookings b
        JOIN units u ON u.id = b.unit_id
        JOIN properties p ON p.id = b.property_id
        JOIN users g ON g.id = b.guest_id
        WHERE ($2::uuid IS NULL OR p.host_id = $2::uuid)
        ORDER BY b.created_at DESC
-       LIMIT $1`,
-      [limit, hostId ?? null],
+       LIMIT $1 OFFSET $3`,
+      [limit, hostId ?? null, offset],
     );
-    return res.rows.map((r) => ({
-      id: r.id,
-      bookingCode: r.booking_code,
-      status: r.status,
-      bookingType: r.booking_type,
-      checkInUtc: r.check_in_utc.toISOString(),
-      checkOutUtc: r.check_out_utc.toISOString(),
-      totalAmountMinor: r.total_amount_minor,
-      currency: r.currency,
-      createdAt: r.created_at.toISOString(),
-      unitName: r.unit_name,
-      propertyName: r.property_name,
-      guestName: r.guest_name,
-    }));
+    return {
+      items: res.rows.map((r) => ({
+        id: r.id,
+        bookingCode: r.booking_code,
+        status: r.status,
+        bookingType: r.booking_type,
+        checkInUtc: r.check_in_utc.toISOString(),
+        checkOutUtc: r.check_out_utc.toISOString(),
+        totalAmountMinor: r.total_amount_minor,
+        currency: r.currency,
+        createdAt: r.created_at.toISOString(),
+        unitName: r.unit_name,
+        propertyName: r.property_name,
+        guestName: r.guest_name,
+      })),
+      total: res.rows[0] ? Number(res.rows[0].total_count) : 0,
+    };
   }
 
-  async recentPayments(limit: number): Promise<Record<string, unknown>[]> {
+  async recentPayments(
+    limit: number,
+    offset = 0,
+  ): Promise<Paged<Record<string, unknown>>> {
     const res = await this.db.query(
       `SELECT pm.id, pm.status::text, pm.provider::text, pm.method::text,
               pm.amount_minor AS "amountMinor", pm.currency,
               pm.refunded_amount_minor AS "refundedAmountMinor",
               pm.captured_at AS "capturedAt", pm.created_at AS "createdAt",
-              b.booking_code AS "bookingCode"
+              b.booking_code AS "bookingCode",
+              COUNT(*) OVER () AS total_count
        FROM payments pm
        JOIN bookings b ON b.id = pm.booking_id
        ORDER BY pm.created_at DESC
-       LIMIT $1`,
-      [limit],
+       LIMIT $1 OFFSET $2`,
+      [limit, offset],
     );
-    return res.rows;
+    return paged(res.rows);
   }
 
-  async recentPayouts(limit: number): Promise<Record<string, unknown>[]> {
+  async recentPayouts(
+    limit: number,
+    offset = 0,
+  ): Promise<Paged<Record<string, unknown>>> {
     const res = await this.db.query(
       `SELECT po.id, po.status::text, po.amount_minor AS "amountMinor",
               po.currency, po.provider::text,
               po.provider_transfer_id AS "providerTransferId",
               po.paid_at AS "paidAt", po.created_at AS "createdAt",
-              b.booking_code AS "bookingCode", h.display_name AS "hostName"
+              b.booking_code AS "bookingCode", h.display_name AS "hostName",
+              COUNT(*) OVER () AS total_count
        FROM payouts po
        JOIN bookings b ON b.id = po.booking_id
        JOIN host_profiles h ON h.user_id = po.host_id
        ORDER BY po.created_at DESC
-       LIMIT $1`,
-      [limit],
+       LIMIT $1 OFFSET $2`,
+      [limit, offset],
     );
-    return res.rows;
+    return paged(res.rows);
   }
 
   async ledgerBalances(): Promise<Record<string, unknown>[]> {
@@ -160,33 +203,41 @@ export class ReportingRepository {
     return res.rows;
   }
 
-  async recentLedgerEntries(limit: number): Promise<Record<string, unknown>[]> {
+  async recentLedgerEntries(
+    limit: number,
+    offset = 0,
+  ): Promise<Paged<Record<string, unknown>>> {
     const res = await this.db.query(
       `SELECT le.id, le.entry_group_id AS "groupId", le.account::text,
               le.direction::text, le.amount_minor AS "amountMinor",
               le.currency, le.description, le.created_at AS "createdAt",
-              b.booking_code AS "bookingCode"
+              b.booking_code AS "bookingCode",
+              COUNT(*) OVER () AS total_count
        FROM ledger_entries le
        LEFT JOIN bookings b ON b.id = le.booking_id
        ORDER BY le.id DESC
-       LIMIT $1`,
-      [limit],
+       LIMIT $1 OFFSET $2`,
+      [limit, offset],
     );
-    return res.rows;
+    return paged(res.rows);
   }
 
-  async recentWebhookEvents(limit: number): Promise<Record<string, unknown>[]> {
+  async recentWebhookEvents(
+    limit: number,
+    offset = 0,
+  ): Promise<Paged<Record<string, unknown>>> {
     const res = await this.db.query(
       `SELECT id, provider::text, event_id AS "eventId",
               event_type AS "eventType", processing_status::text AS "status",
               signature_valid AS "signatureValid", attempts,
-              received_at AS "receivedAt", processed_at AS "processedAt"
+              received_at AS "receivedAt", processed_at AS "processedAt",
+              COUNT(*) OVER () AS total_count
        FROM payment_webhook_events
        ORDER BY received_at DESC
-       LIMIT $1`,
-      [limit],
+       LIMIT $1 OFFSET $2`,
+      [limit, offset],
     );
-    return res.rows;
+    return paged(res.rows);
   }
 
   async hostOverview(hostId: string): Promise<Record<string, unknown> | null> {

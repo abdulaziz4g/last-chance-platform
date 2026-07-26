@@ -8,6 +8,7 @@ import { ReportingRepository } from './reporting.repository';
 
 const listQuery = z.object({
   limit: z.coerce.number().int().min(1).max(200).default(50),
+  offset: z.coerce.number().int().min(0).default(0),
 });
 
 @Roles('HOST')
@@ -27,8 +28,8 @@ export class HostReportingController {
     @Query() query: unknown,
   ) {
     const hostId = this.resolveHostId(req);
-    const { limit } = parseWith(listQuery, query);
-    return this.reporting.recentBookings(limit, hostId);
+    const { limit, offset } = parseWith(listQuery, query);
+    return this.reporting.recentBookings(limit, hostId, offset);
   }
 
   private resolveHostId(req: AuthenticatedRequest): string {

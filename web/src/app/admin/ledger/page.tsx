@@ -1,6 +1,7 @@
 import { Card, DataTable, Mono, SectionTitle, StatusChip } from '@/components/ui';
-import { getAdminLedger } from '@/lib/api';
+import { getAdminLedger, REPORT_PAGE_SIZE } from '@/lib/api';
 import { dateTime, money } from '@/lib/format';
+import { Pagination } from '@/components/pagination';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,8 +14,17 @@ const ACCOUNT_LABELS: Record<string, string> = {
   GUEST_REFUND_CLEARING: 'Guest refund clearing',
 };
 
-export default async function LedgerPage() {
-  const { balances, entries } = await getAdminLedger(60);
+export default async function LedgerPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
+  const sp = await searchParams;
+  const page = Math.max(1, Number(sp.page) || 1);
+
+  // Balances summarise the whole ledger, so they stay whole while the entries
+  // beneath them page — a running total that changed per page would be a lie.
+  const { balances, entries, total } = await getAdminLedger(page);
 
   return (
     <div className="space-y-10">
@@ -65,6 +75,13 @@ export default async function LedgerPage() {
               {dateTime(e.createdAt)}
             </span>,
           ])}
+        />
+        <Pagination
+          basePath="/admin/ledger"
+          params={sp}
+          page={page}
+          pageSize={REPORT_PAGE_SIZE}
+          total={total}
         />
       </section>
     </div>

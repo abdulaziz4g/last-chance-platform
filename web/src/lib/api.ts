@@ -188,24 +188,44 @@ export interface HostOverview {
   bookings: BookingRow[];
 }
 
+/** One page of a report, with the unpaginated total for the page control. */
+export interface Paged<T> {
+  items: T[];
+  total: number;
+}
+
+/**
+ * Rows per page in the operations console. Larger than the guest-facing lists:
+ * these are scanning tools, and an operator reading down a payments table wants
+ * density more than they want a short page.
+ */
+export const REPORT_PAGE_SIZE = 25;
+
+/** Reports are read newest-first, so a page maps cleanly onto an offset. */
+const pageQuery = (page: number, pageSize = REPORT_PAGE_SIZE): string =>
+  `limit=${pageSize}&offset=${Math.max(0, page - 1) * pageSize}`;
+
 export const getAdminOverview = (): Promise<AdminOverview> =>
   api('/admin/overview');
-export const getAdminBookings = (limit = 50): Promise<BookingRow[]> =>
-  api(`/admin/bookings?limit=${limit}`);
-export const getAdminPayments = (limit = 50): Promise<PaymentRow[]> =>
-  api(`/admin/payments?limit=${limit}`);
-export const getAdminPayouts = (limit = 50): Promise<PayoutRow[]> =>
-  api(`/admin/payouts?limit=${limit}`);
+export const getAdminBookings = (page = 1): Promise<Paged<BookingRow>> =>
+  api(`/admin/bookings?${pageQuery(page)}`);
+export const getAdminPayments = (page = 1): Promise<Paged<PaymentRow>> =>
+  api(`/admin/payments?${pageQuery(page)}`);
+export const getAdminPayouts = (page = 1): Promise<Paged<PayoutRow>> =>
+  api(`/admin/payouts?${pageQuery(page)}`);
 export const getAdminLedger = (
-  limit = 50,
-): Promise<{ balances: LedgerBalance[]; entries: LedgerEntryRow[] }> =>
-  api(`/admin/ledger?limit=${limit}`);
-export const getAdminWebhooks = (limit = 50): Promise<WebhookRow[]> =>
-  api(`/admin/webhooks?limit=${limit}`);
+  page = 1,
+): Promise<{
+  balances: LedgerBalance[];
+  entries: LedgerEntryRow[];
+  total: number;
+}> => api(`/admin/ledger?${pageQuery(page)}`);
+export const getAdminWebhooks = (page = 1): Promise<Paged<WebhookRow>> =>
+  api(`/admin/webhooks?${pageQuery(page)}`);
 export const getHostOverview = (): Promise<HostOverview | null> =>
   api('/host/overview');
-export const getHostBookings = (limit = 50): Promise<BookingRow[]> =>
-  api(`/host/bookings?limit=${limit}`);
+export const getHostBookings = (page = 1): Promise<Paged<BookingRow>> =>
+  api(`/host/bookings?${pageQuery(page)}`);
 
 // ---- discovery (public search) --------------------------------------------
 

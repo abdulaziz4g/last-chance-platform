@@ -1,14 +1,29 @@
 import { DataTable, Mono, SectionTitle, StatusChip } from '@/components/ui';
-import { getAdminPayments, getAdminPayouts, getAdminWebhooks } from '@/lib/api';
+import {
+  getAdminPayments,
+  getAdminPayouts,
+  getAdminWebhooks,
+  REPORT_PAGE_SIZE,
+} from '@/lib/api';
 import { dateTime, money } from '@/lib/format';
+import { Pagination } from '@/components/pagination';
 
 export const dynamic = 'force-dynamic';
 
-export default async function PaymentsPage() {
+export default async function PaymentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
+  const sp = await searchParams;
+  // Each table pages independently, so each owns its own query key —
+  // otherwise stepping through payouts would silently reset payments.
+  const pageOf = (key: string) => Math.max(1, Number(sp[key]) || 1);
+
   const [payments, payouts, webhooks] = await Promise.all([
-    getAdminPayments(30),
-    getAdminPayouts(30),
-    getAdminWebhooks(30),
+    getAdminPayments(pageOf('payments')),
+    getAdminPayouts(pageOf('payouts')),
+    getAdminWebhooks(pageOf('webhooks')),
   ]);
 
   return (
@@ -24,7 +39,7 @@ export default async function PaymentsPage() {
         <SectionTitle>Payments</SectionTitle>
         <DataTable
           head={['Booking', 'Provider', 'Method', 'Amount', 'Refunded', 'Status', 'Captured']}
-          rows={payments.map((p) => [
+          rows={payments.items.map((p) => [
             <Mono key="b">{p.bookingCode}</Mono>,
             p.provider,
             p.method,
@@ -42,13 +57,22 @@ export default async function PaymentsPage() {
             </span>,
           ])}
         />
+        <Pagination
+          basePath="/admin/payments"
+          params={sp}
+          paramName="payments"
+          label="Payments"
+          page={pageOf('payments')}
+          pageSize={REPORT_PAGE_SIZE}
+          total={payments.total}
+        />
       </section>
 
       <section>
         <SectionTitle>Payouts</SectionTitle>
         <DataTable
           head={['Booking', 'Host', 'Amount', 'Provider ref', 'Status', 'Paid at']}
-          rows={payouts.map((p) => [
+          rows={payouts.items.map((p) => [
             <Mono key="b">{p.bookingCode}</Mono>,
             p.hostName,
             <span key="a" className="tnum font-medium">
@@ -65,13 +89,22 @@ export default async function PaymentsPage() {
             </span>,
           ])}
         />
+        <Pagination
+          basePath="/admin/payments"
+          params={sp}
+          paramName="payouts"
+          label="Payouts"
+          page={pageOf('payouts')}
+          pageSize={REPORT_PAGE_SIZE}
+          total={payouts.total}
+        />
       </section>
 
       <section>
         <SectionTitle>Webhook events</SectionTitle>
         <DataTable
           head={['Provider', 'Event', 'Type', 'Signature', 'Attempts', 'Status', 'Received']}
-          rows={webhooks.map((w) => [
+          rows={webhooks.items.map((w) => [
             w.provider,
             <Mono key="e">{w.eventId}</Mono>,
             <span key="y" className="text-xs">{w.eventType}</span>,
@@ -82,6 +115,15 @@ export default async function PaymentsPage() {
               {dateTime(w.receivedAt)}
             </span>,
           ])}
+        />
+        <Pagination
+          basePath="/admin/payments"
+          params={sp}
+          paramName="webhooks"
+          label="Webhook events"
+          page={pageOf('webhooks')}
+          pageSize={REPORT_PAGE_SIZE}
+          total={webhooks.total}
         />
       </section>
     </div>

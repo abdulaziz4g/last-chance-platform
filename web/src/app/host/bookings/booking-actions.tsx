@@ -20,13 +20,14 @@ function Pending({ children }: { children: ReactNode }) {
 }
 
 /** One-tap step: recording arrival moves no money. */
-function CheckIn({ bookingId }: { bookingId: string }) {
+function CheckIn({ bookingId, page }: { bookingId: string; page: number }) {
   const [state, formAction, pending] = useActionState(checkInAction, null);
   useActionToast(state);
 
   return (
     <form action={formAction}>
       <input type="hidden" name="bookingId" value={bookingId} />
+      <input type="hidden" name="page" value={page} />
       <button
         type="submit"
         disabled={pending}
@@ -39,7 +40,7 @@ function CheckIn({ bookingId }: { bookingId: string }) {
 }
 
 /** Completing releases the escrow payout, so it is confirmed. */
-function Complete({ bookingId }: { bookingId: string }) {
+function Complete({ bookingId, page }: { bookingId: string; page: number }) {
   const [armed, setArmed] = useState(false);
   const [state, formAction, pending] = useActionState(completeAction, null);
   useActionToast(state);
@@ -59,6 +60,7 @@ function Complete({ bookingId }: { bookingId: string }) {
   return (
     <form action={formAction} className="flex items-center gap-1.5">
       <input type="hidden" name="bookingId" value={bookingId} />
+      <input type="hidden" name="page" value={page} />
       {pending ? (
         <Pending>Completing…</Pending>
       ) : (
@@ -84,7 +86,15 @@ function Complete({ bookingId }: { bookingId: string }) {
 }
 
 /** Host-side cancellation — destructive, and refunds a paid guest. */
-function Cancel({ bookingId, paid }: { bookingId: string; paid: boolean }) {
+function Cancel({
+  bookingId,
+  paid,
+  page,
+}: {
+  bookingId: string;
+  paid: boolean;
+  page: number;
+}) {
   const [armed, setArmed] = useState(false);
   const [state, formAction, pending] = useActionState(hostCancelAction, null);
   useActionToast(state);
@@ -104,6 +114,7 @@ function Cancel({ bookingId, paid }: { bookingId: string; paid: boolean }) {
   return (
     <form action={formAction} className="flex items-center gap-1.5">
       <input type="hidden" name="bookingId" value={bookingId} />
+      <input type="hidden" name="page" value={page} />
       <input type="hidden" name="reason" value="Cancelled by host" />
       {pending ? (
         <Pending>Cancelling…</Pending>
@@ -134,9 +145,12 @@ function Cancel({ bookingId, paid }: { bookingId: string; paid: boolean }) {
 export function HostBookingActions({
   bookingId,
   status,
+  page,
 }: {
   bookingId: string;
   status: string;
+  /** Carried through each action so the redirect returns to this page. */
+  page: number;
 }) {
   // Mirrors the FSM: CONFIRMED may check in or cancel, CHECKED_IN may only
   // complete, everything else is terminal from the host's side.
@@ -150,10 +164,14 @@ export function HostBookingActions({
 
   return (
     <div className="flex flex-wrap items-center gap-1.5">
-      {canCheckIn && <CheckIn bookingId={bookingId} />}
-      {canComplete && <Complete bookingId={bookingId} />}
+      {canCheckIn && <CheckIn bookingId={bookingId} page={page} />}
+      {canComplete && <Complete bookingId={bookingId} page={page} />}
       {canCancel && (
-        <Cancel bookingId={bookingId} paid={status === 'CONFIRMED'} />
+        <Cancel
+          bookingId={bookingId}
+          paid={status === 'CONFIRMED'}
+          page={page}
+        />
       )}
     </div>
   );

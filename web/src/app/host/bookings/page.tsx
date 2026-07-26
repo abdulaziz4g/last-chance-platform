@@ -1,14 +1,32 @@
 import { Suspense } from 'react';
 import { DataTable, Mono, SectionTitle, StatusChip } from '@/components/ui';
-import { getHostOverview } from '@/lib/api';
-import { dateTime, money, timeWindow } from '@/lib/format';
+import {
+  getHostBookings,
+  getHostOverview,
+  REPORT_PAGE_SIZE,
+} from '@/lib/api';
+import { money, timeWindow } from '@/lib/format';
 import { HostBookingActions } from './booking-actions';
 import { ActionFlash } from '@/components/action-flash';
+import { Pagination } from '@/components/pagination';
 
 export const dynamic = 'force-dynamic';
 
-export default async function HostBookingsPage() {
-  const host = await getHostOverview();
+export default async function HostBookingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
+  const sp = await searchParams;
+  const page = Math.max(1, Number(sp.page) || 1);
+
+  // The overview is only consulted for the host's name; the bookings come from
+  // the paged endpoint, so this page is no longer limited to whatever slice
+  // the overview happened to embed.
+  const [host, bookings] = await Promise.all([
+    getHostOverview(),
+    getHostBookings(page),
+  ]);
   if (!host) return <p className="text-zinc-500">No host profile found.</p>;
 
   return (
@@ -30,7 +48,7 @@ export default async function HostBookingsPage() {
           'Status',
           'Actions',
         ]}
-        rows={host.bookings.map((b) => [
+        rows={bookings.items.map((b) => [
           <Mono key="c">{b.bookingCode}</Mono>,
           b.guestName,
           `${b.propertyName} · ${b.unitName}`,
@@ -44,13 +62,21 @@ export default async function HostBookingsPage() {
             {money(b.totalAmountMinor, b.currency)}
           </span>,
           <StatusChip key="s" status={b.status} />,
-          <HostBookingActions key="a" bookingId={b.id} status={b.status} />,
+          <HostBookingActions
+            key="a"
+            bookingId={b.id}
+            status={b.status}
+            page={page}
+          />,
         ])}
       />
-      <p className="text-xs text-zinc-500">
-        Created timestamps and cancellation controls arrive with host actions in
-        a later phase. Last refresh: {dateTime(new Date().toISOString())} UTC.
-      </p>
+      <Pagination
+        basePath="/host/bookings"
+        params={sp}
+        page={page}
+        pageSize={REPORT_PAGE_SIZE}
+        total={bookings.total}
+      />
     </div>
   );
 }

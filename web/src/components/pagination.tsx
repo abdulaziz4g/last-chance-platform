@@ -12,12 +12,13 @@ function pageHref(
   basePath: string,
   params: Record<string, string | undefined>,
   page: number,
+  paramName: string,
 ): string {
   const query = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
-    if (key !== 'page' && value) query.set(key, value);
+    if (key !== paramName && value) query.set(key, value);
   }
-  if (page > 1) query.set('page', String(page));
+  if (page > 1) query.set(paramName, String(page));
   const qs = query.toString();
   return qs ? `${basePath}?${qs}` : basePath;
 }
@@ -51,12 +52,21 @@ export function Pagination({
   page,
   pageSize,
   total,
+  paramName = 'page',
+  label,
 }: {
   basePath: string;
   params: Record<string, string | undefined>;
   page: number;
   pageSize: number;
   total: number;
+  /**
+   * Query key this control owns. Pages carrying several independent tables
+   * give each its own key, so paging one does not reset the others.
+   */
+  paramName?: string;
+  /** Distinguishes the controls for screen readers when a page has several. */
+  label?: string;
 }) {
   const last = Math.max(1, Math.ceil(total / pageSize));
   if (last <= 1) return null;
@@ -67,7 +77,7 @@ export function Pagination({
 
   return (
     <nav
-      aria-label="Pagination"
+      aria-label={label ? `${label} pagination` : 'Pagination'}
       className="mt-8 flex flex-wrap items-center justify-between gap-4"
     >
       <p className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -80,7 +90,7 @@ export function Pagination({
       <div className="flex flex-wrap items-center gap-1">
         {current > 1 && (
           <Link
-            href={pageHref(basePath, params, current - 1)}
+            href={pageHref(basePath, params, current - 1, paramName)}
             rel="prev"
             className={`${BASE} border border-zinc-200 hover:border-brass-400 dark:border-white/[0.08] dark:hover:border-brass-500`}
           >
@@ -108,7 +118,7 @@ export function Pagination({
           ) : (
             <Link
               key={p}
-              href={pageHref(basePath, params, p)}
+              href={pageHref(basePath, params, p, paramName)}
               className={`${BASE} border border-zinc-200 hover:border-brass-400 dark:border-white/[0.08] dark:hover:border-brass-500`}
             >
               {p}
@@ -118,7 +128,7 @@ export function Pagination({
 
         {current < last && (
           <Link
-            href={pageHref(basePath, params, current + 1)}
+            href={pageHref(basePath, params, current + 1, paramName)}
             rel="next"
             className={`${BASE} border border-zinc-200 hover:border-brass-400 dark:border-white/[0.08] dark:hover:border-brass-500`}
           >
