@@ -1,11 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { holdAction } from './actions';
 import { useActionToast } from '@/components/toast';
 import { RateLimitNotice, useRetryAfter } from '@/components/rate-limit';
+import { AvailabilityWatch } from './availability-watch';
 
 function tomorrow(h: number): string {
   const d = new Date();
@@ -20,6 +21,11 @@ export default function BookPage() {
   useActionToast(state);
   const retryIn = useRetryAfter(state);
   const throttled = retryIn > 0;
+
+  // Controlled so the availability watcher can tell whether an incoming hold
+  // actually collides with the window being filled in.
+  const [checkIn, setCheckIn] = useState(() => tomorrow(10));
+  const [checkOut, setCheckOut] = useState(() => tomorrow(14));
 
   return (
     <main className="mx-auto max-w-lg px-5 py-8 sm:px-6 sm:py-10">
@@ -63,7 +69,8 @@ export default function BookPage() {
                 name="checkInUtc"
                 type="datetime-local"
                 required
-                defaultValue={tomorrow(10)}
+                value={checkIn}
+                onChange={(e) => setCheckIn(e.target.value)}
                 className="mt-1 block w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm outline-none transition-colors focus:border-brass-400 dark:border-white/[0.08] dark:bg-ink-950 dark:focus:border-brass-500"
               />
             </label>
@@ -75,7 +82,8 @@ export default function BookPage() {
                 name="checkOutUtc"
                 type="datetime-local"
                 required
-                defaultValue={tomorrow(14)}
+                value={checkOut}
+                onChange={(e) => setCheckOut(e.target.value)}
                 className="mt-1 block w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm outline-none transition-colors focus:border-brass-400 dark:border-white/[0.08] dark:bg-ink-950 dark:focus:border-brass-500"
               />
             </label>
@@ -96,6 +104,12 @@ export default function BookPage() {
             />
           </label>
         </fieldset>
+
+        <AvailabilityWatch
+          unitId={unitId}
+          checkIn={checkIn}
+          checkOut={checkOut}
+        />
 
         <RateLimitNotice secondsLeft={retryIn} action="place a hold" />
 

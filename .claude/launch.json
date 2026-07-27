@@ -15,6 +15,16 @@
       "env": {
         "PORT": "3001"
       }
+    },
+    {
+      "name": "web-throttled",
+      "runtimeExecutable": "C:\\Users\\lenovo\\lastchance-pg\\node\\node.exe",
+      "runtimeArgs": ["-e", "process.chdir('web'); require('./web/node_modules/next/dist/bin/next')"],
+      "port": 3001,
+      "env": {
+        "PORT": "3001",
+        "BACKEND_URL": "http://localhost:3999"
+      }
     }
   ]
 }

@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation';
 import { setSession } from '@/lib/session';
-import { retryAfterFrom } from '@/lib/api';
+import { throttleFrom } from '@/lib/api';
 import type { AuthActionState } from '@/app/login/actions';
 
 const API_BASE = process.env.BACKEND_URL ?? 'http://localhost:3000';
@@ -45,9 +45,9 @@ export async function registerAction(
       /* non-JSON error body */
     }
 
-    const retryAfterSec = retryAfterFrom(res, parsed);
-    if (retryAfterSec) {
-      return { error: 'Too many sign-up attempts.', retryAfterSec };
+    const throttle = throttleFrom(res, parsed);
+    if (throttle) {
+      return { error: 'Too many sign-up attempts.', ...throttle };
     }
 
     // The API nests its message under `error` — reading `message` alone threw

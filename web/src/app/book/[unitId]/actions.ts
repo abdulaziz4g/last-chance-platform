@@ -6,9 +6,9 @@ import { apiPostSafe, getPaymentConfig } from '@/lib/api';
 import type { Booking, InitiatePaymentResult } from '@/lib/api';
 
 export async function holdAction(
-  _prev: { error?: string; retryAfterSec?: number } | null,
+  _prev: { error?: string; retryAfterSec?: number; throttleId?: string } | null,
   formData: FormData,
-): Promise<{ error?: string; retryAfterSec?: number }> {
+): Promise<{ error?: string; retryAfterSec?: number; throttleId?: string }> {
   const session = await getSession();
   if (!session) return { error: 'Please sign in first.' };
 
@@ -30,7 +30,11 @@ export async function holdAction(
   // Pass the retry window through so the form can hold its button shut
   // instead of letting an impatient reader burn the rest of the budget.
   if (!result.ok) {
-    return { error: result.error, retryAfterSec: result.retryAfterSec };
+    return {
+      error: result.error,
+      retryAfterSec: result.retryAfterSec,
+      throttleId: result.throttleId,
+    };
   }
 
   redirect(`/book/${unitId}/pay?bookingId=${result.data.id}`);

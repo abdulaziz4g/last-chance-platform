@@ -44,7 +44,32 @@ export type SafeResult<T> =
        * another attempt that is certain to fail the same way.
        */
       retryAfterSec?: number;
+      /** Marks this 429 as distinct from the last — see ThrottleInfo. */
+      throttleId?: string;
     };
+
+export interface ThrottleInfo {
+  retryAfterSec: number;
+  /**
+   * Distinguishes one 429 from the next, so a repeat throttle restarts the
+   * countdown rather than being mistaken for the one already running. Never
+   * used for arithmetic — only for equality.
+   */
+  throttleId: string;
+}
+
+/** The full throttle signal, or undefined when this was not a 429. */
+export function throttleFrom(
+  res: Response,
+  body: unknown,
+): ThrottleInfo | undefined {
+  const retryAfterSec = retryAfterFrom(res, body);
+  if (!retryAfterSec) return undefined;
+  return {
+    retryAfterSec,
+    throttleId: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+  };
+}
 
 /** Seconds a 429 says to wait, preferring the standard header. */
 export function retryAfterFrom(
@@ -110,12 +135,12 @@ export async function apiPostSafe<T>(
       msg = text || `Request failed (${res.status})`;
     }
 
-    const retryAfterSec = retryAfterFrom(res, parsed);
+    const throttle = throttleFrom(res, parsed);
     return {
       ok: false,
       error:
         typeof msg === 'string' && msg ? msg : `Request failed (${res.status})`,
-      ...(retryAfterSec ? { retryAfterSec } : {}),
+      ...(throttle ?? {}),
     };
   }
 

@@ -16,21 +16,29 @@ import { useEffect, useRef, useState } from 'react';
  * Counts a retry window down to zero, restarting whenever a new throttle
  * arrives.
  *
- * Keyed on the state object rather than the number: two 429s in a row can
- * legitimately report the same remaining seconds, and comparing values alone
- * would leave the first countdown running instead of restarting it.
+ * Keyed on `throttleId` rather than on the seconds, which two consecutive
+ * throttles can legitimately report as the same number, leaving the first
+ * countdown running instead of restarting it. Keying on the action-state
+ * object would work today — deserializing a result yields a fresh object —
+ * but that is an artefact of how server-action results are delivered, not a
+ * contract React documents. An explicit marker says what we actually mean.
  */
 export function useRetryAfter(
-  state: { retryAfterSec?: number } | null,
+  state: { retryAfterSec?: number; throttleId?: string } | null,
 ): number {
   const [secondsLeft, setSecondsLeft] = useState(0);
-  const seen = useRef<unknown>(null);
+  const seen = useRef<string | null>(null);
+
+  const throttleId = state?.throttleId ?? null;
 
   useEffect(() => {
-    if (!state || state === seen.current) return;
-    seen.current = state;
-    setSecondsLeft(state.retryAfterSec ?? 0);
-  }, [state]);
+    if (!throttleId || throttleId === seen.current) return;
+    seen.current = throttleId;
+    setSecondsLeft(state?.retryAfterSec ?? 0);
+    // `state` is deliberately absent: only a new throttleId should restart the
+    // countdown, and state changes identity for unrelated reasons.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [throttleId]);
 
   useEffect(() => {
     if (secondsLeft <= 0) return;

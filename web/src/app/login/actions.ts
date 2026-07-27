@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation';
 import { clearSession, setSession } from '@/lib/session';
-import { retryAfterFrom } from '@/lib/api';
+import { throttleFrom } from '@/lib/api';
 
 const API_BASE = process.env.BACKEND_URL ?? 'http://localhost:3000';
 
@@ -10,6 +10,7 @@ export interface AuthActionState {
   error?: string;
   /** Present only when throttled, so the form can hold itself shut. */
   retryAfterSec?: number;
+  throttleId?: string;
 }
 
 export async function loginAction(
@@ -43,9 +44,9 @@ export async function loginAction(
     // Being throttled says nothing about the credentials. Reporting them as
     // wrong sends the reader off to check a password that may be perfectly
     // correct — and to retry, which spends more of an exhausted budget.
-    const retryAfterSec = retryAfterFrom(res, parsed);
-    if (retryAfterSec) {
-      return { error: 'Too many sign-in attempts.', retryAfterSec };
+    const throttle = throttleFrom(res, parsed);
+    if (throttle) {
+      return { error: 'Too many sign-in attempts.', ...throttle };
     }
     return { error: 'Invalid email or password.' };
   }
