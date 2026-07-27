@@ -3,9 +3,12 @@
 import Link from 'next/link';
 import { useActionState } from 'react';
 import { loginAction } from './actions';
+import { RateLimitNotice, useRetryAfter } from '@/components/rate-limit';
 
 export default function LoginPage() {
   const [state, formAction, pending] = useActionState(loginAction, null);
+  const retryIn = useRetryAfter(state);
+  const throttled = retryIn > 0;
 
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center px-6">
@@ -17,10 +20,14 @@ export default function LoginPage() {
       </p>
 
       <form action={formAction} className="mt-10 w-full max-w-sm space-y-4">
-        {state?.error && (
-          <p className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-600 dark:bg-red-950/30 dark:text-red-400">
-            {state.error}
-          </p>
+        {throttled ? (
+          <RateLimitNotice secondsLeft={retryIn} action="try again" />
+        ) : (
+          state?.error && (
+            <p className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-600 dark:bg-red-950/30 dark:text-red-400">
+              {state.error}
+            </p>
+          )
         )}
 
         <label className="block">
@@ -51,10 +58,14 @@ export default function LoginPage() {
 
         <button
           type="submit"
-          disabled={pending}
+          disabled={pending || throttled}
           className="w-full rounded-lg bg-brass-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brass-600 disabled:opacity-50 dark:bg-brass-600 dark:hover:bg-brass-500"
         >
-          {pending ? 'Signing in...' : 'Sign in'}
+          {pending
+            ? 'Signing in...'
+            : throttled
+              ? `Try again in ${retryIn}s`
+              : 'Sign in'}
         </button>
       </form>
 

@@ -35,7 +35,34 @@ async function apiPost<T>(path: string, body: unknown): Promise<T> {
 
 export type SafeResult<T> =
   | { ok: true; data: T }
-  | { ok: false; error: string };
+  | {
+      ok: false;
+      error: string;
+      /**
+       * Seconds until a throttled caller may retry. Present only on a 429, so
+       * callers can count down and hold the control shut rather than inviting
+       * another attempt that is certain to fail the same way.
+       */
+      retryAfterSec?: number;
+    };
+
+/** Seconds a 429 says to wait, preferring the standard header. */
+export function retryAfterFrom(
+  res: Response,
+  body: unknown,
+): number | undefined {
+  if (res.status !== 429) return undefined;
+
+  const header = Number(res.headers.get('retry-after'));
+  if (Number.isFinite(header) && header > 0) return Math.ceil(header);
+
+  const detail = (body as { error?: { details?: { retryAfterSec?: unknown } } })
+    ?.error?.details?.retryAfterSec;
+  if (typeof detail === 'number' && detail > 0) return Math.ceil(detail);
+
+  // Throttled but told nothing useful: a short wait beats no guidance.
+  return 30;
+}
 
 /**
  * POST that reports failure as a value rather than an exception — the shape
@@ -65,15 +92,31 @@ export async function apiPostSafe<T>(
 
   if (!res.ok) {
     const text = await res.text().catch(() => '');
+    let parsed: unknown = null;
     let msg: string;
     try {
-      const parsed = JSON.parse(text);
+      parsed = JSON.parse(text);
       // The API nests its message under `error` (see domain-errors).
-      msg = parsed?.error?.message ?? parsed?.message ?? parsed?.error ?? text;
+      const p = parsed as {
+        error?: { message?: string } | string;
+        message?: string;
+      };
+      msg =
+        (typeof p?.error === 'object' ? p.error?.message : undefined) ??
+        p?.message ??
+        (typeof p?.error === 'string' ? p.error : undefined) ??
+        text;
     } catch {
       msg = text || `Request failed (${res.status})`;
     }
-    return { ok: false, error: typeof msg === 'string' && msg ? msg : `Request failed (${res.status})` };
+
+    const retryAfterSec = retryAfterFrom(res, parsed);
+    return {
+      ok: false,
+      error:
+        typeof msg === 'string' && msg ? msg : `Request failed (${res.status})`,
+      ...(retryAfterSec ? { retryAfterSec } : {}),
+    };
   }
 
   try {

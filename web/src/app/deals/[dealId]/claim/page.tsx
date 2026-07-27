@@ -5,6 +5,7 @@ import { useActionState } from 'react';
 import { useParams } from 'next/navigation';
 import { claimDealAction } from './actions';
 import { useActionToast } from '@/components/toast';
+import { RateLimitNotice, useRetryAfter } from '@/components/rate-limit';
 
 function tomorrow(h: number): string {
   const d = new Date();
@@ -20,6 +21,8 @@ export default function ClaimDealPage() {
   const { dealId } = useParams<{ dealId: string }>();
   const [state, formAction, pending] = useActionState(claimDealAction, null);
   useActionToast(state);
+  const retryIn = useRetryAfter(state);
+  const throttled = retryIn > 0;
 
   return (
     <main className="mx-auto max-w-lg px-5 py-8 sm:px-6 sm:py-10">
@@ -93,12 +96,18 @@ export default function ClaimDealPage() {
           </label>
         </fieldset>
 
+        <RateLimitNotice secondsLeft={retryIn} action="claim again" />
+
         <button
           type="submit"
-          disabled={pending}
+          disabled={pending || throttled}
           className="w-full rounded-lg bg-brass-500 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-brass-600 disabled:opacity-50 dark:bg-brass-600 dark:hover:bg-brass-500"
         >
-          {pending ? 'Claiming deal...' : 'Claim deal & pay'}
+          {pending
+            ? 'Claiming deal...'
+            : throttled
+              ? `Try again in ${retryIn}s`
+              : 'Claim deal & pay'}
         </button>
 
         <p className="text-center text-[11px] text-zinc-400">

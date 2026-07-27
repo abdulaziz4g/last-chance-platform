@@ -93,7 +93,11 @@ export function useToast(): ToastContextValue {
  * submission — including two identical failures in a row.
  */
 export function useActionToast(
-  state: { error?: string; success?: boolean | string } | null,
+  state: {
+    error?: string;
+    success?: boolean | string;
+    retryAfterSec?: number;
+  } | null,
   successMessage?: string,
 ): void {
   const { toast } = useToast();
@@ -102,6 +106,11 @@ export function useActionToast(
   useEffect(() => {
     if (!state || state === seen.current) return;
     seen.current = state;
+
+    // A throttle is reported inline with a live countdown next to the control
+    // it blocks. Toasting it as well would say the same thing twice, and the
+    // toast would expire while the wait it describes is still running.
+    if (state.retryAfterSec) return;
 
     if (state.error) {
       toast(state.error, 'error');

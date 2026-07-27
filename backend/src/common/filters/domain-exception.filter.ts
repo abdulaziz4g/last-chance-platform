@@ -27,6 +27,13 @@ export class DomainExceptionFilter implements ExceptionFilter {
     const requestId = this.ctx.current()?.requestId;
 
     if (exception instanceof DomainError) {
+      // Retry-After is the standard signal for a throttled caller, and the
+      // only one a proxy, crawler or non-browser client will understand —
+      // the JSON body is for our own UI.
+      const retryAfter = exception.details?.retryAfterSec;
+      if (exception.httpStatus === 429 && typeof retryAfter === 'number') {
+        void reply.header('Retry-After', String(retryAfter));
+      }
       void reply.status(exception.httpStatus).send({
         error: {
           code: exception.code,

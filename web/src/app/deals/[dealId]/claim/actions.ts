@@ -6,9 +6,9 @@ import { apiPostSafe } from '@/lib/api';
 import type { Booking } from '@/lib/api';
 
 export async function claimDealAction(
-  _prev: { error?: string } | null,
+  _prev: { error?: string; retryAfterSec?: number } | null,
   formData: FormData,
-): Promise<{ error?: string }> {
+): Promise<{ error?: string; retryAfterSec?: number }> {
   const session = await getSession();
   if (!session) return { error: 'Please sign in first.' };
 
@@ -26,7 +26,9 @@ export async function claimDealAction(
     guestsCount,
   });
 
-  if (!result.ok) return { error: result.error };
+  if (!result.ok) {
+    return { error: result.error, retryAfterSec: result.retryAfterSec };
+  }
 
   redirect(`/book/${result.data.unitId}/pay?bookingId=${result.data.id}`);
 }

@@ -44,12 +44,30 @@ export class RateLimitGuard implements CanActivate {
         await this.redis.pexpire(key, spec.windowSec * 1000);
       }
       if (count > spec.limit) {
-        throw new RateLimitedError(spec.windowSec);
+        throw new RateLimitedError(await this.retryAfterSec(key, spec));
       }
       return true;
     } catch (e) {
       if (e instanceof RateLimitedError) throw e;
       return true; // Redis hiccup: fail open
     }
+  }
+
+  /**
+   * Seconds until this window actually reopens.
+   *
+   * Reporting the full window instead would overstate the wait by however
+   * long the window has already run — a client that trips the limit a second
+   * before it resets would be told to wait the whole minute, and any countdown
+   * built on that is simply wrong. Falls back to the window only when Redis
+   * cannot tell us (-1 no expiry, -2 key already gone).
+   */
+  private async retryAfterSec(
+    key: string,
+    spec: RateLimitSpec,
+  ): Promise<number> {
+    const ttlMs = await this.redis.pttl(key);
+    if (ttlMs <= 0) return spec.windowSec;
+    return Math.max(1, Math.ceil(ttlMs / 1000));
   }
 }
