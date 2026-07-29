@@ -1,5 +1,6 @@
 import { getBooking, getPaymentConfig } from '@/lib/api';
-import { money, timeWindow } from '@/lib/format';
+import { money } from '@/lib/format';
+import { LocalTimeWindow } from '@/components/local-time';
 import { Card, StatusChip } from '@/components/ui';
 import { PayForm } from './pay-form';
 
@@ -70,7 +71,10 @@ export default async function PayPage({
               Window
             </span>
             <span className="text-right text-xs">
-              {timeWindow(booking.checkInUtc, booking.checkOutUtc)}
+              <LocalTimeWindow
+                fromIso={booking.checkInUtc}
+                toIso={booking.checkOutUtc}
+              />
             </span>
           </div>
           <div className="flex justify-between">

@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/session';
 import { apiPostSafe, getPaymentConfig } from '@/lib/api';
+import { isInstant } from '@/lib/local-time';
 import type { Booking, InitiatePaymentResult } from '@/lib/api';
 
 export async function holdAction(
@@ -18,12 +19,19 @@ export async function holdAction(
   const checkOutUtc = formData.get('checkOutUtc') as string;
   const guestsCount = Number(formData.get('guestsCount'));
 
+  // Already a UTC instant — the browser converted it, because only the browser
+  // knows the guest's zone. Re-parsing it here would resolve against the
+  // server's zone and silently move the booking.
+  if (!isInstant(checkInUtc) || !isInstant(checkOutUtc)) {
+    return { error: 'Please pick a check-in and check-out time.' };
+  }
+
   const result = await apiPostSafe<Booking>('/bookings/hold', {
     guestId: session.sub,
     unitId,
     bookingType,
-    checkInUtc: new Date(checkInUtc).toISOString(),
-    checkOutUtc: new Date(checkOutUtc).toISOString(),
+    checkInUtc,
+    checkOutUtc,
     guestsCount,
   });
 

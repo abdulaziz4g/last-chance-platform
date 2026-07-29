@@ -3,6 +3,7 @@
 import { useCallback, useState } from 'react';
 import { useRealtime } from '@/components/use-realtime';
 import { isAvailabilityEvent, type RealtimeEvent } from '@/lib/realtime';
+import { parseLocalInput } from '@/lib/local-time';
 
 /**
  * Warns when the window the reader is filling in gets taken while they type.
@@ -28,24 +29,23 @@ interface Taken {
 const overlaps = (aFrom: number, aTo: number, bFrom: number, bTo: number) =>
   aFrom < bTo && bFrom < aTo;
 
-/** `datetime-local` has no zone; the form treats its values as UTC. */
-function parseFormTime(value: string): number {
-  const ms = Date.parse(`${value}:00Z`);
-  return Number.isNaN(ms) ? Number.NaN : ms;
-}
-
+/**
+ * Both sides of the comparison must be real instants. The form fields are the
+ * guest's wall clock, the events carry UTC — reading either in the wrong zone
+ * makes the overlap check quietly compare different clocks, which is exactly
+ * the bug this used to have.
+ */
 function formatWindow(from: number, to: number): string {
   const opts: Intl.DateTimeFormatOptions = {
     day: 'numeric',
     month: 'short',
     hour: '2-digit',
     minute: '2-digit',
-    timeZone: 'UTC',
     hour12: false,
   };
   return `${new Date(from).toLocaleString('en-GB', opts)} → ${new Date(
     to,
-  ).toLocaleString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC', hour12: false })} UTC`;
+  ).toLocaleString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })}`;
 }
 
 export function AvailabilityWatch({
@@ -81,8 +81,8 @@ export function AvailabilityWatch({
 
   if (!latest) return null;
 
-  const wantFrom = parseFormTime(checkIn);
-  const wantTo = parseFormTime(checkOut);
+  const wantFrom = parseLocalInput(checkIn);
+  const wantTo = parseLocalInput(checkOut);
   if (Number.isNaN(wantFrom) || Number.isNaN(wantTo)) return null;
 
   // Only speak up about the window this reader actually wants. Chatter about

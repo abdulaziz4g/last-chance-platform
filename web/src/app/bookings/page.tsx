@@ -10,7 +10,8 @@ import { Pagination } from '@/components/pagination';
 import { CancelBooking } from './cancel-booking';
 import { ActionFlash } from '@/components/action-flash';
 import { logoutAction } from '@/app/login/actions';
-import { money, timeWindow } from '@/lib/format';
+import { money } from '@/lib/format';
+import { LocalTimeWindow } from '@/components/local-time';
 import { Card, StatusChip, Mono, SectionTitle } from '@/components/ui';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { getSession } from '@/lib/session';
@@ -112,7 +113,7 @@ export default async function MyBookingsPage({
               <div className="mt-3 flex items-end justify-between text-sm">
                 <div>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                    {timeWindow(b.checkInUtc, b.checkOutUtc)}
+                    <LocalTimeWindow fromIso={b.checkInUtc} toIso={b.checkOutUtc} />
                   </p>
                 </div>
                 <p className="tnum font-semibold text-brass-500 dark:text-brass-300">

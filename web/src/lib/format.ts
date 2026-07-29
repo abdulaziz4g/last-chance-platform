@@ -23,3 +23,21 @@ export function dateTime(iso: string | null): string {
 export function timeWindow(fromIso: string, toIso: string): string {
   return `${dateTime(fromIso)} → ${dateTime(toIso)} UTC`;
 }
+
+/**
+ * The same window in whatever zone the caller is running in.
+ *
+ * Only meaningful in the browser, where that zone is the viewer's. Rendering
+ * this during SSR would print the server's zone and label it as the viewer's —
+ * use the `<LocalTimeWindow>` component, which defers it to after mount.
+ */
+export function timeWindowLocal(fromIso: string, toIso: string): string {
+  const part = (iso: string, withDate: boolean) =>
+    new Intl.DateTimeFormat('en-GB', {
+      ...(withDate ? { day: '2-digit', month: 'short' } : {}),
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).format(new Date(iso));
+  return `${part(fromIso, true)} → ${part(toIso, false)}`;
+}

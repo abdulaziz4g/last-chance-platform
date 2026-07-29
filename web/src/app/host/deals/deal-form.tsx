@@ -1,22 +1,11 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { createDealAction } from './actions';
 import type { HostUnit } from '@/lib/api';
 import { Card } from '@/components/ui';
 import { useActionToast } from '@/components/toast';
-
-function inOneHour(): string {
-  const d = new Date();
-  d.setHours(d.getHours() + 1, 0, 0, 0);
-  return d.toISOString().slice(0, 16);
-}
-
-function inFourHours(): string {
-  const d = new Date();
-  d.setHours(d.getHours() + 4, 0, 0, 0);
-  return d.toISOString().slice(0, 16);
-}
+import { guestTimeZone, localInputInHours, localInputToIso } from '@/lib/local-time';
 
 const inputCls =
   'mt-1 block w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm outline-none transition-colors focus:border-brass-400 dark:border-white/[0.08] dark:bg-ink-950 dark:focus:border-brass-500';
@@ -24,6 +13,20 @@ const inputCls =
 export function DealForm({ units }: { units: HostUnit[] }) {
   const [state, formAction, pending] = useActionState(createDealAction, null);
   useActionToast(state);
+
+  const [startsAt, setStartsAt] = useState('');
+  const [endsAt, setEndsAt] = useState('');
+  const [zone, setZone] = useState('');
+
+  // Seeded after mount — the host's wall clock is not the server's.
+  useEffect(() => {
+    setStartsAt(localInputInHours(1));
+    setEndsAt(localInputInHours(4));
+    setZone(guestTimeZone());
+  }, []);
+
+  const startsAtIso = startsAt ? localInputToIso(startsAt) : null;
+  const endsAtIso = endsAt ? localInputToIso(endsAt) : null;
 
   return (
     <Card className="p-5">
@@ -89,16 +92,17 @@ export function DealForm({ units }: { units: HostUnit[] }) {
           </label>
         </div>
 
+        {/* Unnamed: the hidden fields below carry the converted instants. */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label className="block">
             <span className="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
               Starts at
             </span>
             <input
-              name="startsAt"
               type="datetime-local"
               required
-              defaultValue={inOneHour()}
+              value={startsAt}
+              onChange={(e) => setStartsAt(e.target.value)}
               className={inputCls}
             />
           </label>
@@ -108,14 +112,21 @@ export function DealForm({ units }: { units: HostUnit[] }) {
               Ends at
             </span>
             <input
-              name="endsAt"
               type="datetime-local"
               required
-              defaultValue={inFourHours()}
+              value={endsAt}
+              onChange={(e) => setEndsAt(e.target.value)}
               className={inputCls}
             />
           </label>
         </div>
+        <input type="hidden" name="startsAt" value={startsAtIso ?? ''} />
+        <input type="hidden" name="endsAt" value={endsAtIso ?? ''} />
+        {zone && (
+          <p className="text-[11px] text-zinc-400">
+            Times shown in your local zone ({zone}).
+          </p>
+        )}
 
         <button
           type="submit"

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { getBooking } from '@/lib/api';
-import { money, timeWindow } from '@/lib/format';
+import { money } from '@/lib/format';
+import { LocalTimeWindow } from '@/components/local-time';
 import { Card, StatusChip, Mono } from '@/components/ui';
 
 export const dynamic = 'force-dynamic';
@@ -64,7 +65,10 @@ export default async function ConfirmationPage({
               Window
             </span>
             <span className="text-right text-xs">
-              {timeWindow(booking.checkInUtc, booking.checkOutUtc)}
+              <LocalTimeWindow
+                fromIso={booking.checkInUtc}
+                toIso={booking.checkOutUtc}
+              />
             </span>
           </div>
           <div className="flex justify-between">

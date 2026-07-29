@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { apiPostSafe } from '@/lib/api';
+import { isInstant } from '@/lib/local-time';
 import type { FlashDeal } from '@/lib/api';
 
 export async function createDealAction(
@@ -24,13 +25,18 @@ export async function createDealAction(
   if (quantityTotal < 1) {
     return { error: 'Quantity must be at least 1.' };
   }
+  // Converted in the browser; re-parsing here would resolve the host's wall
+  // clock against the server's zone and shift the whole deal window.
+  if (!isInstant(startsAt) || !isInstant(endsAt)) {
+    return { error: 'Please pick a start and end time.' };
+  }
 
   const result = await apiPostSafe<FlashDeal>('/deals', {
     unitId,
     title,
     discountPct,
-    startsAt: new Date(startsAt).toISOString(),
-    endsAt: new Date(endsAt).toISOString(),
+    startsAt,
+    endsAt,
     quantityTotal,
   });
 

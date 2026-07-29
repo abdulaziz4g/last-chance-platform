@@ -1,19 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { useActionState, useState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { holdAction } from './actions';
 import { useActionToast } from '@/components/toast';
 import { RateLimitNotice, useRetryAfter } from '@/components/rate-limit';
 import { AvailabilityWatch } from './availability-watch';
-
-function tomorrow(h: number): string {
-  const d = new Date();
-  d.setUTCDate(d.getUTCDate() + 1);
-  d.setUTCHours(h, 0, 0, 0);
-  return d.toISOString().slice(0, 16);
-}
+import { guestTimeZone, localInputAtHour, localInputToIso } from '@/lib/local-time';
 
 export default function BookPage() {
   const { unitId } = useParams<{ unitId: string }>();
@@ -24,8 +18,23 @@ export default function BookPage() {
 
   // Controlled so the availability watcher can tell whether an incoming hold
   // actually collides with the window being filled in.
-  const [checkIn, setCheckIn] = useState(() => tomorrow(10));
-  const [checkOut, setCheckOut] = useState(() => tomorrow(14));
+  const [checkIn, setCheckIn] = useState('');
+  const [checkOut, setCheckOut] = useState('');
+  const [zone, setZone] = useState('');
+
+  // Seeded after mount, not during render: these times are the *guest's*, and
+  // this component still pre-renders on the server, where that zone is unknown.
+  useEffect(() => {
+    setCheckIn(localInputAtHour(1, 10));
+    setCheckOut(localInputAtHour(1, 14));
+    setZone(guestTimeZone());
+  }, []);
+
+  // The wire format is a UTC instant. Converting here — in the browser — is
+  // what makes "10:00" mean 10:00 to the guest regardless of where the server
+  // happens to be running.
+  const checkInIso = checkIn ? localInputToIso(checkIn) : null;
+  const checkOutIso = checkOut ? localInputToIso(checkOut) : null;
 
   return (
     <main className="mx-auto max-w-lg px-5 py-8 sm:px-6 sm:py-10">
@@ -60,13 +69,14 @@ export default function BookPage() {
             </select>
           </label>
 
+          {/* Visible fields are unnamed: they hold the guest's wall clock, and
+              only the converted instants below are fit to send. */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="block">
               <span className="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                 Check-in
               </span>
               <input
-                name="checkInUtc"
                 type="datetime-local"
                 required
                 value={checkIn}
@@ -79,7 +89,6 @@ export default function BookPage() {
                 Check-out
               </span>
               <input
-                name="checkOutUtc"
                 type="datetime-local"
                 required
                 value={checkOut}
@@ -88,6 +97,13 @@ export default function BookPage() {
               />
             </label>
           </div>
+          <input type="hidden" name="checkInUtc" value={checkInIso ?? ''} />
+          <input type="hidden" name="checkOutUtc" value={checkOutIso ?? ''} />
+          {zone && (
+            <p className="text-[11px] text-zinc-400">
+              Times shown in your local zone ({zone}).
+            </p>
+          )}
 
           <label className="block">
             <span className="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
