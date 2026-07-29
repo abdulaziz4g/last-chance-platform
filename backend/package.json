@@ -8,8 +8,8 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "start": "node -r ./dist/instrumentation.js dist/main.js",
-    "start:dev": "ts-node -r reflect-metadata -r ./src/instrumentation.ts src/main.ts",
+    "start": "node --env-file-if-exists=.env -r ./dist/instrumentation.js dist/main.js",
+    "start:dev": "node --env-file-if-exists=.env -r ts-node/register -r reflect-metadata -r ./src/instrumentation.ts src/main.ts",
     "test": "jest",
     "smoke": "ts-node -r reflect-metadata scripts/integration-smoke.ts",
     "smoke:payments": "ts-node -r reflect-metadata scripts/integration-smoke-payments.ts",
