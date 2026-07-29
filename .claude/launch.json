@@ -4,7 +4,7 @@
     {
       "name": "backend",
       "runtimeExecutable": "C:\\Users\\lenovo\\lastchance-pg\\node\\node.exe",
-      "runtimeArgs": ["backend/node_modules/ts-node/dist/bin.js", "-r", "reflect-metadata", "-r", "./backend/src/instrumentation.ts", "backend/src/main.ts"],
+      "runtimeArgs": ["-e", "process.chdir('backend'); require('./backend/node_modules/ts-node/register'); require('./backend/node_modules/reflect-metadata'); require('./backend/src/instrumentation.ts'); require('./backend/src/main.ts');"],
       "port": 3000
     },
     {
