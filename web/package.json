@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start -p 3001",
     "typecheck": "tsc --noEmit",
-    "test": "node --test \"test/*.test.mts\""
+    "test": "node --import ./test/register.mts --test \"test/*.test.mts\""
   },
   "dependencies": {
     "next": "^15.3.0",
