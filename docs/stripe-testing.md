@@ -14,6 +14,19 @@ actually live. Nothing below changes application code — it is all configuratio
 - The [Stripe CLI](https://stripe.com/docs/stripe-cli), to deliver webhooks to
   localhost. Stripe cannot reach your machine on its own.
 
+  On Windows:
+
+  ```bash
+  winget install --id Stripe.StripeCLI
+  ```
+
+  winget does not refresh the PATH of terminals that are already open, so the
+  `stripe` command will look missing in the shell you installed from even
+  though it installed fine. Open a new terminal before concluding anything is
+  wrong. Then authenticate once with `stripe login`, which writes
+  `~/.config/stripe/config.toml` — the presence of that file is the quickest
+  way to confirm the CLI is actually set up.
+
 ## 1. Add your keys
 
 All three go in `backend/.env` (copy `backend/.env.example` if you have not
@@ -30,6 +43,12 @@ The secret and webhook secret enable the provider server-side; the publishable
 key is what the browser needs to load Stripe.js. **All three are required
 together** — with the first two set but not the third, `/payments/config`
 reports STRIPE with a null key and the card form cannot mount.
+
+There is no dotenv dependency here: `backend/.env` is read by Node itself via
+`--env-file-if-exists`, which is passed by the `start` / `start:dev` scripts and
+by the `backend` entry in `.claude/launch.json`. **Start the backend one of
+those ways.** Launched any other way the file is simply never read, and the
+symptom is indistinguishable from a typo in the keys.
 
 `STRIPE_WEBHOOK_SECRET` comes from step 2, so expect to fill it in second.
 
@@ -54,9 +73,11 @@ curl -s http://localhost:3000/payments/config
 
 Expect `{"provider":"STRIPE","enabled":["MOCK","STRIPE"],"publishableKey":"pk_test_..."}`.
 
-If it still says `provider: "MOCK"`, the keys did not load — check the `.env`
-path and that the backend restarted. The checkout page reads this endpoint, so
-this is the single check that decides which flow you get.
+If it still says `provider: "MOCK"`, the keys did not load. In order of
+likelihood: the backend was started without `--env-file-if-exists` (see step 1),
+it was not restarted after the edit, or the keys are still commented out. The
+checkout page reads this endpoint, so this is the single check that decides
+which flow you get.
 
 ## 4. Walk a payment through
 
@@ -124,3 +145,9 @@ What that does **not** cover, and what this runbook exists to exercise, is the
 Stripe-specific edge: real `PaymentIntent` creation against `api.stripe.com`,
 Stripe's own signature format, and the browser-side Payment Element. Those have
 never been run against a live Stripe account.
+
+One thing worth knowing before you compare behaviour: the MOCK provider has no
+callback daemon. Nothing ever posts its settlement webhook on its own, so a
+MOCK refund sits at `PENDING` until one is played by hand — that is correct, not
+a stuck job. `stripe listen` is exactly what fills that role here, which is why
+step 6 has a step MOCK does not.
