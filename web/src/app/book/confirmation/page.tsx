@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { getBooking } from '@/lib/api';
 import { money } from '@/lib/format';
 import { LocalTimeWindow } from '@/components/local-time';
+import { GuestHeader } from '@/components/guest-header';
 import { Card, StatusChip, Mono } from '@/components/ui';
 
 export const dynamic = 'force-dynamic';
@@ -37,6 +38,15 @@ export default async function ConfirmationPage({
 
   return (
     <main className="mx-auto max-w-lg px-5 py-8 sm:px-6 sm:py-10">
+      <GuestHeader area="Confirmation">
+        <Link
+          href="/bookings"
+          className="text-sm whitespace-nowrap text-zinc-500 transition-colors hover:text-brass-500 dark:text-zinc-400 dark:hover:text-brass-400"
+        >
+          My bookings
+        </Link>
+      </GuestHeader>
+
       <div className="mb-8 text-center">
         <p className="text-4xl">{isConfirmed ? '✓' : '⏳'}</p>
         <h1 className="mt-3 text-xl font-semibold">

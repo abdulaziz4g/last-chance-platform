@@ -11,7 +11,7 @@ import {
 } from '@/lib/api';
 import { Pagination } from '@/components/pagination';
 import { money } from '@/lib/format';
-import { ThemeToggle } from '@/components/theme-toggle';
+import { GuestHeader } from '@/components/guest-header';
 import { DealStrip } from '@/components/deal-strip';
 
 export const dynamic = 'force-dynamic';
@@ -69,25 +69,14 @@ export default async function DiscoverPage({
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-8 sm:px-6 sm:py-10">
-      <header className="mb-8 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-        <div>
-          <Link href="/" className="text-[13px] font-semibold tracking-[0.32em]">
-            LAST&nbsp;CHANCE
-          </Link>
-          <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.24em] text-brass-500 dark:text-brass-400">
-            Discover
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-4">
-          <Link
-            href="/bookings"
-            className="text-sm whitespace-nowrap text-zinc-500 transition-colors hover:text-brass-500 dark:text-zinc-400 dark:hover:text-brass-400"
-          >
-            My bookings
-          </Link>
-          <ThemeToggle />
-        </div>
-      </header>
+      <GuestHeader area="Discover">
+        <Link
+          href="/bookings"
+          className="text-sm whitespace-nowrap text-zinc-500 transition-colors hover:text-brass-500 dark:text-zinc-400 dark:hover:text-brass-400"
+        >
+          My bookings
+        </Link>
+      </GuestHeader>
 
       <DealStrip deals={deals} />
 

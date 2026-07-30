@@ -9,11 +9,10 @@ import {
 import { Pagination } from '@/components/pagination';
 import { CancelBooking } from './cancel-booking';
 import { ActionFlash } from '@/components/action-flash';
-import { logoutAction } from '@/app/login/actions';
 import { money } from '@/lib/format';
 import { LocalTimeWindow } from '@/components/local-time';
 import { Card, StatusChip, Mono, SectionTitle } from '@/components/ui';
-import { ThemeToggle } from '@/components/theme-toggle';
+import { GuestHeader } from '@/components/guest-header';
 import { getSession } from '@/lib/session';
 import { redirect } from 'next/navigation';
 
@@ -52,35 +51,14 @@ export default async function MyBookingsPage({
         <ActionFlash />
       </Suspense>
 
-      <header className="mb-8 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-        <div>
-          <Link href="/" className="text-[13px] font-semibold tracking-[0.32em]">
-            LAST&nbsp;CHANCE
-          </Link>
-          <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.24em] text-brass-500 dark:text-brass-400">
-            My bookings
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-4">
-          <Link
-            href="/discover"
-            className="text-sm whitespace-nowrap text-brass-500 transition-colors hover:text-brass-600 dark:text-brass-400 dark:hover:text-brass-300"
-          >
-            Discover →
-          </Link>
-          {/* The only sign-out a guest has: the host and admin shells carry
-              their own, but guests never see those. */}
-          <form action={logoutAction}>
-            <button
-              type="submit"
-              className="text-sm whitespace-nowrap text-zinc-500 transition-colors hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
-            >
-              Sign out
-            </button>
-          </form>
-          <ThemeToggle />
-        </div>
-      </header>
+      <GuestHeader area="My bookings">
+        <Link
+          href="/discover"
+          className="text-sm whitespace-nowrap text-brass-500 transition-colors hover:text-brass-600 dark:text-brass-400 dark:hover:text-brass-300"
+        >
+          Discover →
+        </Link>
+      </GuestHeader>
 
       <SectionTitle>
         {total} {total === 1 ? 'booking' : 'bookings'}

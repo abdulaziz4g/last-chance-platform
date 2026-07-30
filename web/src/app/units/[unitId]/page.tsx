@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { getUnitDetail, type UnitDetail } from '@/lib/api';
 import { money } from '@/lib/format';
 import { Card, SectionTitle, StatusChip } from '@/components/ui';
-import { ThemeToggle } from '@/components/theme-toggle';
+import { GuestHeader } from '@/components/guest-header';
 import { SITE_URL } from '@/lib/site';
 import { LiveDeal } from './live-deal';
 import { PhotoGallery } from './photo-gallery';
@@ -198,25 +198,14 @@ export default async function UnitDetailPage({
         }}
       />
 
-      <header className="mb-8 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-        <div>
-          <Link href="/" className="text-[13px] font-semibold tracking-[0.32em]">
-            LAST&nbsp;CHANCE
-          </Link>
-          <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.24em] text-brass-500 dark:text-brass-400">
-            Stay details
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-4">
-          <Link
-            href="/discover"
-            className="text-sm whitespace-nowrap text-zinc-500 transition-colors hover:text-brass-500 dark:text-zinc-400 dark:hover:text-brass-400"
-          >
-            ← Back to search
-          </Link>
-          <ThemeToggle />
-        </div>
-      </header>
+      <GuestHeader area="Stay details">
+        <Link
+          href="/discover"
+          className="text-sm whitespace-nowrap text-zinc-500 transition-colors hover:text-brass-500 dark:text-zinc-400 dark:hover:text-brass-400"
+        >
+          ← Back to search
+        </Link>
+      </GuestHeader>
 
       <div className="mb-6">
         <div className="flex flex-wrap items-center gap-3">

@@ -1,6 +1,7 @@
 import { getBooking, getPaymentConfig } from '@/lib/api';
 import { money } from '@/lib/format';
 import { LocalTimeWindow } from '@/components/local-time';
+import { GuestHeader } from '@/components/guest-header';
 import { Card, StatusChip } from '@/components/ui';
 import { PayForm } from './pay-form';
 
@@ -46,12 +47,9 @@ export default async function PayPage({
 
   return (
     <main className="mx-auto max-w-lg px-5 py-8 sm:px-6 sm:py-10">
-      <header className="mb-8">
-        <p className="text-[13px] font-semibold tracking-[0.32em]">LAST&nbsp;CHANCE</p>
-        <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.24em] text-brass-500 dark:text-brass-400">
-          Complete payment
-        </p>
-      </header>
+      {/* No competing links here on purpose — mid-checkout the only extra
+          control is the way out of the session. */}
+      <GuestHeader area="Complete payment" />
 
       <Card className="mb-6 p-5">
         <div className="mb-3 flex items-center justify-between">
