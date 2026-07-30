@@ -2,8 +2,12 @@
 
 import { useCallback, useState } from 'react';
 import { useRealtime } from '@/components/use-realtime';
-import { isAvailabilityEvent, type RealtimeEvent } from '@/lib/realtime';
-import { parseLocalInput } from '@/lib/local-time';
+import type { RealtimeEvent } from '@/lib/realtime';
+import {
+  affectsForm,
+  windowFromEvent,
+  type TakenWindow,
+} from './availability-decision';
 
 /**
  * Warns when the window the reader is filling in gets taken while they type.
@@ -19,22 +23,7 @@ import { parseLocalInput } from '@/lib/local-time';
  * would sometimes block a booking the server would have accepted.
  */
 
-interface Taken {
-  from: number;
-  to: number;
-  freed: boolean;
-}
-
-/** Half-open overlap: touching end-to-start is not a clash. */
-const overlaps = (aFrom: number, aTo: number, bFrom: number, bTo: number) =>
-  aFrom < bTo && bFrom < aTo;
-
-/**
- * Both sides of the comparison must be real instants. The form fields are the
- * guest's wall clock, the events carry UTC — reading either in the wrong zone
- * makes the overlap check quietly compare different clocks, which is exactly
- * the bug this used to have.
- */
+/** Rendered in the viewer's zone, matching the clock the form is filled in. */
 function formatWindow(from: number, to: number): string {
   const opts: Intl.DateTimeFormatOptions = {
     day: 'numeric',
@@ -57,23 +46,14 @@ export function AvailabilityWatch({
   checkIn: string;
   checkOut: string;
 }) {
-  const [latest, setLatest] = useState<Taken | null>(null);
+  const [latest, setLatest] = useState<TakenWindow | null>(null);
 
   useRealtime(
     { unitId },
     useCallback(
       (event: RealtimeEvent) => {
-        if (!isAvailabilityEvent(event) || event.unitId !== unitId) return;
-
-        const from = Date.parse(event.checkInUtc);
-        const to = Date.parse(event.checkOutUtc);
-        if (Number.isNaN(from) || Number.isNaN(to)) return;
-
-        setLatest({
-          from,
-          to,
-          freed: event.type === 'INVENTORY_RELEASED',
-        });
+        const next = windowFromEvent(event, unitId);
+        if (next) setLatest(next);
       },
       [unitId],
     ),
@@ -81,13 +61,9 @@ export function AvailabilityWatch({
 
   if (!latest) return null;
 
-  const wantFrom = parseLocalInput(checkIn);
-  const wantTo = parseLocalInput(checkOut);
-  if (Number.isNaN(wantFrom) || Number.isNaN(wantTo)) return null;
-
   // Only speak up about the window this reader actually wants. Chatter about
   // unrelated times on the same unit is noise they cannot act on.
-  if (!overlaps(wantFrom, wantTo, latest.from, latest.to)) return null;
+  if (!affectsForm(latest, checkIn, checkOut)) return null;
 
   return latest.freed ? (
     <p
