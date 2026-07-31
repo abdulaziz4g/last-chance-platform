@@ -198,6 +198,10 @@ export class UnitIndexer {
        JOIN properties p ON p.id = u.property_id
        WHERE u.status = 'ACTIVE' AND u.deleted_at IS NULL
          AND p.status = 'ACTIVE' AND p.deleted_at IS NULL
+         -- Regulatory gate (0016): an unapproved listing must never reach the
+         -- OpenSearch index. Note this means approval has to trigger a
+         -- reindex for the listing to become searchable.
+         AND p.moderation_status = 'APPROVED'
          AND ($1::uuid IS NULL OR u.id = $1::uuid)`,
       [unitId ?? null],
     );

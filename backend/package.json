@@ -14,6 +14,7 @@
     "smoke": "ts-node -r reflect-metadata scripts/integration-smoke.ts",
     "smoke:payments": "ts-node -r reflect-metadata scripts/integration-smoke-payments.ts",
     "smoke:payout-discount": "ts-node -r reflect-metadata scripts/integration-smoke-payout-discount.ts",
+    "smoke:moderation": "ts-node -r reflect-metadata scripts/integration-smoke-moderation.ts",
     "smoke:phase6": "ts-node -r reflect-metadata scripts/integration-smoke-phase6.ts",
     "smoke:search": "ts-node -r reflect-metadata scripts/integration-smoke-search.ts",
     "smoke:deals": "ts-node -r reflect-metadata scripts/integration-smoke-deals.ts"

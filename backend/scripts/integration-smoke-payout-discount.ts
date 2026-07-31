@@ -28,6 +28,7 @@ import {
 import { WsAdapter } from '@nestjs/platform-ws';
 import { AppModule } from '../src/app.module';
 import { DatabaseService } from '../src/infrastructure/database/database.service';
+import { approveListing } from './support/approve-listing';
 import { AppConfigService } from '../src/config/config.service';
 import { RequestContextService } from '../src/common/context/request-context.service';
 import { DealService } from '../src/modules/deals/application/deal.service';
@@ -159,6 +160,8 @@ async function main(): Promise<void> {
          VALUES ($1,$2,'Discount Studio','STUDIO',true,true,4,'SAR',30000::bigint,10000::bigint,30,'ACTIVE')`,
         [unitId, propertyId],
       );
+      // Listings must clear the regulatory gate (0016) to be bookable.
+      await approveListing(db, propertyId);
       console.log('Fixtures created.\n');
 
       const before = await balances();

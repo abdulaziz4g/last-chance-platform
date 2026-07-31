@@ -16,6 +16,7 @@ interface UnitRow {
   turnaround_minutes: number;
   unit_status: string;
   property_status: string;
+  property_moderation_status: string;
   host_id: string;
   commission_pct_override: number | null;
 }
@@ -33,6 +34,7 @@ export class UnitRepository {
               u.min_hourly_duration_minutes, u.turnaround_minutes,
               u.status AS unit_status,
               p.status AS property_status,
+              p.moderation_status AS property_moderation_status,
               p.host_id,
               h.commission_pct_override
        FROM units u
@@ -46,11 +48,20 @@ export class UnitRepository {
     if (!row) {
       throw new UnitNotBookableError('Unit does not exist', { unitId });
     }
-    if (row.unit_status !== 'ACTIVE' || row.property_status !== 'ACTIVE') {
+    // Regulatory gate (0016) sits alongside the operational one: a listing
+    // that has not cleared moderation cannot be booked even by someone who
+    // guessed its id, and one that was suspended stops taking bookings the
+    // moment an admin acts.
+    if (
+      row.unit_status !== 'ACTIVE' ||
+      row.property_status !== 'ACTIVE' ||
+      row.property_moderation_status !== 'APPROVED'
+    ) {
       throw new UnitNotBookableError('Unit is not open for booking', {
         unitId,
         unitStatus: row.unit_status,
         propertyStatus: row.property_status,
+        moderationStatus: row.property_moderation_status,
       });
     }
 

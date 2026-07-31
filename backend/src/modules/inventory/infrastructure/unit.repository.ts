@@ -118,7 +118,12 @@ export class UnitRepository {
          JOIN host_profiles h  ON h.user_id = p.host_id
         WHERE u.id = $1
           AND u.status = 'ACTIVE' AND u.deleted_at IS NULL
-          AND p.status = 'ACTIVE' AND p.deleted_at IS NULL`,
+          AND p.status = 'ACTIVE' AND p.deleted_at IS NULL
+          -- Regulatory gate (0016). Deliberately spelled out rather than
+          -- selected from v_public_units: this query needs host and policy
+          -- columns the view does not expose. The predicate must stay in step
+          -- with the view's WHERE clause.
+          AND p.moderation_status = 'APPROVED'`,
       [unitId],
     );
 

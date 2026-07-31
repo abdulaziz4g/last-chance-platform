@@ -19,6 +19,7 @@ import { WsAdapter } from '@nestjs/platform-ws';
 import WebSocket from 'ws';
 import { AppModule } from '../src/app.module';
 import { DatabaseService } from '../src/infrastructure/database/database.service';
+import { approveListing } from './support/approve-listing';
 
 const PORT = 3200;
 const BASE = `http://localhost:${PORT}`;
@@ -149,6 +150,8 @@ async function main(): Promise<void> {
      VALUES ($1, $2, 'P6 Studio', 'STUDIO', true, true, 2, 'SAR', 30000, 8000, 30, 'ACTIVE')`,
     [unitId, propertyId],
   );
+  // Listings must clear the regulatory gate (0016) to be bookable.
+  await approveListing(db, propertyId);
 
   // ---- WebSocket gateway ----------------------------------------------------
   const ws = new WebSocket(`ws://localhost:${PORT}/ws/availability`);

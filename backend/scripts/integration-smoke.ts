@@ -12,6 +12,7 @@ import { randomUUID } from 'node:crypto';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../src/app.module';
 import { DatabaseService } from '../src/infrastructure/database/database.service';
+import { approveListing } from './support/approve-listing';
 import { RequestContextService } from '../src/common/context/request-context.service';
 import { BookingService } from '../src/modules/booking/application/booking.service';
 import {
@@ -101,6 +102,8 @@ async function main(): Promise<void> {
          VALUES ($1, $2, 'Smoke Studio', 'STUDIO', true, true, 2, 'SAR', 30000, 8000, 30, 'ACTIVE')`,
         [unitId, propertyId],
       );
+      // Listings must clear the regulatory gate (0016) to be bookable.
+      await approveListing(db, propertyId);
       console.log('Fixtures created.\n');
 
       // ---- 1: place a hold ----------------------------------------------
