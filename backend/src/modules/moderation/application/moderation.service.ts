@@ -50,6 +50,18 @@ export class ModerationService {
     return this.repo.listDocuments(propertyId);
   }
 
+  /**
+   * Resolves a document for streaming. Scoped by propertyId as well as its own
+   * id, so a document id guessed from one listing cannot be read through
+   * another's URL.
+   */
+  documentFor(
+    propertyId: string,
+    documentId: string,
+  ): Promise<{ storageKey: string; contentType: string; fileName: string } | null> {
+    return this.repo.storageKeyFor(propertyId, documentId);
+  }
+
   /** Host submits a completed listing for review. */
   async submit(propertyId: string, actingUserId: string): Promise<ModerationStatus> {
     await this.assertHostOwns(propertyId, actingUserId);

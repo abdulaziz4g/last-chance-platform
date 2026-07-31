@@ -1,9 +1,14 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Param, Post, Query, Res } from '@nestjs/common';
+import type { FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { ModerationService } from './application/moderation.service';
 import { Roles } from '../../common/auth/decorators';
 import { RequestContextService } from '../../common/context/request-context.service';
-import { UnauthorizedError, ValidationFailedError } from '../../common/errors/domain-errors';
+import { STORAGE_PORT, type StoragePort } from '../media/domain/storage.port';
+import {
+  UnauthorizedError,
+  ValidationFailedError,
+} from '../../common/errors/domain-errors';
 import {
   MODERATION_REASON_CODES,
   MODERATION_STATUSES,
@@ -48,7 +53,48 @@ export class ModerationController {
   constructor(
     private readonly moderation: ModerationService,
     private readonly ctx: RequestContextService,
+    @Inject(STORAGE_PORT) private readonly storage: StoragePort,
   ) {}
+
+  /**
+   * Streams one regulatory document to a reviewing admin.
+   *
+   * Deliberately NOT a public URL. Listing photos are served straight off the
+   * static mount because they are meant to be seen; a title deed, a lease
+   * contract and an owner's tourism permit are not. Routing the bytes through
+   * an authenticated handler means possessing the storage key is not the same
+   * as being allowed to read the file, and RolesGuard decides instead.
+   *
+   * Rendered inline so the inspection view can embed it beside the photos —
+   * the reviewer is comparing the two, and a download prompt breaks that.
+   */
+  @Get('admin/moderation/:propertyId/documents/:documentId/file')
+  @Roles('ADMIN')
+  async documentFile(
+    @Param('propertyId') propertyId: string,
+    @Param('documentId') documentId: string,
+    @Res() reply: FastifyReply,
+  ): Promise<void> {
+    const doc = await this.moderation.documentFor(propertyId, documentId);
+    const bytes = doc && (await this.storage.read(doc.storageKey));
+
+    if (!doc || !bytes) {
+      void reply.status(404).send({
+        error: { code: 'DOCUMENT_NOT_FOUND', message: 'Document not found' },
+      });
+      return;
+    }
+
+    void reply
+      .header('content-type', doc.contentType)
+      .header(
+        'content-disposition',
+        `inline; filename="${doc.fileName.replace(/["\r\n]/g, '')}"`,
+      )
+      // Regulated paperwork must not linger in a shared cache.
+      .header('cache-control', 'private, no-store')
+      .send(bytes);
+  }
 
   // ---- admin -------------------------------------------------------------
 

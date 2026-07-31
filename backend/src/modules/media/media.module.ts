@@ -17,6 +17,8 @@ import { STORAGE_PORT } from './domain/storage.port';
     LocalDiskStorage,
     { provide: STORAGE_PORT, useExisting: LocalDiskStorage },
   ],
-  exports: [UnitPhotoService],
+  // STORAGE_PORT is exported so the moderation module can stream regulatory
+  // documents through its own authenticated handler.
+  exports: [UnitPhotoService, STORAGE_PORT],
 })
 export class MediaModule {}
