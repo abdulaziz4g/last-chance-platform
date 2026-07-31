@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { BookingModule } from '../booking/booking.module';
 import { PaymentController } from './payment.controller';
 import { WebhookController } from './webhook.controller';
+import { EscrowAdminController } from './escrow-admin.controller';
+import { EscrowAdminService } from './application/escrow-admin.service';
 import { PaymentService } from './application/payment.service';
 import { WebhookService } from './application/webhook.service';
 import { PayoutService } from './application/payout.service';
@@ -17,8 +19,9 @@ import { PaymentWorker } from './workers/payment.worker';
 
 @Module({
   imports: [BookingModule],
-  controllers: [PaymentController, WebhookController],
+  controllers: [PaymentController, WebhookController, EscrowAdminController],
   providers: [
+    EscrowAdminService,
     PaymentService,
     WebhookService,
     PayoutService,

@@ -711,6 +711,7 @@ export type {
   ModerationReasonCode,
   ModerationQueueItem,
   PropertyDocument,
+  PropertyUnitSummary,
   ModerationEvent,
   ModerationDetail,
 } from './moderation';

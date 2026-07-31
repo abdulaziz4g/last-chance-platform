@@ -14,6 +14,7 @@ const NAV = [
   { href: '/admin/moderation', label: 'Listing review' },
   { href: '/admin/payments', label: 'Payments & webhooks' },
   { href: '/admin/ledger', label: 'Escrow ledger' },
+  { href: '/admin/escrow', label: 'Escrow override' },
   { href: '/host', label: '→ Host studio' },
 ];
 

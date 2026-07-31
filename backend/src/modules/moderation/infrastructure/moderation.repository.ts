@@ -9,7 +9,12 @@ import type {
   ModerationStatus,
   PropertyDocument,
   PropertyDocumentType,
+  PropertyUnitSummary,
 } from '../domain/types';
+
+/** units.photos is a jsonb array of media paths; anything else is no photos. */
+const normalisePhotos = (value: unknown): string[] =>
+  Array.isArray(value) ? value.filter((p): p is string => typeof p === 'string') : [];
 
 interface QueueRow {
   property_id: string;
@@ -279,6 +284,49 @@ export class ModerationRepository {
           fileName: row.file_name,
         }
       : null;
+  }
+
+  /**
+   * Units and their photos, for the side-by-side inspection view.
+   *
+   * A reviewer is checking that the photos depict the property the deed
+   * describes — a villa's deed against pictures of an apartment block is the
+   * cheapest fraud to catch and the easiest to miss if the two are a tab apart.
+   * Unlike documents these are already public URLs: listing photos are meant
+   * to be seen, so no authenticated proxy is warranted.
+   */
+  async listUnitsWithPhotos(propertyId: string): Promise<PropertyUnitSummary[]> {
+    const res = await this.db.query<{
+      id: string;
+      name: string;
+      unit_type: string;
+      status: string;
+      max_guests: number;
+      currency: string;
+      base_hourly_rate_minor: string | null;
+      base_nightly_rate_minor: string | null;
+      photos: unknown;
+    }>(
+      `SELECT id, name, unit_type::text, status::text, max_guests, currency,
+              base_hourly_rate_minor::text, base_nightly_rate_minor::text, photos
+         FROM units
+        WHERE property_id = $1 AND deleted_at IS NULL
+        ORDER BY name`,
+      [propertyId],
+    );
+    return res.rows.map((r) => ({
+      unitId: r.id,
+      name: r.name,
+      unitType: r.unit_type,
+      status: r.status,
+      maxGuests: r.max_guests,
+      currency: r.currency,
+      hourlyRateMinor:
+        r.base_hourly_rate_minor === null ? null : Number(r.base_hourly_rate_minor),
+      nightlyRateMinor:
+        r.base_nightly_rate_minor === null ? null : Number(r.base_nightly_rate_minor),
+      photos: normalisePhotos(r.photos),
+    }));
   }
 
   async hostIdFor(propertyId: string): Promise<string> {

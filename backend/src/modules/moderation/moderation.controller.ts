@@ -121,17 +121,20 @@ export class ModerationController {
   async detail(@Param('propertyId') propertyId: string): Promise<{
     property: ModerationQueueItem;
     documents: unknown[];
+    units: unknown[];
     history: unknown[];
     allowedNext: readonly string[];
   }> {
     const property = await this.moderation.getOne(propertyId);
-    const [documents, history] = await Promise.all([
+    const [documents, units, history] = await Promise.all([
       this.moderation.documents(propertyId),
+      this.moderation.units(propertyId),
       this.moderation.history(propertyId),
     ]);
     return {
       property,
       documents,
+      units,
       history,
       allowedNext: this.moderation.allowedNext(property.moderationStatus),
     };

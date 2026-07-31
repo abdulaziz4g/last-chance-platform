@@ -7,12 +7,14 @@ import {
 } from '../../../common/errors/domain-errors';
 import { ModerationFsmEngine } from './moderation-fsm.engine';
 import { ModerationRepository } from '../infrastructure/moderation.repository';
+import { HostNotifierService } from '../../notifications/application/host-notifier.service';
 import type {
   ModerationEvent,
   ModerationQueueItem,
   ModerationReasonCode,
   ModerationStatus,
   PropertyDocument,
+  PropertyUnitSummary,
 } from '../domain/types';
 import { rootLogger } from '../../../common/logger/logger';
 
@@ -32,6 +34,7 @@ export class ModerationService {
   constructor(
     private readonly repo: ModerationRepository,
     private readonly fsm: ModerationFsmEngine,
+    private readonly notifier: HostNotifierService,
   ) {}
 
   queue(status: ModerationStatus | null, limit = 50): Promise<ModerationQueueItem[]> {
@@ -48,6 +51,10 @@ export class ModerationService {
 
   documents(propertyId: string): Promise<PropertyDocument[]> {
     return this.repo.listDocuments(propertyId);
+  }
+
+  units(propertyId: string): Promise<PropertyUnitSummary[]> {
+    return this.repo.listUnitsWithPhotos(propertyId);
   }
 
   /**
@@ -100,6 +107,8 @@ export class ModerationService {
     }
     const result = await this.move(propertyId, 'APPROVED', null, null, true);
     log.info({ propertyId }, 'Listing approved and published');
+    // Post-commit and never awaited into the decision: see HostNotifierService.
+    await this.notifier.listingApproved(propertyId);
     return result;
   }
 
@@ -111,6 +120,7 @@ export class ModerationService {
     if (!reasonCode) throw new RejectionReasonRequiredError();
     const result = await this.move(propertyId, 'REJECTED', reasonCode, notes);
     log.info({ propertyId, reasonCode }, 'Listing rejected');
+    await this.notifier.listingRejected(propertyId, reasonCode, notes);
     return result;
   }
 
@@ -121,6 +131,7 @@ export class ModerationService {
   ): Promise<ModerationStatus> {
     const result = await this.move(propertyId, 'SUSPENDED', reasonCode, notes);
     log.warn({ propertyId, reasonCode }, 'Live listing suspended');
+    await this.notifier.listingSuspended(propertyId, reasonCode, notes);
     return result;
   }
 

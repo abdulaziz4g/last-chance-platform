@@ -78,6 +78,19 @@ export interface ModerationQueueItem {
   blockers: string[];
 }
 
+/** A unit as the inspection view shows it, beside the paperwork. */
+export interface PropertyUnitSummary {
+  unitId: string;
+  name: string;
+  unitType: string;
+  status: string;
+  maxGuests: number;
+  currency: string;
+  hourlyRateMinor: number | null;
+  nightlyRateMinor: number | null;
+  photos: string[];
+}
+
 export interface ModerationEvent {
   id: string;
   propertyId: string;

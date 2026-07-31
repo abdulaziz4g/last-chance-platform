@@ -51,7 +51,8 @@ export default async function ModerationDetailPage({
     notFound();
   }
 
-  const { property, documents, history, allowedNext } = detail;
+  const { property, documents, units, history, allowedNext } = detail;
+  const photoCount = units.reduce((n, u) => n + u.photos.length, 0);
 
   return (
     <div className="space-y-8">
@@ -116,6 +117,54 @@ export default async function ModerationDetailPage({
               <Field label="Host KYC" value={property.hostKycStatus} />
               <Field label="Country" value={property.countryCode} />
             </dl>
+          </section>
+
+          {/* Photos sit directly above the paperwork on purpose: the reviewer
+              is checking that the pictures depict the property the deed
+              describes, and a villa's deed against photos of an apartment
+              block is the cheapest fraud to catch and the easiest to miss if
+              the two are a tab apart. */}
+          <section>
+            <SectionTitle>
+              Listing photos ({photoCount} across {units.length} unit
+              {units.length === 1 ? '' : 's'})
+            </SectionTitle>
+            {units.length === 0 ? (
+              <p className="rounded-lg border border-dashed border-zinc-300 px-4 py-8 text-center text-sm text-zinc-500 dark:border-zinc-700">
+                This listing has no units.
+              </p>
+            ) : (
+              <ul className="space-y-5">
+                {units.map((unit) => (
+                  <li key={unit.unitId}>
+                    <div className="flex flex-wrap items-baseline gap-x-3 text-sm">
+                      <span className="font-medium">{unit.name}</span>
+                      <span className="text-xs text-zinc-500">
+                        {unit.unitType} · sleeps {unit.maxGuests} · {unit.status}
+                      </span>
+                    </div>
+                    {unit.photos.length === 0 ? (
+                      <p className="mt-2 text-xs text-amber-700 dark:text-amber-400">
+                        No photos uploaded for this unit.
+                      </p>
+                    ) : (
+                      <div className="mt-2 flex gap-3 overflow-x-auto pb-2">
+                        {unit.photos.map((src) => (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            key={src}
+                            src={src}
+                            alt={`${unit.name} listing photo`}
+                            loading="lazy"
+                            className="h-40 w-auto shrink-0 rounded border border-zinc-200 object-cover dark:border-zinc-700"
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
 
           <section>

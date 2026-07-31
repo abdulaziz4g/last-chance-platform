@@ -20,6 +20,7 @@ import { ReportingModule } from './modules/reporting/reporting.module';
 import { SearchModule } from './modules/search/search.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
 import { ModerationModule } from './modules/moderation/moderation.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 import { MediaModule } from './modules/media/media.module';
 import { DealsModule } from './modules/deals/deals.module';
 import { DocsModule } from './modules/docs/docs.module';
@@ -47,6 +48,7 @@ import { HealthModule } from './modules/health/health.module';
     RealtimeModule,
     SearchModule,
     InventoryModule,
+    NotificationsModule,
     ModerationModule,
     MediaModule,
     DealsModule,

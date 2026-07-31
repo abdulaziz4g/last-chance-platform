@@ -83,9 +83,22 @@ export interface ModerationEvent {
   createdAt: string;
 }
 
+export interface PropertyUnitSummary {
+  unitId: string;
+  name: string;
+  unitType: string;
+  status: string;
+  maxGuests: number;
+  currency: string;
+  hourlyRateMinor: number | null;
+  nightlyRateMinor: number | null;
+  photos: string[];
+}
+
 export interface ModerationDetail {
   property: ModerationQueueItem;
   documents: PropertyDocument[];
+  units: PropertyUnitSummary[];
   history: ModerationEvent[];
   allowedNext: ModerationStatus[];
 }

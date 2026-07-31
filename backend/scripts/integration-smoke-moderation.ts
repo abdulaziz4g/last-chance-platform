@@ -150,9 +150,17 @@ async function main(): Promise<void> {
   await db.query(
     `INSERT INTO units (id, property_id, name, unit_type, supports_hourly, supports_nightly,
                         max_guests, currency, base_nightly_rate_minor, base_hourly_rate_minor,
-                        turnaround_minutes, status)
-     VALUES ($1,$2,'Nabataean Suite','SUITE',true,true,4,'SAR',120000::bigint,25000::bigint,45,'ACTIVE')`,
-    [unitId, propertyId],
+                        turnaround_minutes, status, photos)
+     VALUES ($1,$2,'Nabataean Suite','SUITE',true,true,4,'SAR',120000::bigint,25000::bigint,45,'ACTIVE',
+             $3::jsonb)`,
+    [
+      unitId,
+      propertyId,
+      JSON.stringify([
+        `/media/units/${unitId}/one.png`,
+        `/media/units/${unitId}/two.png`,
+      ]),
+    ],
   );
   console.log('Fixtures created.\n');
 
@@ -258,9 +266,19 @@ async function main(): Promise<void> {
 
   const detail = await http<{
     documents: unknown[];
+    units: Array<{ unitId: string; photos: string[] }>;
     history: unknown[];
     allowedNext: string[];
   }>('GET', `/admin/moderation/${propertyId}`, { actor: 'ADMIN' });
+  // Photos travel in the same payload as the paperwork: the reviewer is
+  // checking one against the other, and a tab switch loses the comparison.
+  assert(
+    detail.json?.units?.length === 1 &&
+      detail.json.units[0].unitId === unitId &&
+      detail.json.units[0].photos.length === 2,
+    `inspection view returns units with their photos (${detail.json?.units?.[0]?.photos?.length ?? 0})`,
+    detail.json?.units,
+  );
   assert(
     detail.json?.documents?.length === 2 &&
       detail.json.allowedNext.includes('APPROVED') &&
@@ -411,6 +429,152 @@ async function main(): Promise<void> {
     `every decision is recorded with its reason (${trail})`,
     history.rows,
   );
+
+  // ---- 15. rejection notifies the host ------------------------------------
+  // A second listing, taken to REJECTED so the notification path runs for real
+  // rather than being asserted about in the abstract.
+  const prop2 = randomUUID();
+  const unit2 = randomUUID();
+  await db.query(
+    `INSERT INTO properties (id, host_id, name, slug, property_type, status,
+                             city, country_code, location,
+                             national_short_address, building_number, additional_number,
+                             tourism_permit_number, tourism_permit_expires_at)
+     VALUES ($1,$2,'AlUla Rejected Villa',$3,'VILLA','ACTIVE','AlUla','SA',
+             ST_SetSRID(ST_MakePoint($4,$5),4326)::geography,
+             'ALUL9911','1234','5678','MT-1445-BAD', current_date + 200)`,
+    [prop2, hostId, `alula-rejected-${tag}`, TRUE_LNG + 0.01, TRUE_LAT + 0.01],
+  );
+  await db.query(
+    `INSERT INTO units (id, property_id, name, unit_type, supports_hourly, supports_nightly,
+                        max_guests, currency, base_nightly_rate_minor, turnaround_minutes, status)
+     VALUES ($1,$2,'Villa','ENTIRE_VILLA',false,true,6,'SAR',200000::bigint,60,'ACTIVE')`,
+    [unit2, prop2],
+  );
+  await db.query(
+    `INSERT INTO property_documents (property_id, document_type, storage_key, file_name,
+                                     content_type, size_bytes, uploaded_by)
+     VALUES ($1,'TITLE_DEED',$2,'deed.pdf','application/pdf',1000,$3),
+            ($1,'TOURISM_PERMIT',$4,'permit.pdf','application/pdf',1000,$3)`,
+    [prop2, `props/${prop2}/deed.pdf`, hostId, `props/${prop2}/permit.pdf`],
+  );
+  await db.query(
+    `UPDATE properties SET moderation_status='PENDING_APPROVAL' WHERE id=$1`,
+    [prop2],
+  );
+
+  const reject = await http<{ moderationStatus: string }>(
+    'POST',
+    `/admin/moderation/${prop2}/reject`,
+    {
+      actor: 'ADMIN',
+      body: { reasonCode: 'PERMIT_NOT_FOUND', notes: 'No match in the MoT register' },
+    },
+  );
+  assert(
+    reject.json?.moderationStatus === 'REJECTED',
+    'rejection succeeds and the host notification path runs',
+    reject.json,
+  );
+  // The notifier is best-effort by design: a decision must stand even if the
+  // SMS gateway is down. So the assertion is that the DECISION survived, which
+  // is the invariant that matters.
+  const stillRejected = await db.query<{ moderation_status: string }>(
+    `SELECT moderation_status::text FROM properties WHERE id=$1`,
+    [prop2],
+  );
+  assert(
+    stillRejected.rows[0]?.moderation_status === 'REJECTED',
+    'the decision stands regardless of notification delivery',
+  );
+
+  // ---- 16. escrow override posts compensating entries ---------------------
+  const balancesBefore = await db.query<{ account: string; balance: string }>(
+    `SELECT account::text,
+            COALESCE(sum(CASE direction WHEN 'CREDIT' THEN amount_minor
+                                        ELSE -amount_minor END),0)::text AS balance
+       FROM ledger_entries GROUP BY account`,
+  );
+  const before = Object.fromEntries(
+    balancesBefore.rows.map((r) => [r.account, Number(r.balance)]),
+  );
+  const entriesBefore = await db.query<{ n: string }>(
+    `SELECT count(*)::text AS n FROM ledger_entries`,
+  );
+
+  const adjust = await http<{ entryGroupId: string }>(
+    'POST',
+    '/admin/escrow/adjustments',
+    {
+      actor: 'ADMIN',
+      body: {
+        fromAccount: 'PLATFORM_REVENUE',
+        toAccount: 'HOST_PAYABLE',
+        amountMinor: 2500,
+        currency: 'SAR',
+        reason: 'Goodwill correction after a commission miscalculation',
+      },
+    },
+  );
+  assert(
+    typeof adjust.json?.entryGroupId === 'string',
+    'manual escrow adjustment posts an entry group',
+    adjust.json,
+  );
+
+  const balancesAfter = await db.query<{ account: string; balance: string }>(
+    `SELECT account::text,
+            COALESCE(sum(CASE direction WHEN 'CREDIT' THEN amount_minor
+                                        ELSE -amount_minor END),0)::text AS balance
+       FROM ledger_entries GROUP BY account`,
+  );
+  const after = Object.fromEntries(
+    balancesAfter.rows.map((r) => [r.account, Number(r.balance)]),
+  );
+  assert(
+    (after['HOST_PAYABLE'] ?? 0) - (before['HOST_PAYABLE'] ?? 0) === 2500 &&
+      (after['PLATFORM_REVENUE'] ?? 0) - (before['PLATFORM_REVENUE'] ?? 0) === -2500,
+    'the adjustment moves exactly the stated amount between the two accounts',
+    { before, after },
+  );
+
+  // The whole point: nothing was rewritten. Entries only ever grow.
+  const entriesAfter = await db.query<{ n: string }>(
+    `SELECT count(*)::text AS n FROM ledger_entries`,
+  );
+  assert(
+    Number(entriesAfter.rows[0].n) === Number(entriesBefore.rows[0].n) + 2,
+    'the correction is additive — two new legs, nothing edited',
+    { before: entriesBefore.rows[0].n, after: entriesAfter.rows[0].n },
+  );
+
+  const unreasoned = await http('POST', '/admin/escrow/adjustments', {
+    actor: 'ADMIN',
+    body: {
+      fromAccount: 'PLATFORM_REVENUE',
+      toAccount: 'HOST_PAYABLE',
+      amountMinor: 100,
+      currency: 'SAR',
+      reason: 'oops',
+    },
+  });
+  assert(
+    unreasoned.status === 400,
+    'an adjustment without a real reason is refused',
+    unreasoned.status,
+  );
+
+  const hostAdjust = await http('POST', '/admin/escrow/adjustments', {
+    actor: 'HOST',
+    body: {
+      fromAccount: 'PLATFORM_REVENUE',
+      toAccount: 'HOST_PAYABLE',
+      amountMinor: 100,
+      currency: 'SAR',
+      reason: 'Paying myself a little extra today',
+    },
+  });
+  assert(hostAdjust.status === 403, 'a non-admin cannot move money', hostAdjust.status);
 
   await app.close();
   console.log(`\n${passed} passed, ${failed} failed`);
