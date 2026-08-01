@@ -10,6 +10,7 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lastchance_mobile/core/api/api_exception.dart';
 import 'package:lastchance_mobile/features/booking/domain/booking.dart';
 import 'package:lastchance_mobile/features/map/data/map_repository.dart';
 import 'package:lastchance_mobile/features/map/domain/map_pin.dart';
@@ -77,6 +78,10 @@ void main() {
     addTearDown(container.dispose);
     final repo = container.read(mapRepositoryProvider);
 
+    // Asserts the SERVER refused it, not merely that something went wrong.
+    // This was `throwsA(isA<Object>())`, which also passes when the backend is
+    // simply not running — it did exactly that once, and a test that goes
+    // green while nothing is listening is worse than no test.
     await expectLater(
       repo.search(
         const MapSearchQuery(
@@ -89,7 +94,11 @@ void main() {
           bookingType: BookingType.nightly,
         ),
       ),
-      throwsA(isA<Object>()),
+      throwsA(
+        isA<ApiException>()
+            .having((e) => e.code, 'code', 'VALIDATION_FAILED')
+            .having((e) => e.statusCode, 'statusCode', 400),
+      ),
     );
   });
 }
