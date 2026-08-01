@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/design_tokens.dart';
 import '../../../core/config.dart';
 import '../application/hold_flow_controller.dart';
 import '../domain/booking.dart';
@@ -104,7 +105,7 @@ class _Idle extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11,
                     letterSpacing: 3,
-                    color: Colors.white.withValues(alpha: 0.5),
+                    color: LcBrand.muted,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -117,7 +118,7 @@ class _Idle extends StatelessWidget {
                   '2 guests · instant booking · free cancellation until check-in',
                   style: TextStyle(
                     fontSize: 13,
-                    color: Colors.white.withValues(alpha: 0.6),
+                    color: LcBrand.muted,
                   ),
                 ),
               ],
@@ -135,7 +136,7 @@ class _Idle extends StatelessWidget {
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 12,
-            color: Colors.white.withValues(alpha: 0.45),
+            color: LcBrand.muted,
           ),
         ),
       ],

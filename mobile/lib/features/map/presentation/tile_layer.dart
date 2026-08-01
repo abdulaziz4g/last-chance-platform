@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mb;
 
+import '../../../app/design_tokens.dart';
 import '../../../app/l10n.dart';
 import '../map_config.dart';
 import 'map_projection.dart';
@@ -185,7 +186,7 @@ class _PannableFieldState extends State<_PannableField> {
           child: Stack(
             fit: StackFit.expand,
             children: <Widget>[
-              const ColoredBox(color: Color(AlUlaPalette.sandLight)),
+              const ColoredBox(color: LcBrand.background),
               // The Nabataean lattice from the web client's loading surfaces,
               // at the same very low contrast: texture, not decoration.
               CustomPaint(painter: _NabataeanLattice()),
@@ -205,7 +206,7 @@ class _PannableFieldState extends State<_PannableField> {
                 right: 0,
                 bottom: 0,
                 child: ColoredBox(
-                  color: const Color(AlUlaPalette.slateDeep).withValues(alpha: 0.85),
+                  color: LcBrand.text.withValues(alpha: 0.85),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
@@ -216,7 +217,7 @@ class _PannableFieldState extends State<_PannableField> {
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 11,
-                        color: Color(0xFFF0D9A8),
+                        color: LcBrand.sand,
                       ),
                     ),
                   ),
@@ -245,7 +246,7 @@ class _ZoomButton extends StatelessWidget {
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.all(6),
-            child: Icon(icon, size: 18, color: const Color(AlUlaPalette.slateDeep)),
+            child: Icon(icon, size: 18, color: LcBrand.text),
           ),
         ),
       );
@@ -255,7 +256,7 @@ class _NabataeanLattice extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(AlUlaPalette.terracotta).withValues(alpha: 0.10)
+      ..color = LcBrand.coral.withValues(alpha: 0.10)
       ..strokeWidth = 1;
     const step = 14.0;
     for (double x = -size.height; x < size.width; x += step) {

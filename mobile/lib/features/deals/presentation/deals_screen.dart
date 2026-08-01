@@ -3,16 +3,20 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../app/theme.dart';
+import '../../../app/design_tokens.dart';
+import '../../../app/l10n.dart';
 import '../../../core/money.dart';
 import '../../booking/presentation/booking_flow_screen.dart';
 import '../application/deals_feed_controller.dart';
 import '../domain/flash_deal.dart';
 import 'deal_claim_screen.dart';
 
-/// The live flash-deal feed — the app's home. Cards show struck-through
-/// pricing, remaining inventory, and a countdown that ticks locally (WS push
-/// replaces the poll later). Tapping a deal opens the claim flow.
+/// The live flash-deal feed — the app's home.
+///
+/// Styled from the design package: warm cream canvas, white cards carrying the
+/// one brand shadow, coral reserved for price and the discount badge. Nothing
+/// here names a colour or a radius directly; they come from design_tokens.dart,
+/// which is what lets the whole app move if the brand does.
 class DealsScreen extends ConsumerStatefulWidget {
   const DealsScreen({super.key});
 
@@ -41,18 +45,20 @@ class _DealsScreenState extends ConsumerState<DealsScreen> {
   @override
   Widget build(BuildContext context) {
     final deals = ref.watch(dealsFeedProvider);
+    final strings = LcStrings.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Flash deals'),
+        title: Text(strings.flashDeals),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.refresh),
+            tooltip: strings.refresh,
             onPressed: () => ref.read(dealsFeedProvider.notifier).refresh(),
           ),
           IconButton(
             icon: const Icon(Icons.event_available_outlined),
-            tooltip: 'Book directly',
+            tooltip: strings.bookDirectly,
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute<void>(builder: (_) => const BookingFlowScreen()),
             ),
@@ -63,23 +69,24 @@ class _DealsScreenState extends ConsumerState<DealsScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => _Message(
           icon: Icons.cloud_off,
-          text: 'Deals are warming up.\n$err',
+          text: '${strings.dealsWarmingUp}\n$err',
           onRetry: () => ref.read(dealsFeedProvider.notifier).refresh(),
         ),
         data: (list) {
           if (list.isEmpty) {
             return _Message(
               icon: Icons.local_fire_department_outlined,
-              text: 'No live deals right now.\nCheck back soon.',
+              text: strings.noLiveDeals,
               onRetry: () => ref.read(dealsFeedProvider.notifier).refresh(),
             );
           }
           return RefreshIndicator(
             onRefresh: () => ref.read(dealsFeedProvider.notifier).refresh(),
             child: ListView.separated(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsetsDirectional.all(LcSpacing.screenPadding),
               itemCount: list.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              separatorBuilder: (_, __) =>
+                  const SizedBox(height: LcSpacing.gridGap),
               itemBuilder: (context, i) => _DealCard(
                 deal: list[i],
                 now: _now,
@@ -104,134 +111,224 @@ class _DealCard extends StatelessWidget {
   final DateTime now;
   final VoidCallback onTap;
 
-  String _countdown(int seconds) {
-    if (seconds <= 0) return 'Ended';
-    final h = seconds ~/ 3600;
-    final m = (seconds % 3600) ~/ 60;
-    final s = seconds % 60;
-    final ss = s.toString().padLeft(2, '0');
-    return h > 0 ? '${h}h ${m}m ${ss}s' : '$m:$ss';
-  }
-
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final strings = LcStrings.of(context);
+    final locale = Localizations.localeOf(context).toLanguageTag();
     final secondsLeft = deal.remainingSecondsAt(now);
     final base = deal.baseRateMinor;
     final net = deal.netRateMinor;
 
-    return InkWell(
-      borderRadius: BorderRadius.circular(20),
-      onTap: onTap,
-      child: Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: LcColors.brass400.withValues(alpha: 0.3)),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Expanded(
-                    child: Text(
-                      deal.propertyName,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: LcColors.brass400,
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      '−${deal.discountPct.toStringAsFixed(0)}%',
-                      style: const TextStyle(
-                        color: LcColors.ink950,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 2),
-              Text(
-                '${deal.unitName} · ${deal.city}',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.white.withValues(alpha: 0.6),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: <Widget>[
-                  if (net != null && base != null) ...<Widget>[
-                    Text(
-                      formatMinor(net, deal.currency),
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: LcColors.brass300,
-                        fontFeatures: <FontFeature>[FontFeature.tabularFigures()],
+    return Semantics(
+      button: true,
+      label: '${deal.propertyName}, ${deal.unitName}',
+      child: Material(
+        color: LcBrand.white,
+        borderRadius: LcRadius.cardBorder,
+        child: InkWell(
+          borderRadius: LcRadius.cardBorder,
+          onTap: onTap,
+          child: Ink(
+            decoration: BoxDecoration(
+              color: LcBrand.white,
+              borderRadius: LcRadius.cardBorder,
+              // The package's single card shadow, replacing the coral hairline
+              // border this card used to carry. A stroke in the accent colour
+              // on every card spends the loudest thing in the palette on the
+              // container rather than on the price inside it.
+              boxShadow: LcShadow.card,
+            ),
+            padding: const EdgeInsetsDirectional.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: Text(
+                        deal.propertyName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleSmall
+                            ?.copyWith(fontWeight: LcType.button),
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      formatMinor(base, deal.currency),
-                      style: TextStyle(
-                        fontSize: 14,
-                        decoration: TextDecoration.lineThrough,
-                        color: Colors.white.withValues(alpha: 0.4),
+                    _DiscountBadge(pct: deal.discountPct),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${deal.unitName}${strings.listSeparator}${deal.city}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall
+                      ?.copyWith(color: LcBrand.muted),
+                ),
+                const SizedBox(height: LcSpacing.gridGap),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: <Widget>[
+                    if (net != null && base != null)
+                      // Flexible so an Arabic price row, which renders wider
+                      // for the same figures, shrinks instead of overflowing.
+                      Flexible(
+                        child: _PriceRow(
+                          netMinor: net,
+                          baseMinor: base,
+                          currency: deal.currency,
+                          locale: locale,
+                          hourly: deal.isHourly,
+                        ),
                       ),
-                    ),
-                    Text(
-                      deal.isHourly ? ' /hr' : ' /night',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.white.withValues(alpha: 0.5),
-                      ),
+                    const Spacer(),
+                    _Countdown(
+                      secondsLeft: secondsLeft,
+                      remaining: deal.quantityRemaining,
+                      total: deal.quantityTotal,
                     ),
                   ],
-                  const Spacer(),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: <Widget>[
-                      Text(
-                        _countdown(secondsLeft),
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: secondsLeft < 3600
-                              ? LcColors.danger
-                              : Colors.white.withValues(alpha: 0.85),
-                          fontFeatures: const <FontFeature>[
-                            FontFeature.tabularFigures(),
-                          ],
-                        ),
-                      ),
-                      Text(
-                        '${deal.quantityRemaining} of ${deal.quantityTotal} left',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.white.withValues(alpha: 0.5),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _DiscountBadge extends StatelessWidget {
+  const _DiscountBadge({required this.pct});
+
+  final num pct;
+
+  @override
+  Widget build(BuildContext context) => DecoratedBox(
+        decoration: const BoxDecoration(
+          color: LcBrand.coral,
+          borderRadius: BorderRadius.all(Radius.circular(LcRadius.pill)),
+        ),
+        child: Padding(
+          padding:
+              const EdgeInsetsDirectional.symmetric(horizontal: 10, vertical: 4),
+          child: Text(
+            '−${pct.toStringAsFixed(0)}%',
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: LcBrand.white,
+                  fontWeight: LcType.figure,
+                ),
+          ),
+        ),
+      );
+}
+
+class _PriceRow extends StatelessWidget {
+  const _PriceRow({
+    required this.netMinor,
+    required this.baseMinor,
+    required this.currency,
+    required this.locale,
+    required this.hourly,
+  });
+
+  final int netMinor;
+  final int baseMinor;
+  final String currency;
+  final String locale;
+  final bool hourly;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final strings = LcStrings.of(context);
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: <Widget>[
+        Flexible(
+          child: Text(
+            formatMinor(netMinor, currency, locale: locale),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: LcBrand.coral,
+              fontWeight: LcType.figure,
+              // Tabular figures keep a per-second countdown and a price from
+              // jittering as digits change width.
+              fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(
+            formatMinor(baseMinor, currency, locale: locale),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodySmall?.copyWith(
+              decoration: TextDecoration.lineThrough,
+              color: LcBrand.muted,
+            ),
+          ),
+        ),
+        Text(
+          strings.perUnitShort(hourly: hourly),
+          style: theme.textTheme.labelSmall?.copyWith(color: LcBrand.muted),
+        ),
+      ],
+    );
+  }
+}
+
+class _Countdown extends StatelessWidget {
+  const _Countdown({
+    required this.secondsLeft,
+    required this.remaining,
+    required this.total,
+  });
+
+  final int secondsLeft;
+  final int remaining;
+  final int total;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final strings = LcStrings.of(context);
+
+    final label = secondsLeft <= 0
+        ? strings.dealEnded
+        : () {
+            final h = secondsLeft ~/ 3600;
+            final m = (secondsLeft % 3600) ~/ 60;
+            final s = (secondsLeft % 60).toString().padLeft(2, '0');
+            return h > 0 ? '${h}h ${m}m ${s}s' : '$m:$s';
+          }();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Text(
+          label,
+          style: theme.textTheme.labelLarge?.copyWith(
+            fontWeight: LcType.button,
+            // Danger, not coral, inside the final hour: urgency must not be
+            // the same colour as the call to action, or "hurry" and "buy" read
+            // as the same signal.
+            color: secondsLeft < 3600 ? LcStatus.danger : LcBrand.text,
+            fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
+          ),
+        ),
+        Text(
+          strings.quantityLeft(remaining, total),
+          style: theme.textTheme.labelSmall?.copyWith(color: LcBrand.muted),
+        ),
+      ],
     );
   }
 }
@@ -245,20 +342,28 @@ class _Message extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final strings = LcStrings.of(context);
+
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Icon(icon, size: 56, color: Colors.white.withValues(alpha: 0.3)),
-          const SizedBox(height: 16),
-          Text(
-            text,
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white.withValues(alpha: 0.6)),
-          ),
-          const SizedBox(height: 20),
-          OutlinedButton(onPressed: onRetry, child: const Text('Refresh')),
-        ],
+      child: Padding(
+        padding: const EdgeInsetsDirectional.all(LcSpacing.screenPadding),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            // Sand, not coral: an empty state is not an error and should not
+            // shout in the brand's action colour.
+            Icon(icon, size: 56, color: LcBrand.sand),
+            const SizedBox(height: LcSpacing.gridGap),
+            Text(
+              text,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(color: LcBrand.muted),
+            ),
+            const SizedBox(height: 20),
+            OutlinedButton(onPressed: onRetry, child: Text(strings.refresh)),
+          ],
+        ),
       ),
     );
   }

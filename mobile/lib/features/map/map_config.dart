@@ -25,12 +25,11 @@ abstract final class MapConfig {
   static bool get hasToken => accessToken.isNotEmpty;
 }
 
-/// AlUla palette, matching web/src/app/globals.css exactly so the two clients
-/// cannot drift apart.
-abstract final class AlUlaPalette {
-  static const int terracotta = 0xFFC86D51;
-  static const int sandGold = 0xFFD4A359;
-  static const int slateDeep = 0xFF1E232A;
-  static const int sandLight = 0xFFF2E4D4;
-  static const int sandMid = 0xFFE6D2BB;
-}
+// AlUlaPalette lived here — terracotta, sand gold, slate deep — and was
+// described as matching web/src/app/globals.css "exactly so the two clients
+// cannot drift apart". The Design & Developer Package supersedes it: colour
+// now comes from app/design_tokens.dart, which is the package's transcription.
+//
+// NOTE the parity claim it carried is now only half true. Mobile has moved to
+// the package's palette; the web client has not. They are already apart, and
+// the fix is to move web too rather than to hold mobile back.

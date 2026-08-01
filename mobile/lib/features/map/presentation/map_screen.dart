@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/design_tokens.dart';
 import '../../../app/l10n.dart';
 import '../../../core/money.dart';
 import '../../booking/domain/booking.dart';
 import '../application/map_search_controller.dart';
 import '../domain/map_pin.dart';
-import '../map_config.dart';
 import 'filter_sheet.dart';
 import 'map_projection.dart';
 import 'pin_detail_sheet.dart';
@@ -363,11 +363,11 @@ class _PricePin extends StatelessWidget {
     // Selection outranks the deal styling: the user's own choice should be the
     // loudest thing on the map, not the marketing.
     final background = selected
-        ? const Color(AlUlaPalette.slateDeep)
+        ? LcBrand.text
         : cluster.hasDeal
-            ? const Color(AlUlaPalette.sandGold)
+            ? LcBrand.star
             : Colors.white;
-    final foreground = selected ? Colors.white : const Color(AlUlaPalette.slateDeep);
+    final foreground = selected ? Colors.white : LcBrand.text;
 
     return Semantics(
       button: true,
@@ -445,9 +445,9 @@ class _PrivacyCircle extends StatelessWidget {
         child: DecoratedBox(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: const Color(AlUlaPalette.terracotta).withValues(alpha: 0.15),
+            color: LcBrand.coral.withValues(alpha: 0.15),
             border: Border.all(
-              color: const Color(AlUlaPalette.terracotta).withValues(alpha: 0.6),
+              color: LcBrand.coral.withValues(alpha: 0.6),
               width: 2,
             ),
           ),
@@ -510,7 +510,7 @@ class _PreviewCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           side: BorderSide(
             color: selected
-                ? const Color(AlUlaPalette.terracotta)
+                ? LcBrand.coral
                 : Colors.transparent,
             width: 2,
           ),
@@ -567,7 +567,7 @@ class _PreviewCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.labelSmall?.copyWith(
-                            color: const Color(AlUlaPalette.sandGold),
+                            color: LcBrand.star,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -660,7 +660,7 @@ class _Chip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-        color: const Color(AlUlaPalette.slateDeep),
+        color: LcBrand.text,
         borderRadius: BorderRadius.circular(999),
         child: Padding(
           padding: const EdgeInsetsDirectional.symmetric(
@@ -691,7 +691,7 @@ class _FilterChip extends StatelessWidget {
       button: true,
       label: '$label, ${strings.clearAll}',
       child: Material(
-        color: const Color(AlUlaPalette.terracotta),
+        color: LcBrand.coral,
         borderRadius: BorderRadius.circular(999),
         child: InkWell(
           borderRadius: BorderRadius.circular(999),

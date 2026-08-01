@@ -22,7 +22,7 @@ Future<MapFilters?> pumpSheet(
   await tester.pumpWidget(
     MaterialApp(
       locale: locale,
-      theme: buildDarkTheme(),
+      theme: buildLightTheme(),
       supportedLocales: LcStrings.supportedLocales,
       localizationsDelegates: const <LocalizationsDelegate<Object>>[
         LcStrings.delegate,
@@ -93,7 +93,7 @@ void main() {
       MapFilters? applied;
       await tester.pumpWidget(
         MaterialApp(
-          theme: buildDarkTheme(),
+          theme: buildLightTheme(),
           supportedLocales: LcStrings.supportedLocales,
           localizationsDelegates: const <LocalizationsDelegate<Object>>[
             LcStrings.delegate,
@@ -158,7 +158,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           locale: const Locale('ar'),
-          theme: buildDarkTheme(),
+          theme: buildLightTheme(),
           supportedLocales: LcStrings.supportedLocales,
           localizationsDelegates: const <LocalizationsDelegate<Object>>[
             LcStrings.delegate,
@@ -238,7 +238,7 @@ void main() {
       var calls = 0;
       await tester.pumpWidget(
         MaterialApp(
-          theme: buildDarkTheme(),
+          theme: buildLightTheme(),
           supportedLocales: LcStrings.supportedLocales,
           localizationsDelegates: const <LocalizationsDelegate<Object>>[
             LcStrings.delegate,

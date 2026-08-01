@@ -50,7 +50,7 @@ List<MapPin> samplePins() => <MapPin>[
 
 Widget wrap(Widget child, {Locale locale = const Locale('en')}) => MaterialApp(
       locale: locale,
-      theme: buildDarkTheme(),
+      theme: buildLightTheme(),
       supportedLocales: LcStrings.supportedLocales,
       localizationsDelegates: const <LocalizationsDelegate<Object>>[
         LcStrings.delegate,

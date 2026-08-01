@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../../app/design_tokens.dart';
 import '../../../app/l10n.dart';
 import '../../../core/money.dart';
 import '../domain/map_filters.dart';
-import '../map_config.dart';
 
 /// Smallest and largest party the stepper offers.
 ///
@@ -181,7 +181,8 @@ class _MapFilterSheetState extends State<MapFilterSheet> {
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(20, 12, 20, 20),
+          padding: const EdgeInsetsDirectional.fromSTEB(
+            LcSpacing.screenPadding, 12, LcSpacing.screenPadding, LcSpacing.screenPadding),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -496,7 +497,7 @@ class _PriceField extends StatelessWidget {
         errorStyle: const TextStyle(height: 0.6),
         focusedBorder: malformed
             ? const OutlineInputBorder(
-                borderSide: BorderSide(color: Color(AlUlaPalette.terracotta)),
+                borderSide: BorderSide(color: LcBrand.coral),
               )
             : null,
       ),
