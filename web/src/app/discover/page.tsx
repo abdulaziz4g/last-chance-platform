@@ -71,6 +71,12 @@ export default async function DiscoverPage({
     <div className="mx-auto max-w-6xl px-5 py-8 sm:px-6 sm:py-10">
       <GuestHeader area="Discover">
         <Link
+          href="/map"
+          className="text-sm whitespace-nowrap text-zinc-500 transition-colors hover:text-terracotta-500 dark:text-zinc-400 dark:hover:text-terracotta-400"
+        >
+          Map
+        </Link>
+        <Link
           href="/bookings"
           className="text-sm whitespace-nowrap text-zinc-500 transition-colors hover:text-brass-500 dark:text-zinc-400 dark:hover:text-brass-400"
         >

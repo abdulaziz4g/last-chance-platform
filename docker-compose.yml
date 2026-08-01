@@ -17,6 +17,7 @@ services:
       - lastchance_pgdata:/var/lib/postgresql/data
       - ./db/migrations:/migrations:ro
       - ./db/tests:/db-tests:ro
+      - ./db/dev-seed:/dev-seed:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U lastchance -d lastchance"]
       interval: 5s

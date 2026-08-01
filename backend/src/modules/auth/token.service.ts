@@ -6,7 +6,12 @@ import type { ActorType } from '../booking/domain/types';
 export interface AuthClaims {
   /** users.id */
   sub: string;
-  email: string;
+  /**
+   * Null for phone-first accounts, which have no email until the guest adds
+   * one (migration 0017). Anything rendering an identity should prefer `sub`
+   * and treat this as a display convenience.
+   */
+  email: string | null;
   /** GUEST | HOST | ADMIN — resolved at login (host = owns host_profile). */
   actorType: ActorType;
   /** Back-office axis: USER | ADMIN (users.platform_role). */
@@ -46,7 +51,7 @@ export class TokenService {
       if (typeof payload.sub !== 'string') return null;
       return {
         sub: payload.sub,
-        email: (payload['email'] as string) ?? '',
+        email: (payload['email'] as string | undefined) ?? null,
         actorType: (payload['actorType'] as AuthClaims['actorType']) ?? 'GUEST',
         role: (payload['role'] as AuthClaims['role']) ?? 'USER',
       };

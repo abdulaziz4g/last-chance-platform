@@ -17,6 +17,40 @@
   --color-ink-900: #131316;
   --color-ink-950: #0a0a0c;
 
+  /* ---------------------------------------------------------------------
+     AlUla heritage palette.
+     Three brand anchors, each given a scale so components are not forced to
+     invent tints: terracotta (the sandstone of Hegra), sand gold (low sun on
+     the escarpment), and a dark slate that reads as basalt rather than grey.
+     The anchors are the exact brand values; the rest are derived around them.
+     --------------------------------------------------------------------- */
+  --color-terracotta-50: #fbf1ed;
+  --color-terracotta-100: #f5ded4;
+  --color-terracotta-200: #eabca9;
+  --color-terracotta-300: #de9a7e;
+  --color-terracotta-400: #d38267;
+  --color-terracotta-500: #c86d51; /* brand primary */
+  --color-terracotta-600: #ab5941;
+  --color-terracotta-700: #8a4633;
+  --color-terracotta-800: #653325;
+  --color-terracotta-900: #422118;
+
+  --color-sandgold-50: #fdf8ee;
+  --color-sandgold-100: #f9edd4;
+  --color-sandgold-200: #f0d9a8;
+  --color-sandgold-300: #e5c47c;
+  --color-sandgold-400: #dcb468;
+  --color-sandgold-500: #d4a359; /* brand accent */
+  --color-sandgold-600: #b78843;
+  --color-sandgold-700: #916a33;
+  --color-sandgold-800: #6a4d25;
+  --color-sandgold-900: #453117;
+
+  --color-slate-deep-500: #4a525d;
+  --color-slate-deep-700: #2c333c;
+  --color-slate-deep-900: #1e232a; /* brand contrast */
+  --color-slate-deep-950: #14181d;
+
   --font-sans:
     -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display",
     "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -80,10 +114,68 @@ body {
   }
 }
 
+/* Live flash deal on a map pin. The ring pulses outward and fades; the pin
+   itself never moves, because a marker that jitters is hard to hit on a
+   phone. */
+.lc-deal-pulse::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 2px solid var(--color-sandgold-500);
+  animation: lc-deal-pulse 1.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  pointer-events: none;
+}
+
+@keyframes lc-deal-pulse {
+  0% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+  70% {
+    opacity: 0;
+    transform: scale(1.7);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.7);
+  }
+}
+
+/* Nabataean-inspired geometry for loading surfaces: a lattice of stepped
+   diagonals, the motif carved into the Hegra tomb façades. Kept at very low
+   contrast — this is texture under a skeleton, not decoration competing with
+   the content that replaces it. */
+.lc-nabataean {
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      var(--lc-motif) 0 1px,
+      transparent 1px 10px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      var(--lc-motif) 0 1px,
+      transparent 1px 10px
+    );
+  --lc-motif: rgb(200 109 81 / 0.10);
+}
+
+.dark .lc-nabataean {
+  --lc-motif: rgb(212 163 89 / 0.09);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .lc-shimmer,
   .lc-toast-in {
     animation: none;
+  }
+
+  /* The pulse is the only cue that a pin carries a live deal, so it degrades
+     to a static ring rather than vanishing entirely. */
+  .lc-deal-pulse::before {
+    animation: none;
+    opacity: 0.85;
   }
 }
 

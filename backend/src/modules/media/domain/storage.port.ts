@@ -16,6 +16,14 @@ export interface StoragePort {
   /** Best-effort removal; a missing object is not an error. */
   remove(key: string): Promise<void>;
 
+  /**
+   * Reads bytes back. Needed for objects that must NOT be reachable at a
+   * public path — a title deed or a tourism permit is served through an
+   * authenticated handler that streams it, never by handing out a URL the way
+   * urlFor does for listing photos. Null when the object is missing.
+   */
+  read(key: string): Promise<Buffer | null>;
+
   /** The public path for a key that is already stored. */
   urlFor(key: string): string;
 }

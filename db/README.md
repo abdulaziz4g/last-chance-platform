@@ -47,6 +47,9 @@ webhook inbox), `audit_log` (global immutable audit trail).
 | `0010_audit.sql` | `audit_log`, generic row-audit trigger, append-only enforcement |
 | `0011_indexes.sql` | Hot-path indexes (partial wherever the working set allows) |
 | `0012_security.sql` | `lastchance_app` role: no hard deletes, no history rewrites |
+| `0013_mock_provider.sql` | `MOCK` payment provider enum value (dev/test PSP) |
+| `0014_auth_roles.sql` | `users.platform_role` for JWT authorization |
+| `0015_fsm_money_currency_integrity.sql` | No-show + mid-stay FSM edges, exact split identity, currency composite FKs |
 
 ## The seven load-bearing design decisions
 
@@ -118,7 +121,7 @@ SET LOCAL app.request_id = '<trace-id>';
 
 ```powershell
 docker compose up -d          # PostGIS 16 + Redis 7 (from project root)
-.\db\run-migrations.ps1       # applies 0001..0012 in order, then runs smoke tests
+.\db\run-migrations.ps1       # applies every migration in order, then runs smoke tests
 ```
 
 The smoke test (`db/tests/smoke_test.sql`) proves every guarantee live — overlap

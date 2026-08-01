@@ -693,3 +693,54 @@ export interface FlashDeal {
 
 export const createDeal = (params: CreateDealParams): Promise<FlashDeal> =>
   apiPost('/deals', params);
+
+// ---------------------------------------------------------------------------
+// Listing moderation (Phase 7)
+//
+// The vocabulary and view types live in lib/moderation so client components
+// can import them without dragging this server-only module (and next/headers,
+// via lib/session) into the browser bundle. Re-exported here for callers that
+// already import from lib/api.
+// ---------------------------------------------------------------------------
+export {
+  MODERATION_REASON_CODES,
+  moderationDocumentHref,
+} from './moderation';
+export type {
+  ModerationStatus,
+  ModerationReasonCode,
+  ModerationQueueItem,
+  PropertyDocument,
+  PropertyUnitSummary,
+  ModerationEvent,
+  ModerationDetail,
+} from './moderation';
+
+import type { ModerationQueueItem, ModerationDetail } from './moderation';
+
+export const getModerationQueue = (
+  status = 'PENDING_APPROVAL',
+): Promise<{ items: ModerationQueueItem[] }> =>
+  api(
+    `/admin/moderation/queue?status=${encodeURIComponent(status)}&limit=200`,
+  );
+
+export const getModerationDetail = (
+  propertyId: string,
+): Promise<ModerationDetail> => api(`/admin/moderation/${propertyId}`);
+
+/**
+ * Fetches a regulatory document as a raw Response so a route handler can pipe
+ * it straight through. Returned unparsed because these are PDFs and images,
+ * and buffering them into JSON would be pointless work on a file that can be
+ * 20 MB.
+ */
+export async function fetchModerationDocument(
+  propertyId: string,
+  documentId: string,
+): Promise<Response> {
+  return fetch(
+    `${API_BASE}/admin/moderation/${propertyId}/documents/${documentId}/file`,
+    { cache: 'no-store', headers: await authHeaders() },
+  );
+}

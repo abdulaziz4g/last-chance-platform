@@ -117,13 +117,20 @@ UPDATE bookings SET status = 'CONFIRMED'
 WHERE id = '00000000-0000-0000-0000-00000000dd01';
 
 -- ---------------------------------------------------------------------------
--- TEST 4: illegal FSM transition rejected (CONFIRMED -> COMPLETED skips CHECKED_IN)
+-- TEST 4: illegal FSM transition rejected (PENDING_PAYMENT -> CHECKED_IN
+-- skips payment entirely).
+--
+-- This test used to assert CONFIRMED -> COMPLETED was illegal. Migration 0015
+-- legalises that edge, because gating COMPLETED solely on CHECKED_IN stranded
+-- every no-show booking's escrow (see TEST 13). Retargeted to a transition
+-- that stays illegal and preserves the original intent: you cannot skip a
+-- required step — here, paying.
 -- ---------------------------------------------------------------------------
 DO $$
 BEGIN
     BEGIN
-        UPDATE bookings SET status = 'COMPLETED'
-        WHERE id = '00000000-0000-0000-0000-00000000dd01';
+        UPDATE bookings SET status = 'CHECKED_IN'
+        WHERE id = '00000000-0000-0000-0000-00000000dd04';
         RAISE EXCEPTION 'TEST 4 FAILED: illegal FSM transition was accepted';
     EXCEPTION WHEN SQLSTATE 'LC400' THEN
         RAISE NOTICE 'PASS 4: illegal FSM transition rejected (LC400)';
@@ -290,6 +297,149 @@ BEGIN
         RAISE EXCEPTION 'TEST 12b FAILED: review of a non-completed stay was accepted';
     EXCEPTION WHEN SQLSTATE 'LC400' THEN
         RAISE NOTICE 'PASS 12b: review of non-completed stay rejected (LC400)';
+    END;
+END $$;
+
+-- ===========================================================================
+-- Migration 0015 — FSM completeness, exact money split, currency coherence
+-- ===========================================================================
+
+-- Booking B: a clean SAR stay on a free window, used by tests 13 and 16.
+INSERT INTO bookings (id, guest_id, unit_id, property_id, booking_type, status,
+                      check_in_utc, check_out_utc, turnaround_minutes, hold_expires_at,
+                      currency, base_amount_minor, total_amount_minor,
+                      commission_pct, commission_minor, host_payout_minor)
+VALUES ('00000000-0000-0000-0000-00000000dd07',
+        '00000000-0000-0000-0000-00000000aa01',
+        '00000000-0000-0000-0000-00000000cc01',
+        '00000000-0000-0000-0000-00000000bb01',
+        'HOURLY', 'PENDING_PAYMENT',
+        '2026-08-05 10:00:00+00', '2026-08-05 12:00:00+00', 30, now() + interval '10 minutes',
+        'SAR', 20000, 20000, 15.00, 3000, 17000);
+
+-- ---------------------------------------------------------------------------
+-- TEST 13 (F1): a no-show settles. CONFIRMED -> COMPLETED without ever
+-- passing through CHECKED_IN, so escrow can be released for a guest who
+-- never showed up. Before 0015 this raised LC400 and the money was stuck.
+-- ---------------------------------------------------------------------------
+UPDATE bookings SET status = 'CONFIRMED'
+WHERE id = '00000000-0000-0000-0000-00000000dd07';
+UPDATE bookings SET status = 'COMPLETED'
+WHERE id = '00000000-0000-0000-0000-00000000dd07';
+DO $$
+DECLARE
+    v_status booking_status;
+BEGIN
+    SELECT status INTO v_status FROM bookings
+    WHERE id = '00000000-0000-0000-0000-00000000dd07';
+    IF v_status <> 'COMPLETED' THEN
+        RAISE EXCEPTION 'TEST 13 FAILED: no-show did not reach COMPLETED (status %)', v_status;
+    END IF;
+    RAISE NOTICE 'PASS 13: no-show path CONFIRMED->COMPLETED accepted (escrow releasable)';
+END $$;
+
+-- ---------------------------------------------------------------------------
+-- TEST 14 (F1): a stay can be terminated mid-occupancy.
+-- CHECKED_IN -> CANCELLED, then on to REFUNDED via the pre-existing edge.
+-- ---------------------------------------------------------------------------
+INSERT INTO bookings (id, guest_id, unit_id, property_id, booking_type, status,
+                      check_in_utc, check_out_utc, turnaround_minutes, hold_expires_at,
+                      currency, base_amount_minor, total_amount_minor,
+                      commission_pct, commission_minor, host_payout_minor)
+VALUES ('00000000-0000-0000-0000-00000000dd08',
+        '00000000-0000-0000-0000-00000000aa01',
+        '00000000-0000-0000-0000-00000000cc01',
+        '00000000-0000-0000-0000-00000000bb01',
+        'HOURLY', 'PENDING_PAYMENT',
+        '2026-08-06 10:00:00+00', '2026-08-06 12:00:00+00', 30, now() + interval '10 minutes',
+        'SAR', 20000, 20000, 15.00, 3000, 17000);
+
+UPDATE bookings SET status = 'CONFIRMED'  WHERE id = '00000000-0000-0000-0000-00000000dd08';
+UPDATE bookings SET status = 'CHECKED_IN' WHERE id = '00000000-0000-0000-0000-00000000dd08';
+UPDATE bookings SET status = 'CANCELLED', cancellation_reason = 'Emergency maintenance'
+WHERE id = '00000000-0000-0000-0000-00000000dd08';
+UPDATE bookings SET status = 'REFUNDED'   WHERE id = '00000000-0000-0000-0000-00000000dd08';
+DO $$ BEGIN RAISE NOTICE 'PASS 14: mid-stay path CHECKED_IN->CANCELLED->REFUNDED accepted'; END $$;
+
+-- ---------------------------------------------------------------------------
+-- TEST 15 (F3): the split is an identity.
+--   15a — a discounted booking whose split is exact is accepted. These are
+--         real PricingService numbers: base 20000, 20% off -> net 16000,
+--         service 3% = 480, VAT 15% on (16000+480) = 2472,
+--         total = 20000 + 480 + 2472 - 4000 = 18952,
+--         commission 15% of net = 2400, payout = 16000 - 2400 = 13600.
+--   15b — a short-paid host is rejected. Under the old `<=` constraint this
+--         exact row committed, leaving 19800 minor units unaccounted for.
+-- ---------------------------------------------------------------------------
+INSERT INTO bookings (id, guest_id, unit_id, property_id, booking_type, status,
+                      check_in_utc, check_out_utc, turnaround_minutes,
+                      currency, base_amount_minor, service_fee_minor, taxes_minor,
+                      discount_minor, total_amount_minor,
+                      commission_pct, commission_minor, host_payout_minor)
+VALUES ('00000000-0000-0000-0000-00000000dd09',
+        '00000000-0000-0000-0000-00000000aa01',
+        '00000000-0000-0000-0000-00000000cc01',
+        '00000000-0000-0000-0000-00000000bb01',
+        'HOURLY', 'DRAFT',
+        '2026-08-07 10:00:00+00', '2026-08-07 12:00:00+00', 30,
+        'SAR', 20000, 480, 2472, 4000, 18952, 15.00, 2400, 13600);
+DO $$ BEGIN RAISE NOTICE 'PASS 15a: exact split on a discounted booking accepted'; END $$;
+
+DO $$
+BEGIN
+    BEGIN
+        INSERT INTO bookings (guest_id, unit_id, property_id, booking_type, status,
+                              check_in_utc, check_out_utc, turnaround_minutes,
+                              currency, base_amount_minor, total_amount_minor,
+                              commission_pct, commission_minor, host_payout_minor)
+        VALUES ('00000000-0000-0000-0000-00000000aa01',
+                '00000000-0000-0000-0000-00000000cc01',
+                '00000000-0000-0000-0000-00000000bb01',
+                'HOURLY', 'DRAFT',
+                '2026-08-08 10:00:00+00', '2026-08-08 12:00:00+00', 30,
+                'SAR', 20000, 20000, 15.00, 100, 100);
+        RAISE EXCEPTION 'TEST 15b FAILED: a booking that shorted the host was accepted';
+    EXCEPTION WHEN check_violation THEN
+        RAISE NOTICE 'PASS 15b: short-paid split rejected (check_violation)';
+    END;
+END $$;
+
+-- ---------------------------------------------------------------------------
+-- TEST 16 (F4): a payment must settle in its booking's currency.
+--   16a — matching currency accepted.
+--   16b — mismatched currency rejected by the composite FK. Before 0015 a
+--         1-yen payment could settle a 200-riyal booking.
+-- ---------------------------------------------------------------------------
+INSERT INTO payments (id, booking_id, provider, method, idempotency_key,
+                      amount_minor, currency)
+VALUES ('00000000-0000-0000-0000-0000000f0001',
+        '00000000-0000-0000-0000-00000000dd07',
+        'MOCK', 'MADA', 'smoke-idem-0015-a', 20000, 'SAR');
+DO $$ BEGIN RAISE NOTICE 'PASS 16a: payment in the booking currency accepted'; END $$;
+
+DO $$
+BEGIN
+    BEGIN
+        INSERT INTO payments (booking_id, provider, method, idempotency_key,
+                              amount_minor, currency)
+        VALUES ('00000000-0000-0000-0000-00000000dd07',
+                'MOCK', 'VISA', 'smoke-idem-0015-b', 1, 'JPY');
+        RAISE EXCEPTION 'TEST 16b FAILED: cross-currency payment was accepted';
+    EXCEPTION WHEN foreign_key_violation THEN
+        RAISE NOTICE 'PASS 16b: cross-currency payment rejected (23503)';
+    END;
+END $$;
+
+-- 16c — the same guarantee one level down: a refund cannot change currency
+-- mid-flight away from the payment it reverses.
+DO $$
+BEGIN
+    BEGIN
+        INSERT INTO refunds (payment_id, amount_minor, currency, reason)
+        VALUES ('00000000-0000-0000-0000-0000000f0001', 500, 'USD', 'partial goodwill');
+        RAISE EXCEPTION 'TEST 16c FAILED: cross-currency refund was accepted';
+    EXCEPTION WHEN foreign_key_violation THEN
+        RAISE NOTICE 'PASS 16c: cross-currency refund rejected (23503)';
     END;
 END $$;
 

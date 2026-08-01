@@ -54,10 +54,15 @@ jobs:
               -v ON_ERROR_STOP=1 -q -f "$f"
           done
 
+      # Both suites roll themselves back, so order between them does not
+      # matter and neither leaves residue for the integration smokes.
       - name: Database invariant smoke tests
         run: |
-          PGPASSWORD=lastchance_dev_only psql -h localhost -U lastchance -d lastchance \
-            -v ON_ERROR_STOP=1 -q -f db/tests/smoke_test.sql
+          for f in db/tests/*.sql; do
+            echo "== $f"
+            PGPASSWORD=lastchance_dev_only psql -h localhost -U lastchance -d lastchance \
+              -v ON_ERROR_STOP=1 -q -f "$f"
+          done
 
       - name: Install, type-check, unit-test
         working-directory: backend
@@ -66,15 +71,32 @@ jobs:
           npx tsc -p tsconfig.json --noEmit
           npx jest --silent
 
-      - name: Integration smokes (booking core, escrow cycle, security+realtime, search)
+      # SEQUENTIAL, deliberately. Every smoke boots a full AppModule, so each
+      # one's BullMQ worker competes with the others for jobs on the same Redis
+      # keys — run in parallel they steal each other's work and fail in ways
+      # that look like product bugs. They also share one database.
+      #
+      # Each script exits non-zero on its first failed assertion, and `set -e`
+      # is the shell default here, so the job stops at the first red smoke.
+      - name: Integration smokes
         working-directory: backend
         env:
           OPENSEARCH_URL: http://localhost:9200
         run: |
-          npx ts-node -r reflect-metadata scripts/integration-smoke.ts
-          npx ts-node -r reflect-metadata scripts/integration-smoke-payments.ts
-          npx ts-node -r reflect-metadata scripts/integration-smoke-phase6.ts
-          npx ts-node -r reflect-metadata scripts/integration-smoke-search.ts
+          for s in \
+            integration-smoke \
+            integration-smoke-payments \
+            integration-smoke-payout-discount \
+            integration-smoke-deals \
+            integration-smoke-search \
+            integration-smoke-phase6 \
+            integration-smoke-moderation \
+            integration-smoke-otp
+          do
+            echo "::group::$s"
+            npx ts-node -r reflect-metadata "scripts/$s.ts"
+            echo "::endgroup::"
+          done
 
   web:
     runs-on: ubuntu-latest
@@ -82,11 +104,15 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 24, cache: npm, cache-dependency-path: web/package-lock.json }
-      - name: Build console
+      - name: Type-check, test, build console
         working-directory: web
         run: |
           npm ci
           npx tsc --noEmit
+          # The server-action and date-decision tests were being built but
+          # never run: `npm run build` proves the app compiles, not that it
+          # behaves.
+          npm test
           npm run build
 
   mobile:

@@ -28,6 +28,57 @@ export class UnitUnavailableError extends DomainError {
   }
 }
 
+/** Attempted moderation state change the approval FSM does not allow. */
+export class InvalidModerationTransitionError extends DomainError {
+  readonly code = 'MODERATION_INVALID_TRANSITION';
+  readonly httpStatus = 409;
+
+  constructor(from: string, to: string) {
+    super(`Illegal moderation transition: ${from} -> ${to}`, { from, to });
+  }
+}
+
+/**
+ * A rejection was attempted without a reason code. Enforced in the database
+ * too (LC411): a host cannot fix or appeal a decision with no stated cause.
+ */
+export class RejectionReasonRequiredError extends DomainError {
+  readonly code = 'REJECTION_REASON_REQUIRED';
+  readonly httpStatus = 422;
+
+  constructor() {
+    super('Rejecting a listing requires a reason code');
+  }
+}
+
+/**
+ * Two moderators acted on the same listing at once and this one lost the CAS.
+ * Reported rather than swallowed: telling an admin their rejection landed when
+ * a colleague had already approved the listing is worse than an error.
+ */
+export class ModerationConflictError extends DomainError {
+  readonly code = 'MODERATION_CONFLICT';
+  readonly httpStatus = 409;
+
+  constructor(propertyId: string, expected: string, attempted: string) {
+    super('The listing changed state while this decision was being made', {
+      propertyId,
+      expected,
+      attempted,
+    });
+  }
+}
+
+/** No property with that id (or it is soft-deleted). */
+export class PropertyNotFoundError extends DomainError {
+  readonly code = 'PROPERTY_NOT_FOUND';
+  readonly httpStatus = 404;
+
+  constructor(propertyId: string) {
+    super(`Property ${propertyId} was not found`, { propertyId });
+  }
+}
+
 /** Attempted booking state change the FSM does not allow. */
 export class InvalidTransitionError extends DomainError {
   readonly code = 'INVALID_STATE_TRANSITION';

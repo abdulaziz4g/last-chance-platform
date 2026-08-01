@@ -61,9 +61,21 @@ export class PayoutService {
     const hostId = host.rows[0]?.host_id;
     if (!hostId) return null;
 
+    // THE SPLIT, and the one place a discount is easy to double-count.
+    //
+    // PricingService derives commission, service fee, VAT and host payout from
+    // the NET base (base - discount), so every figure on the booking row is
+    // already post-discount. Subtracting discountMinor again here would take it
+    // off twice: the credit legs then fall short of the escrow debit by exactly
+    // the discount, and for any real deal the revenue leg goes NEGATIVE, which
+    // the money_minor domain rejects outright. Either way the payout
+    // transaction rolls back and the stay can never settle.
+    //
+    // The legs below sum to the total by construction:
+    //   hostPayout + commission = base - discount            (bookings_split_exact, 0015)
+    //   + cleaning + serviceFee + taxes                      = totalAmountMinor
     const hostShareMinor = booking.hostPayoutMinor + booking.cleaningFeeMinor;
-    const revenueMinor =
-      booking.commissionMinor + booking.serviceFeeMinor - booking.discountMinor;
+    const revenueMinor = booking.commissionMinor + booking.serviceFeeMinor;
 
     const payout = await this.db.transaction(async (client) => {
       const created = await this.payouts.createIfAbsent(client, {

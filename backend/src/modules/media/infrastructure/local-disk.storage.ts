@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { mkdir, writeFile, rm } from 'node:fs/promises';
+import { mkdir, writeFile, rm, readFile } from 'node:fs/promises';
 import { dirname, join, resolve, sep } from 'node:path';
 import type { StoragePort } from '../domain/storage.port';
 
@@ -30,6 +30,14 @@ export class LocalDiskStorage implements StoragePort {
     await mkdir(dirname(full), { recursive: true });
     await writeFile(full, body);
     return this.urlFor(key);
+  }
+
+  async read(key: string): Promise<Buffer | null> {
+    try {
+      return await readFile(this.pathFor(key));
+    } catch {
+      return null;
+    }
   }
 
   async remove(key: string): Promise<void> {

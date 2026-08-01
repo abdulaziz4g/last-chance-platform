@@ -1,7 +1,9 @@
 import {
   DomainError,
+  InvalidModerationTransitionError,
   InvalidTransitionError,
   InvariantViolationError,
+  RejectionReasonRequiredError,
   UnitUnavailableError,
   ValidationFailedError,
 } from './domain-errors';
@@ -34,6 +36,18 @@ export function mapPgError(e: unknown): DomainError | unknown {
       const m = /transition: (\w+) -> (\w+)/.exec(e.message ?? '');
       return new InvalidTransitionError(m?.[1] ?? 'UNKNOWN', m?.[2] ?? 'UNKNOWN');
     }
+
+    case 'LC410': {
+      // Moderation FSM trigger; same "X -> Y" message shape as LC400.
+      const m = /transition: (\w+) -> (\w+)/.exec(e.message ?? '');
+      return new InvalidModerationTransitionError(
+        m?.[1] ?? 'UNKNOWN',
+        m?.[2] ?? 'UNKNOWN',
+      );
+    }
+
+    case 'LC411': // rejection with no reason code
+      return new RejectionReasonRequiredError();
 
     case 'LC401': // immutable booking fields
     case 'LC402': // invalid initial status

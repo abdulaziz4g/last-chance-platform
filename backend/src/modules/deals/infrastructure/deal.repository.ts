@@ -130,6 +130,9 @@ export class DealRepository {
          AND now() >= d.starts_at AND now() < d.ends_at
          AND d.quantity_claimed < d.quantity_total
          AND u.status = 'ACTIVE' AND p.status = 'ACTIVE'
+         -- Regulatory gate (0016): a flash deal must not advertise a listing
+         -- that is not approved to trade.
+         AND p.moderation_status = 'APPROVED'
        ORDER BY d.ends_at ASC
        LIMIT $1`,
       [limit],

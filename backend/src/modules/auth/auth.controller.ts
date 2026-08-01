@@ -6,6 +6,7 @@ import type { AuthenticatedRequest } from '../../common/auth/jwt-auth.guard';
 import { UnauthorizedError } from '../../common/errors/domain-errors';
 import { AuthResult, AuthService } from './auth.service';
 import type { AuthClaims } from './token.service';
+import type { OtpChallenge } from './otp.service';
 
 const registerSchema = z.object({
   email: z.string().email().max(254),
@@ -18,6 +19,18 @@ const registerSchema = z.object({
 const loginSchema = z.object({
   email: z.string().email().max(254),
   password: z.string().min(1).max(128),
+});
+
+// Loose here on purpose: OtpService.normalisePhone handles 05XXXXXXXX,
+// 5XXXXXXXX, 966… and +966… and rejects what is left. Duplicating that
+// validation in the schema would mean two places to keep in step.
+const requestOtpSchema = z.object({
+  phone: z.string().min(7).max(20),
+});
+
+const verifyOtpSchema = z.object({
+  phone: z.string().min(7).max(20),
+  code: z.string().regex(/^[0-9]{6}$/, 'Codes are six digits'),
 });
 
 @Controller('auth')
@@ -40,6 +53,33 @@ export class AuthController {
   login(@Body() body: unknown): Promise<AuthResult> {
     const cmd = parseWith(loginSchema, body);
     return this.auth.login(cmd.email, cmd.password);
+  }
+
+  /**
+   * Phone sign-in, step 1. The per-phone limits live in OtpService (cooldown
+   * and hourly cap); this per-IP limit is the outer wall, stopping one host
+   * from walking a range of numbers.
+   *
+   * Never returns the code, and answers identically whether or not the number
+   * is registered — otherwise it becomes an account-enumeration oracle.
+   */
+  @Public()
+  @RateLimit(15, 60)
+  @Post('phone/request-otp')
+  @HttpCode(200)
+  requestOtp(@Body() body: unknown): Promise<OtpChallenge> {
+    const cmd = parseWith(requestOtpSchema, body);
+    return this.auth.requestPhoneOtp(cmd.phone);
+  }
+
+  /** Phone sign-in, step 2. Attempt capping is enforced per code, not per IP. */
+  @Public()
+  @RateLimit(20, 60)
+  @Post('phone/verify-otp')
+  @HttpCode(200)
+  verifyOtp(@Body() body: unknown): Promise<AuthResult> {
+    const cmd = parseWith(verifyOtpSchema, body);
+    return this.auth.verifyPhoneOtp(cmd.phone, cmd.code);
   }
 
   /** Introspection for clients; requires a valid token even in dev. */

@@ -18,6 +18,7 @@ import {
 import { WsAdapter } from '@nestjs/platform-ws';
 import { AppModule } from '../src/app.module';
 import { DatabaseService } from '../src/infrastructure/database/database.service';
+import { approveListing } from './support/approve-listing';
 import { RequestContextService } from '../src/common/context/request-context.service';
 import { UnitIndexer } from '../src/modules/search/infrastructure/unit-indexer.service';
 import { SearchService } from '../src/modules/search/application/search.service';
@@ -111,6 +112,11 @@ async function main(): Promise<void> {
       await mkUnit(unitLux, propRiyadh, 'Lux Suite', 20000, 80000);
       await mkUnit(unitStd, propRiyadh, 'Standard Room', 6000, 24000);
       await mkUnit(unitSea, propJeddah, 'Sea View', 15000, 60000);
+
+      // Listings must clear the regulatory gate (0016) before the indexer will
+      // pick them up — an unapproved listing is deliberately unsearchable.
+      await approveListing(db, propRiyadh);
+      await approveListing(db, propJeddah);
 
       // Amenities live on properties in the schema; set per property.
       await db.query(
