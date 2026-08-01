@@ -44,6 +44,23 @@ function tomorrow(h: number): Date {
   return d;
 }
 
+/** Great-circle metres, for asserting how far a published point was moved. */
+function haversineMetres(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number {
+  const toRad = (deg: number): number => (deg * Math.PI) / 180;
+  const R = 6_371_000;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
 async function main(): Promise<void> {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
@@ -147,6 +164,41 @@ async function main(): Promise<void> {
       assert(
         geo.items.every((i) => i.distanceKm != null && i.distanceKm < 50),
         'each result carries a distance under the radius',
+      );
+
+      // ---- privacy: the public endpoint never publishes the true point -----
+      // The properties above were inserted at exactly (46.67, 24.71), so any
+      // result echoing that back is serving properties.location rather than
+      // the displaced approx_location. Asserted end to end, through the real
+      // index, because this is the one property no amount of unit testing can
+      // establish: it depends on what was actually indexed.
+      const exactLat = 24.71;
+      const exactLon = 46.67;
+      assert(
+        geo.items.every(
+          (i) =>
+            Math.abs(i.location.lat - exactLat) > 1e-6 ||
+            Math.abs(i.location.lon - exactLon) > 1e-6,
+        ),
+        'search results are displaced from the true property location',
+      );
+      assert(
+        geo.items.every((i) => i.privacyRadiusMetres === 500),
+        'each result declares its coordinate as approximate',
+      );
+      // Within the band the trigger projects, so "displaced" cannot be
+      // satisfied by a coordinate that is simply wrong.
+      assert(
+        geo.items.every((i) => {
+          const metres = haversineMetres(
+            exactLat,
+            exactLon,
+            i.location.lat,
+            i.location.lon,
+          );
+          return metres >= 240 && metres <= 510;
+        }),
+        'the displacement lands inside the 250-500 m band 0016 projects',
       );
 
       // ---- wide radius reaches Jeddah too ---------------------------------

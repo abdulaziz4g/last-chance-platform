@@ -45,30 +45,61 @@ export class UnitIndexer {
     }
 
     const aliasExists = await this.os.indices.existsAlias({ name: UNIT_ALIAS });
-    if (aliasExists.body) {
-      const aliasInfo = await this.os.cat.aliases({ name: UNIT_ALIAS, format: 'json' });
-      const currentTarget = (aliasInfo.body as { index: string }[])[0]?.index;
-      if (currentTarget && currentTarget !== UNIT_INDEX_CURRENT) {
-        await this.os.indices.updateAliases({
-          body: {
-            actions: [
-              { remove: { index: currentTarget, alias: UNIT_ALIAS } },
-              { add: { index: UNIT_INDEX_CURRENT, alias: UNIT_ALIAS } },
-            ],
-          },
-        });
-        log.info(
-          { alias: UNIT_ALIAS, from: currentTarget, to: UNIT_INDEX_CURRENT },
-          'Migrated search alias to new index version',
-        );
-      }
-    } else {
+    if (!aliasExists.body) {
       await this.os.indices.putAlias({
         index: UNIT_INDEX_CURRENT,
         name: UNIT_ALIAS,
       });
       log.info({ alias: UNIT_ALIAS, index: UNIT_INDEX_CURRENT }, 'Bound search alias');
+      return;
     }
+
+    // Deliberately NOT migrated here. ensureIndex runs at every boot, and a
+    // version bump makes the new index EMPTY — flipping to it on startup would
+    // take live search to zero results and hold it there until someone
+    // remembered to reindex. The alias moves in promoteCurrentIndex() once the
+    // new index actually has documents in it.
+    const target = await this.aliasTarget();
+    if (target && target !== UNIT_INDEX_CURRENT) {
+      log.warn(
+        { alias: UNIT_ALIAS, servingIndex: target, currentIndex: UNIT_INDEX_CURRENT },
+        'Search alias still serves the previous index version; run a reindex to promote',
+      );
+    }
+  }
+
+  private async aliasTarget(): Promise<string | undefined> {
+    const aliasInfo = await this.os.cat.aliases({ name: UNIT_ALIAS, format: 'json' });
+    return (aliasInfo.body as { index: string }[])[0]?.index;
+  }
+
+  /**
+   * Points the alias at the current index version, atomically.
+   *
+   * Called only after the new index has been filled, so a version bump is a
+   * blue/green swap rather than a window of empty results. Atomic because
+   * remove+add in one updateAliases call never leaves the alias unbound —
+   * two separate calls would, and a search landing in that gap gets an
+   * index_not_found rather than a stale-but-working result.
+   */
+  private async promoteCurrentIndex(): Promise<void> {
+    const target = await this.aliasTarget();
+    if (target === UNIT_INDEX_CURRENT) return;
+
+    await this.os.indices.updateAliases({
+      body: {
+        actions: [
+          ...(target
+            ? [{ remove: { index: target, alias: UNIT_ALIAS } }]
+            : []),
+          { add: { index: UNIT_INDEX_CURRENT, alias: UNIT_ALIAS } },
+        ],
+      },
+    });
+    log.info(
+      { alias: UNIT_ALIAS, from: target, to: UNIT_INDEX_CURRENT },
+      'Migrated search alias to new index version',
+    );
   }
 
   /**
@@ -110,24 +141,41 @@ export class UnitIndexer {
     );
   }
 
-  /** Full rebuild via bulk indexing. Returns the number of docs indexed. */
+  /**
+   * Full rebuild via bulk indexing, then promotion. Returns the docs indexed.
+   *
+   * Writes to UNIT_INDEX_CURRENT by name rather than through the alias: after
+   * a version bump the alias still points at the OLD index, so bulk-indexing
+   * through it would refill the index being replaced and leave the new one
+   * permanently empty.
+   */
   async reindexAll(): Promise<number> {
     await this.ensureIndex();
     const docs = await this.loadDocuments();
-    if (docs.length === 0) return 0;
 
-    const body = docs.flatMap((doc) => [
-      { index: { _index: UNIT_ALIAS, _id: doc.unitId } },
-      doc,
-    ]);
-    const res = await this.os.bulk({ body, refresh: true });
-    if (res.body.errors) {
-      const firstError = res.body.items.find(
-        (i: Record<string, { error?: unknown }>) =>
-          Object.values(i)[0]?.error,
-      );
-      log.error({ firstError }, 'Bulk index reported errors');
+    if (docs.length > 0) {
+      const body = docs.flatMap((doc) => [
+        { index: { _index: UNIT_INDEX_CURRENT, _id: doc.unitId } },
+        doc,
+      ]);
+      const res = await this.os.bulk({ body, refresh: true });
+      if (res.body.errors) {
+        const firstError = res.body.items.find(
+          (i: Record<string, { error?: unknown }>) =>
+            Object.values(i)[0]?.error,
+        );
+        log.error({ firstError }, 'Bulk index reported errors');
+        // Promoting a half-built index would serve a partial catalogue as if
+        // it were the whole one. The previous version keeps serving instead.
+        throw new Error('Bulk index reported errors; alias not promoted');
+      }
     }
+
+    // Promoted even at zero documents: an empty rebuild is still an
+    // authoritative statement about what is bookable, and leaving the alias on
+    // the old index would keep serving listings that are no longer indexable.
+    await this.promoteCurrentIndex();
+
     log.info({ count: docs.length }, 'Reindexed units');
     return docs.length;
   }
@@ -187,8 +235,16 @@ export class UnitIndexer {
               u.name AS unit_name, p.name AS property_name,
               p.property_type::text, u.unit_type::text,
               p.city, p.country_code,
-              ST_Y(p.location::geometry) AS lat,
-              ST_X(p.location::geometry) AS lon,
+              -- APPROXIMATE, never p.location. This index serves a @Public()
+              -- endpoint, and the true point is a post-booking reveal only
+              -- (0016). Withholding it from the RESPONSE alone would not be
+              -- enough: geo_distance filtering and _geo_distance sorting run
+              -- over whatever is indexed, so exact coordinates here are an
+              -- oracle — vary lat/lon and radiusKm, watch a unit appear and
+              -- disappear, and the true position falls out by bisection. The
+              -- displaced point has to be what the index holds.
+              ST_Y(p.approx_location::geometry) AS lat,
+              ST_X(p.approx_location::geometry) AS lon,
               u.supports_hourly, u.supports_nightly, u.max_guests, u.currency,
               u.base_hourly_rate_minor AS hourly_rate_minor,
               u.base_nightly_rate_minor AS nightly_rate_minor,

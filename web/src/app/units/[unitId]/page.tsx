@@ -84,6 +84,11 @@ function buildListingJsonLd(
       addressLocality: property.city,
       addressCountry: property.countryCode,
     },
+    // Approximate by construction — the API no longer returns the true point.
+    // Worth stating because this block is structured data: a crawler stores
+    // whatever is published here, so an "accuracy improvement" that reached
+    // for an exact coordinate would hand every listing's real position to
+    // search engines permanently.
     geo: {
       '@type': 'GeoCoordinates',
       latitude: property.lat,

@@ -434,10 +434,13 @@ export interface UnitDetail {
     propertyType: string;
     city: string;
     countryCode: string;
-    addressLine1: string | null;
     timezone: string;
+    // Approximate: displaced 250-500 m from the true point, which is a
+    // post-booking reveal and never reaches this public payload. addressLine1
+    // used to sit here and was removed for the same reason.
     lat: number;
     lon: number;
+    privacyRadiusMetres: number;
     amenities: string[];
     policies: Record<string, unknown>;
     defaultCheckInTime: string;

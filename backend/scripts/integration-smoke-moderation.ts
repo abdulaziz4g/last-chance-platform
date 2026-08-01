@@ -346,6 +346,48 @@ async function main(): Promise<void> {
     assert(pin.privacyRadiusMetres === 500, 'privacy radius is published to the client');
   }
 
+  // ---- 8b. the detail route must not undo the map's displacement ----------
+  // The map pin is deliberately vague, and this is the route one tap behind
+  // it. Returning the true point (or a street line) here would have made the
+  // displacement decorative: look at the blurred pin, then read the exact
+  // position off the page it links to.
+  const approvedDetail = await http<{
+    property: {
+      lat: number;
+      lon: number;
+      privacyRadiusMetres: number;
+      addressLine1?: string | null;
+    };
+  }>('GET', `/units/${unitId}`);
+  assert(approvedDetail.status === 200, 'approved listing is publicly addressable');
+
+  const detailMetres = await db.query<{ metres: string }>(
+    `SELECT ST_Distance(
+              ST_SetSRID(ST_MakePoint($1,$2),4326)::geography,
+              ST_SetSRID(ST_MakePoint($3,$4),4326)::geography)::text AS metres`,
+    [TRUE_LNG, TRUE_LAT, approvedDetail.json.property.lon, approvedDetail.json.property.lat],
+  );
+  const detailOffset = Number(detailMetres.rows[0]?.metres ?? 0);
+  assert(
+    detailOffset >= 250 && detailOffset <= 500,
+    `detail route is displaced ${Math.round(detailOffset)} m from the true location`,
+  );
+  assert(
+    approvedDetail.json.property.lat !== TRUE_LAT &&
+      approvedDetail.json.property.lon !== TRUE_LNG,
+    'detail route never carries the exact coordinates',
+  );
+  assert(
+    approvedDetail.json.property.privacyRadiusMetres === 500,
+    'detail route declares its coordinate as approximate',
+  );
+  // Absent as a KEY, not merely null: `in` catches a field that gets
+  // reintroduced holding a value, which a null-check would pass right over.
+  assert(
+    !('addressLine1' in approvedDetail.json.property),
+    'detail route does not carry a street address',
+  );
+
   // ---- 9. a live deal changes the price ON the pin ------------------------
   await db.query(
     `INSERT INTO flash_deals (unit_id, created_by, title, discount_pct, status,

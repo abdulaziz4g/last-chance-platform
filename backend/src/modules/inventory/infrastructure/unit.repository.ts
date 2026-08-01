@@ -6,6 +6,16 @@ import type {
   UnitReview,
 } from '../domain/types';
 
+/**
+ * Ceiling on how far a published coordinate sits from the true one.
+ *
+ * fn_property_set_approx_location (0016) projects 250–500 m, so this is the
+ * bound and not the actual displacement — publishing the real per-property
+ * offset would hand back exactly what the displacement withholds. Matches what
+ * map search and unit search report.
+ */
+const PUBLIC_PRIVACY_RADIUS_METRES = 500;
+
 interface DetailRow {
   unit_id: string;
   unit_name: string;
@@ -33,7 +43,6 @@ interface DetailRow {
   property_type: string;
   city: string;
   country_code: string;
-  address_line1: string | null;
   timezone: string;
   lat: number;
   lon: number;
@@ -98,9 +107,15 @@ export class UnitRepository {
               p.name                        AS property_name,
               p.slug, p.description,
               p.property_type::text         AS property_type,
-              p.city, p.country_code, p.address_line1, p.timezone,
-              ST_Y(p.location::geometry)    AS lat,
-              ST_X(p.location::geometry)    AS lon,
+              p.city, p.country_code, p.timezone,
+              -- APPROXIMATE, never p.location, and address_line1 is not
+              -- selected at all. This is a @Public() detail route with no
+              -- booking check: a guest arriving from a deliberately displaced
+              -- map pin must not be handed the true point one tap later.
+              -- Not selected rather than selected-and-dropped, so the exact
+              -- coordinate never enters the process at all.
+              ST_Y(p.approx_location::geometry) AS lat,
+              ST_X(p.approx_location::geometry) AS lon,
               p.amenities, p.policies,
               p.default_check_in_time::text  AS default_check_in_time,
               p.default_check_out_time::text AS default_check_out_time,
@@ -164,10 +179,10 @@ export class UnitRepository {
         propertyType: r.property_type,
         city: r.city,
         countryCode: r.country_code,
-        addressLine1: r.address_line1,
         timezone: r.timezone,
         lat: r.lat,
         lon: r.lon,
+        privacyRadiusMetres: PUBLIC_PRIVACY_RADIUS_METRES,
         amenities: Array.isArray(r.amenities) ? (r.amenities as string[]) : [],
         policies:
           r.policies && typeof r.policies === 'object'
