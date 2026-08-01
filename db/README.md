@@ -121,8 +121,40 @@ SET LOCAL app.request_id = '<trace-id>';
 
 ```powershell
 docker compose up -d          # PostGIS 16 + Redis 7 (from project root)
-.\db\run-migrations.ps1       # applies every migration in order, then runs smoke tests
+.\db\run-migrations.ps1       # applies PENDING migrations, then runs the SQL suites
 ```
+
+POSIX equivalent, and what CI runs:
+
+```bash
+./db/run-migrations.sh
+```
+
+### The migration ledger
+
+`schema_migrations` records every applied file with a checksum, so a re-run
+applies only what is pending instead of replaying everything. Before it
+existed, a second run died at `0002` — `CREATE TYPE` has no `IF NOT EXISTS` —
+so the script only ever worked against a virgin database.
+
+- **Checksums are normalised for line endings** before hashing. This repo
+  checks out LF on Linux and CRLF on Windows; an unnormalised hash would
+  differ per platform for an identical file and accuse every Windows
+  developer of tampering.
+- **Editing an applied migration is refused.** It would leave every database
+  that already ran the old version permanently divergent. Add a new migration.
+- **A database that predates the ledger must be adopted once**, and the
+  runner refuses to guess:
+
+  ```bash
+  ./db/run-migrations.sh --baseline      # or: .\db\run-migrations.ps1 -Baseline
+  ```
+
+  That records every migration as applied without executing any of them —
+  correct only when the schema is already up to date. Never baseline a
+  partially-migrated database: the skipped files would never run.
+  Baselined rows are flagged (`baselined = true`) and carry no duration, so
+  the ledger distinguishes "adopted" from "actually executed here".
 
 The smoke test (`db/tests/smoke_test.sql`) proves every guarantee live — overlap
 rejection, buffer enforcement, boundary legality, FSM whitelist, cross-calendar

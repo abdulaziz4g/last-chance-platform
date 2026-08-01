@@ -46,23 +46,19 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 24, cache: npm, cache-dependency-path: backend/package-lock.json }
 
-      - name: Apply database migrations
-        run: |
-          for f in db/migrations/*.sql; do
-            echo "== $f"
-            PGPASSWORD=lastchance_dev_only psql -h localhost -U lastchance -d lastchance \
-              -v ON_ERROR_STOP=1 -q -f "$f"
-          done
-
-      # Both suites roll themselves back, so order between them does not
-      # matter and neither leaves residue for the integration smokes.
-      - name: Database invariant smoke tests
-        run: |
-          for f in db/tests/*.sql; do
-            echo "== $f"
-            PGPASSWORD=lastchance_dev_only psql -h localhost -U lastchance -d lastchance \
-              -v ON_ERROR_STOP=1 -q -f "$f"
-          done
+      # The same runner developers use, rather than a second copy of the
+      # ordering and skip logic that would drift from it. It applies the
+      # ledger, then any pending migration, then every suite in db/tests
+      # (which roll themselves back, so they leave no residue for the smokes).
+      #
+      # CI's database is always fresh, so there is nothing to baseline and a
+      # re-run would legitimately be a no-op.
+      - name: Apply migrations and run the SQL suites
+        env:
+          LC_DB_DIRECT: "1"
+          PGHOST: localhost
+          PGPASSWORD: lastchance_dev_only
+        run: ./db/run-migrations.sh
 
       - name: Install, type-check, unit-test
         working-directory: backend
