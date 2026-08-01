@@ -54,9 +54,24 @@ checksum_of() { tr -d '\r' < "$1" | sha256sum | cut -d' ' -f1; }
 psql_run < "$ROOT/db/schema_migrations.sql"
 
 applied_count=$(psql_run -tA -c 'SELECT count(*) FROM schema_migrations')
+
+# Only tables this project created count as "pre-existing schema". Extension-
+# owned objects must be excluded: the PostGIS image ships spatial_ref_sys plus
+# the geometry_columns/geography_columns views in public, so a *virgin*
+# database is never empty. Counting those told every new developer to
+# --baseline an empty schema, which records all migrations as applied without
+# creating a single table. Hence relkind r/p (real tables, not views) and
+# pg_depend deptype 'e' (owned by an extension) filtered out.
 other_tables=$(psql_run -tA -c "
-  SELECT count(*) FROM information_schema.tables
-   WHERE table_schema = 'public' AND table_name <> 'schema_migrations'")
+  SELECT count(*) FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+   WHERE n.nspname = 'public'
+     AND c.relkind IN ('r', 'p')
+     AND c.relname <> 'schema_migrations'
+     AND NOT EXISTS (SELECT 1 FROM pg_depend d
+                      WHERE d.classid = 'pg_class'::regclass
+                        AND d.objid = c.oid
+                        AND d.deptype = 'e')")
 
 if [ "$applied_count" -eq 0 ] && [ "$other_tables" -gt 0 ] && [ "$BASELINE" -eq 0 ]; then
   cat >&2 <<'MSG'

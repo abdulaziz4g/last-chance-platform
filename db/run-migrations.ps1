@@ -50,8 +50,26 @@ function Get-NormalizedChecksum {
 Invoke-Psql -InputFile (Join-Path $root "db\schema_migrations.sql")
 
 $appliedCount = [int](Invoke-Psql -PsqlArgs @("-tA", "-c", "SELECT count(*) FROM schema_migrations")).Trim()
-$otherTables = [int](Invoke-Psql -PsqlArgs @("-tA", "-c",
-    "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name <> 'schema_migrations'")).Trim()
+
+# Only tables this project created count as "pre-existing schema". Extension-
+# owned objects must be excluded: the PostGIS image ships spatial_ref_sys plus
+# the geometry_columns/geography_columns views in public, so a *virgin*
+# database is never empty. Counting those told every new developer to
+# -Baseline an empty schema, which records all migrations as applied without
+# creating a single table. Hence relkind r/p (real tables, not views) and
+# pg_depend deptype 'e' (owned by an extension) filtered out.
+$otherTablesSql = @'
+SELECT count(*) FROM pg_class c
+  JOIN pg_namespace n ON n.oid = c.relnamespace
+ WHERE n.nspname = 'public'
+   AND c.relkind IN ('r', 'p')
+   AND c.relname <> 'schema_migrations'
+   AND NOT EXISTS (SELECT 1 FROM pg_depend d
+                    WHERE d.classid = 'pg_class'::regclass
+                      AND d.objid = c.oid
+                      AND d.deptype = 'e')
+'@
+$otherTables = [int](Invoke-Psql -PsqlArgs @("-tA", "-c", $otherTablesSql)).Trim()
 
 if ($appliedCount -eq 0 -and $otherTables -gt 0 -and -not $Baseline) {
     throw @"
