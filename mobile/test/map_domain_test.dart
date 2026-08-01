@@ -4,6 +4,7 @@ import 'package:lastchance_mobile/features/map/domain/map_pin.dart';
 
 Map<String, dynamic> pinJson({
   String unitId = '11111111-1111-1111-1111-111111111111',
+  String unitName = 'Stargazer Tent',
   double lng = 37.9231,
   double lat = 26.6089,
   int basePrice = 118000,
@@ -13,7 +14,7 @@ Map<String, dynamic> pinJson({
     <String, dynamic>{
       'unitId': unitId,
       'propertyId': '22222222-2222-2222-2222-222222222222',
-      'unitName': 'Stargazer Tent',
+      'unitName': unitName,
       'propertyName': 'Hegra Desert Camp',
       'propertySlug': 'hegra-desert-camp',
       'propertyType': 'CAMP',

@@ -40,7 +40,14 @@ class PinDetailSheet extends StatelessWidget {
     return Semantics(
       container: true,
       label: '${pin.propertyName}, ${pin.unitName}',
-      child: Material(
+      // A reusable sheet cannot assume its parent bounds it. Placed in a Stack
+      // or an Align it can be handed an unbounded width, and a Material button
+      // asked to be infinitely wide is an assertion rather than a wide button.
+      // Clamping here makes the widget safe wherever it is dropped, instead of
+      // making every caller remember.
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width),
+        child: Material(
         // From the theme, never a hardcoded Colors.white: this app ships a
         // dark theme, so a white sheet would be an unreadable slab of glare.
         color: theme.colorScheme.surfaceContainer,
@@ -118,36 +125,56 @@ class PinDetailSheet extends StatelessWidget {
                     // a crossed-out figure identical to the one beside it
                     // reads as a rendering bug, not a saving.
                     if (pin.showsDiscount) ...<Widget>[
-                      Text(
-                        formatMinorCompact(
-                          pin.basePriceMinor,
-                          pin.currency,
-                          locale: locale,
-                        ),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          decoration: TextDecoration.lineThrough,
-                          color: theme.disabledColor,
+                      Flexible(
+                        child: Text(
+                          formatMinorCompact(
+                            pin.basePriceMinor,
+                            pin.currency,
+                            locale: locale,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            decoration: TextDecoration.lineThrough,
+                            color: theme.disabledColor,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 8),
                     ],
-                    Text(
-                      formatMinorCompact(
-                        pin.priceMinor,
-                        pin.currency,
-                        locale: locale,
-                      ),
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
+                    Flexible(
+                      child: Text(
+                        formatMinorCompact(
+                          pin.priceMinor,
+                          pin.currency,
+                          locale: locale,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 4),
-                    Text(perUnit, style: theme.textTheme.bodySmall),
-                    if (pin.ratingAvg != null) ...<Widget>[
-                      const Spacer(),
-                      Text(
-                        '★ ${pin.ratingAvg!.toStringAsFixed(2)} (${pin.ratingCount})',
+                    Flexible(
+                      child: Text(
+                        perUnit,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodySmall,
+                      ),
+                    ),
+                    if (pin.ratingAvg != null) ...<Widget>[
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          '★ ${pin.ratingAvg!.toStringAsFixed(2)} (${pin.ratingCount})',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.end,
+                          style: theme.textTheme.bodySmall,
+                        ),
                       ),
                     ],
                   ],
@@ -176,30 +203,36 @@ class PinDetailSheet extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
 
-                Row(
-                  children: <Widget>[
-                    if (onDismiss != null)
-                      TextButton(
-                        onPressed: onDismiss,
-                        child: Text(MaterialLocalizations.of(context)
-                            .closeButtonLabel),
-                      ),
-                    const Spacer(),
-                    FilledButton.icon(
-                      onPressed: onOpen,
-                      // Icons.arrow_forward carries matchTextDirection on its
-                      // IconData, so it mirrors in Arabic on its own. That is
-                      // the point of preferring a directional icon over an
-                      // `isRtl ? chevron_left : chevron_right` conditional —
-                      // the next icon someone adds gets it right by default.
-                      icon: const Icon(Icons.arrow_forward),
-                      label: Text(strings.viewDetails),
-                    ),
-                  ],
+                // FULL WIDTH, because the app theme says so: buildDarkTheme
+                // sets FilledButton minimumSize to Size.fromHeight(52), which
+                // is Size(double.infinity, 52) — a primary button in this
+                // design language always spans its container. Putting one in a
+                // min-size Row asks it to be INFINITELY wide, which is an
+                // assertion rather than a wide button. Following the theme is
+                // both correct and what the rest of the app already looks like.
+                FilledButton.icon(
+                  onPressed: onOpen,
+                  // Icons.arrow_forward carries matchTextDirection on its
+                  // IconData, so it mirrors in Arabic on its own — the point
+                  // of preferring a directional icon over an
+                  //  conditional.
+                  icon: const Icon(Icons.arrow_forward),
+                  label: Text(strings.viewDetails),
                 ),
+                if (onDismiss != null)
+                  Align(
+                    alignment: AlignmentDirectional.center,
+                    child: TextButton(
+                      onPressed: onDismiss,
+                      child: Text(
+                        MaterialLocalizations.of(context).closeButtonLabel,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
+        ),
         ),
       ),
     );

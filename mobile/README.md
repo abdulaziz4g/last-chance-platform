@@ -87,3 +87,34 @@ discount == the deal's % of base.
 Next iterations: discovery/search screens (OpenSearch), WS push replacing the
 deal-feed poll (AvailabilityFeed contract already typed), PSP SDK handoff
 replacing the dev confirm shortcut, JWT auth replacing dev headers.
+
+## Map tiles (Mapbox)
+
+The map runs without a token: `NoTokenTileLayer` draws a pannable AlUla field
+under real pins, so pricing, clustering, selection and the privacy circle are
+all usable and testable. Supplying a token swaps in the real tiles with no code
+change.
+
+```bash
+flutter run --dart-define=MAPBOX_ACCESS_TOKEN=pk.xxxxx
+# optional, to use a Mapbox Studio style instead of the code-based AlUla theme
+flutter run --dart-define=MAPBOX_STYLE_URI=mapbox://styles/<user>/<style-id>
+```
+
+### Native setup required before a device build
+
+`mapbox_maps_flutter` downloads the native SDK from Mapbox's private Maven and
+CocoaPods repositories, which need a **secret** token (`sk.…`) distinct from the
+public `pk.…` above. Without it `flutter build apk` / `ios` fails with a 401
+from api.mapbox.com — the Dart side compiles and the test suite passes either
+way, which is why this is documented rather than discovered.
+
+- Android: put `MAPBOX_DOWNLOADS_TOKEN=sk.…` in `~/.gradle/gradle.properties`.
+- iOS: put the same token in `~/.netrc` for `machine api.mapbox.com`.
+
+Create both tokens at https://account.mapbox.com/access-tokens/ — the secret one
+needs the `DOWNLOADS:READ` scope.
+
+**Unverified on device.** Everything in `test/` runs on the host VM and compiles
+Dart only, so the tile layer's behaviour against real tiles — style overrides,
+gesture settings, camera events — has not been exercised on hardware here.

@@ -22,6 +22,7 @@ dependencies:
   # Arabic locale asserts in debug, and text direction never flips.
   flutter_localizations:
     sdk: flutter
+  mapbox_maps_flutter: ^2.27.0
 
 dev_dependencies:
   flutter_test:
