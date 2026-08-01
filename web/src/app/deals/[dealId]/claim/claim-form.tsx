@@ -8,7 +8,7 @@ import { RateLimitNotice, useRetryAfter } from '@/components/rate-limit';
 import { guestTimeZone, localInputAtHour, localInputToIso } from '@/lib/local-time';
 
 const inputCls =
-  'mt-1 block w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm outline-none transition-colors focus:border-brass-400 dark:border-white/[0.08] dark:bg-ink-900 dark:focus:border-brass-500';
+  'mt-1 block w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm outline-none transition-colors focus:border-coral-400 dark:border-white/[0.08] dark:bg-ink-900 dark:focus:border-coral-500';
 
 /**
  * The interactive half of the claim page — see `book-form.tsx` for why this is
@@ -40,13 +40,13 @@ export function ClaimDealForm() {
     <form action={formAction} className="space-y-5">
       <input type="hidden" name="dealId" value={dealId} />
 
-      <fieldset className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-white/[0.06] dark:bg-ink-900">
-        <legend className="px-2 text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+      <fieldset className="space-y-4 rounded-card border border-zinc-200 bg-white p-5 dark:border-white/[0.06] dark:bg-ink-900">
+        <legend className="px-2 text-xs font-medium uppercase tracking-wider text-taupe-500 dark:text-zinc-400">
           Stay details
         </legend>
 
         <label className="block">
-          <span className="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+          <span className="text-xs font-medium uppercase tracking-wider text-taupe-500 dark:text-zinc-400">
             Stay type
           </span>
           <select name="bookingType" defaultValue="HOURLY" className={inputCls}>
@@ -58,7 +58,7 @@ export function ClaimDealForm() {
         {/* Unnamed on purpose — see the hidden instants below. */}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <label className="block">
-            <span className="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+            <span className="text-xs font-medium uppercase tracking-wider text-taupe-500 dark:text-zinc-400">
               Check-in
             </span>
             <input
@@ -70,7 +70,7 @@ export function ClaimDealForm() {
             />
           </label>
           <label className="block">
-            <span className="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+            <span className="text-xs font-medium uppercase tracking-wider text-taupe-500 dark:text-zinc-400">
               Check-out
             </span>
             <input
@@ -91,7 +91,7 @@ export function ClaimDealForm() {
         )}
 
         <label className="block">
-          <span className="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+          <span className="text-xs font-medium uppercase tracking-wider text-taupe-500 dark:text-zinc-400">
             Guests
           </span>
           <input
@@ -111,7 +111,7 @@ export function ClaimDealForm() {
       <button
         type="submit"
         disabled={pending || throttled}
-        className="w-full rounded-lg bg-brass-500 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-brass-600 disabled:opacity-50 dark:bg-brass-600 dark:hover:bg-brass-500"
+        className="w-full rounded-lg bg-coral-500 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-coral-600 disabled:opacity-50 dark:bg-coral-600 dark:hover:bg-coral-500"
       >
         {pending
           ? 'Claiming deal...'

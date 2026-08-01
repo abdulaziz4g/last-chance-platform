@@ -151,7 +151,7 @@ export function DecisionPanel({
               {blockers.join(', ').toLowerCase().replace(/_/g, ' ')}
             </p>
           ) : (
-            <p className="text-xs text-zinc-500">
+            <p className="text-xs text-taupe-500">
               Approving publishes this listing to search and the map
               immediately.
             </p>
@@ -180,7 +180,7 @@ export function DecisionPanel({
         >
           <input type="hidden" name="propertyId" value={propertyId} />
           <h3 className="text-sm font-semibold">Suspend</h3>
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-taupe-500">
             Takes a live listing off the map at once and stops it accepting
             bookings. Existing confirmed stays are not cancelled.
           </p>
@@ -195,7 +195,7 @@ export function DecisionPanel({
                 <button
                   type="button"
                   onClick={() => setConfirmingSuspend(false)}
-                  className="text-sm text-zinc-500 underline underline-offset-4"
+                  className="text-sm text-taupe-500 underline underline-offset-4"
                 >
                   Cancel
                 </button>
@@ -232,7 +232,7 @@ export function DecisionPanel({
       ) : null}
 
       {allowedNext.length === 0 ? (
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-taupe-500">
           No further action is available from {status.toLowerCase().replace('_', ' ')}.
         </p>
       ) : null}

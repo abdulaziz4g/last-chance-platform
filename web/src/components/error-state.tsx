@@ -35,7 +35,7 @@ export function ErrorState({
       </span>
 
       <h1 className="mt-5 text-lg font-semibold">{title}</h1>
-      <p className="mt-2 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+      <p className="mt-2 text-sm leading-relaxed text-taupe-500 dark:text-zinc-400">
         {description}
       </p>
 
@@ -44,14 +44,14 @@ export function ErrorState({
           <button
             type="button"
             onClick={reset}
-            className="rounded-lg bg-brass-500 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brass-600 dark:bg-brass-600 dark:hover:bg-brass-500"
+            className="rounded-lg bg-coral-500 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-coral-600 dark:bg-coral-600 dark:hover:bg-coral-500"
           >
             Try again
           </button>
         )}
         <Link
           href={homeHref}
-          className="rounded-lg border border-zinc-200 px-5 py-2.5 text-sm font-medium transition-colors hover:border-brass-400 dark:border-white/[0.08] dark:hover:border-brass-500"
+          className="rounded-lg border border-zinc-200 px-5 py-2.5 text-sm font-medium transition-colors hover:border-coral-400 dark:border-white/[0.08] dark:hover:border-coral-500"
         >
           {homeLabel}
         </Link>

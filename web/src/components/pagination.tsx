@@ -80,7 +80,7 @@ export function Pagination({
       aria-label={label ? `${label} pagination` : 'Pagination'}
       className="mt-8 flex flex-wrap items-center justify-between gap-4"
     >
-      <p className="text-xs text-zinc-500 dark:text-zinc-400">
+      <p className="text-xs text-taupe-500 dark:text-zinc-400">
         <span className="tnum">
           {first}–{upTo}
         </span>{' '}
@@ -92,7 +92,7 @@ export function Pagination({
           <Link
             href={pageHref(basePath, params, current - 1, paramName)}
             rel="prev"
-            className={`${BASE} border border-zinc-200 hover:border-brass-400 dark:border-white/[0.08] dark:hover:border-brass-500`}
+            className={`${BASE} border border-zinc-200 hover:border-coral-400 dark:border-white/[0.08] dark:hover:border-coral-500`}
           >
             ← Prev
           </Link>
@@ -111,7 +111,7 @@ export function Pagination({
             <span
               key={p}
               aria-current="page"
-              className={`${BASE} bg-brass-500 text-white dark:bg-brass-600`}
+              className={`${BASE} bg-coral-500 text-white dark:bg-coral-600`}
             >
               {p}
             </span>
@@ -119,7 +119,7 @@ export function Pagination({
             <Link
               key={p}
               href={pageHref(basePath, params, p, paramName)}
-              className={`${BASE} border border-zinc-200 hover:border-brass-400 dark:border-white/[0.08] dark:hover:border-brass-500`}
+              className={`${BASE} border border-zinc-200 hover:border-coral-400 dark:border-white/[0.08] dark:hover:border-coral-500`}
             >
               {p}
             </Link>
@@ -130,7 +130,7 @@ export function Pagination({
           <Link
             href={pageHref(basePath, params, current + 1, paramName)}
             rel="next"
-            className={`${BASE} border border-zinc-200 hover:border-brass-400 dark:border-white/[0.08] dark:hover:border-brass-500`}
+            className={`${BASE} border border-zinc-200 hover:border-coral-400 dark:border-white/[0.08] dark:hover:border-coral-500`}
           >
             Next →
           </Link>

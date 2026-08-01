@@ -72,13 +72,13 @@ export default async function DiscoverPage({
       <GuestHeader area="Discover">
         <Link
           href="/map"
-          className="text-sm whitespace-nowrap text-zinc-500 transition-colors hover:text-terracotta-500 dark:text-zinc-400 dark:hover:text-terracotta-400"
+          className="text-sm whitespace-nowrap text-taupe-500 transition-colors hover:text-coral-500 dark:text-zinc-400 dark:hover:text-coral-400"
         >
           Map
         </Link>
         <Link
           href="/bookings"
-          className="text-sm whitespace-nowrap text-zinc-500 transition-colors hover:text-brass-500 dark:text-zinc-400 dark:hover:text-brass-400"
+          className="text-sm whitespace-nowrap text-taupe-500 transition-colors hover:text-coral-500 dark:text-zinc-400 dark:hover:text-coral-400"
         >
           My bookings
         </Link>
@@ -91,12 +91,12 @@ export default async function DiscoverPage({
           name="text"
           defaultValue={sp.text}
           placeholder="Search city, property…"
-          className="col-span-2 rounded-xl border border-zinc-300 bg-transparent px-4 py-2.5 text-sm outline-none focus:border-brass-400 dark:border-white/10"
+          className="col-span-2 rounded-xl border border-zinc-300 bg-transparent px-4 py-2.5 text-sm outline-none focus:border-coral-400 dark:border-white/10"
         />
         <select
           name="mode"
           defaultValue={sp.mode ?? ''}
-          className="rounded-xl border border-zinc-300 bg-transparent px-3 py-2.5 text-sm outline-none focus:border-brass-400 dark:border-white/10 dark:bg-ink-900"
+          className="rounded-xl border border-zinc-300 bg-transparent px-3 py-2.5 text-sm outline-none focus:border-coral-400 dark:border-white/10 dark:bg-ink-900"
         >
           <option value="">Any stay</option>
           <option value="HOURLY">Hourly</option>
@@ -105,7 +105,7 @@ export default async function DiscoverPage({
         <select
           name="sort"
           defaultValue={sp.sort ?? ''}
-          className="rounded-xl border border-zinc-300 bg-transparent px-3 py-2.5 text-sm outline-none focus:border-brass-400 dark:border-white/10 dark:bg-ink-900"
+          className="rounded-xl border border-zinc-300 bg-transparent px-3 py-2.5 text-sm outline-none focus:border-coral-400 dark:border-white/10 dark:bg-ink-900"
         >
           <option value="">Relevance</option>
           <option value="price_asc">Price ↑</option>
@@ -114,21 +114,21 @@ export default async function DiscoverPage({
         </select>
         <button
           type="submit"
-          className="rounded-xl bg-brass-400 px-4 py-2.5 text-sm font-semibold text-ink-950 transition-colors hover:bg-brass-300"
+          className="rounded-xl bg-coral-400 px-4 py-2.5 text-sm font-semibold text-ink-950 transition-colors hover:bg-coral-300"
         >
           Search
         </button>
       </form>
 
       <div className="mb-5 flex flex-wrap items-center gap-2">
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="text-sm text-taupe-500 dark:text-zinc-400">
           {results.total} {results.total === 1 ? 'stay' : 'stays'}
         </p>
         {results.facets.city.slice(0, 6).map((f) => (
           <Link
             key={f.key}
             href={`/discover?city=${encodeURIComponent(f.key)}`}
-            className="rounded-full border border-zinc-200 px-3 py-1 text-xs text-zinc-600 transition-colors hover:border-brass-400 hover:text-brass-600 dark:border-white/10 dark:text-zinc-400"
+            className="rounded-full border border-zinc-200 px-3 py-1 text-xs text-zinc-600 transition-colors hover:border-coral-400 hover:text-coral-600 dark:border-white/10 dark:text-zinc-400"
           >
             {f.key} · {f.count}
           </Link>
@@ -136,7 +136,7 @@ export default async function DiscoverPage({
       </div>
 
       {results.items.length === 0 ? (
-        <Card className="px-6 py-16 text-center text-zinc-500">
+        <Card className="px-6 py-16 text-center text-taupe-500">
           No stays match those filters.
         </Card>
       ) : (
@@ -165,7 +165,7 @@ export default async function DiscoverPage({
                 <div className="mb-3 flex items-start justify-between gap-2">
                   <div>
                     <p className="text-sm font-semibold">{u.propertyName}</p>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    <p className="text-xs text-taupe-500 dark:text-zinc-400">
                       {u.unitName} · {u.city}
                     </p>
                   </div>
@@ -185,17 +185,17 @@ export default async function DiscoverPage({
 
                 <div className="mt-auto flex items-end justify-between gap-3">
                   <div>
-                    <p className="tnum text-lg font-semibold text-brass-500 dark:text-brass-300">
+                    <p className="tnum text-lg font-semibold text-coral-500 dark:text-coral-300">
                       {rate != null ? money(rate, u.currency) : '—'}
                     </p>
-                    <p className="text-[11px] text-zinc-500">
+                    <p className="text-[11px] text-taupe-500">
                       {modeIsHourly ? 'per hour' : 'per night'} · {u.maxGuests}{' '}
                       guests
                     </p>
                   </div>
                   <div className="shrink-0 text-right">
                     {u.ratingAvg ? (
-                      <p className="text-xs text-zinc-500">
+                      <p className="text-xs text-taupe-500">
                         ★ {u.ratingAvg} ({u.ratingCount})
                       </p>
                     ) : null}
@@ -209,7 +209,7 @@ export default async function DiscoverPage({
 
                 <Link
                   href={`/units/${u.unitId}`}
-                  className="mt-4 block rounded-lg bg-brass-500 px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-brass-600 dark:bg-brass-600 dark:hover:bg-brass-500"
+                  className="mt-4 block rounded-lg bg-coral-500 px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-coral-600 dark:bg-coral-600 dark:hover:bg-coral-500"
                 >
                   View stay
                 </Link>

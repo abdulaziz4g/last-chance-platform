@@ -237,7 +237,7 @@ export function MapCanvas({
         className={
           hasToken
             ? 'absolute inset-0'
-            : 'lc-nabataean absolute inset-0 bg-sandgold-100 dark:bg-slate-deep-950'
+            : 'lc-nabataean absolute inset-0 bg-sand-100 dark:bg-ink-950'
         }
       />
 
@@ -254,7 +254,7 @@ export function MapCanvas({
               {isSelected && privacyRadiusPx > 4 ? (
                 <div
                   aria-hidden="true"
-                  className="absolute rounded-full border-2 border-terracotta-500/60 bg-terracotta-500/15"
+                  className="absolute rounded-full border-2 border-coral-500/60 bg-coral-500/15"
                   style={{
                     left: privacyCentre.x - privacyRadiusPx,
                     top: privacyCentre.y - privacyRadiusPx,
@@ -279,7 +279,7 @@ export function MapCanvas({
       </div>
 
       {!hasToken ? (
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-slate-deep-900/85 px-3 py-2 text-center text-[11px] text-sandgold-200">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-ink-900/85 px-3 py-2 text-center text-[11px] text-sand-200">
           Map tiles need a Mapbox token — set{' '}
           <code className="font-mono">NEXT_PUBLIC_MAPBOX_TOKEN</code>. Pins,
           pricing and the privacy radius are live.
@@ -287,7 +287,7 @@ export function MapCanvas({
       ) : null}
 
       {loading ? (
-        <div className="pointer-events-none absolute right-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-medium shadow dark:bg-slate-deep-900/90">
+        <div className="pointer-events-none absolute right-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-medium shadow dark:bg-ink-900/90">
           Searching…
         </div>
       ) : null}

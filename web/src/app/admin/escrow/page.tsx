@@ -20,7 +20,7 @@ export default async function EscrowPage() {
     <div className="space-y-10">
       <header>
         <h1 className="text-xl font-semibold">Escrow override & payouts</h1>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="mt-1 text-sm text-taupe-500 dark:text-zinc-400">
           Manual intervention in the money pipeline. Everything here is
           additive — corrections are posted as new entries, never edits.
         </p>
@@ -36,7 +36,7 @@ export default async function EscrowPage() {
             <span key="b" className="tnum font-medium">
               {money(b.balanceMinor, b.currency)}
             </span>,
-            <span key="e" className="tnum text-xs text-zinc-500">
+            <span key="e" className="tnum text-xs text-taupe-500">
               {b.entries}
             </span>,
           ])}
@@ -46,7 +46,7 @@ export default async function EscrowPage() {
       <section>
         <SectionTitle>Payouts needing attention ({actionable.length})</SectionTitle>
         {actionable.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-zinc-300 px-4 py-8 text-center text-sm text-zinc-500 dark:border-zinc-700">
+          <p className="rounded-lg border border-dashed border-zinc-300 px-4 py-8 text-center text-sm text-taupe-500 dark:border-zinc-700">
             Nothing held, pending or failed on this page.
           </p>
         ) : (
@@ -59,14 +59,14 @@ export default async function EscrowPage() {
                 {money(p.amountMinor, p.currency)}
               </span>,
               <StatusChip key="s" status={p.status} />,
-              <span key="c" className="text-xs text-zinc-500">
+              <span key="c" className="text-xs text-taupe-500">
                 {dateTime(p.createdAt)}
               </span>,
               <PayoutControls key="x" payoutId={p.id} status={p.status} />,
             ])}
           />
         )}
-        <p className="mt-2 text-xs text-zinc-500">
+        <p className="mt-2 text-xs text-taupe-500">
           Holding a payout writes no ledger entry: the split already credited
           host payable when the stay completed, and stopping the transfer does
           not change what is owed.

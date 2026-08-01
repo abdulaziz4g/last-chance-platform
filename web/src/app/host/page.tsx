@@ -15,7 +15,7 @@ export default async function HostOverviewPage() {
 
   if (!host) {
     return (
-      <p className="text-zinc-500">
+      <p className="text-taupe-500">
         No host profile exists yet — create one via the API to see this studio.
       </p>
     );
@@ -25,7 +25,7 @@ export default async function HostOverviewPage() {
     <div className="space-y-10">
       <header>
         <h1 className="text-xl font-semibold">{host.displayName}</h1>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="mt-1 text-sm text-taupe-500 dark:text-zinc-400">
           {host.ratingAvg
             ? `★ ${host.ratingAvg} · ${host.ratingCount} reviews`
             : 'No reviews yet'}
@@ -84,14 +84,14 @@ export default async function HostOverviewPage() {
             <Mono key="c">{b.bookingCode}</Mono>,
             b.guestName,
             b.unitName,
-            <span key="w" className="text-xs text-zinc-500 dark:text-zinc-400">
+            <span key="w" className="text-xs text-taupe-500 dark:text-zinc-400">
               {timeWindow(b.checkInUtc, b.checkOutUtc)}
             </span>,
             <span key="t" className="tnum font-medium">
               {money(b.totalAmountMinor, b.currency)}
             </span>,
             <StatusChip key="s" status={b.status} />,
-            <span key="d" className="text-xs text-zinc-500">
+            <span key="d" className="text-xs text-taupe-500">
               {dateTime(b.createdAt)}
             </span>,
           ])}

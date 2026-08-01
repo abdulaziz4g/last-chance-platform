@@ -45,19 +45,19 @@ export function BookForm() {
     <form action={formAction} className="space-y-5">
       <input type="hidden" name="unitId" value={unitId} />
 
-      <fieldset className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-white/[0.06] dark:bg-ink-900">
-        <legend className="px-2 text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+      <fieldset className="space-y-4 rounded-card border border-zinc-200 bg-white p-5 dark:border-white/[0.06] dark:bg-ink-900">
+        <legend className="px-2 text-xs font-medium uppercase tracking-wider text-taupe-500 dark:text-zinc-400">
           Stay details
         </legend>
 
         <label className="block">
-          <span className="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+          <span className="text-xs font-medium uppercase tracking-wider text-taupe-500 dark:text-zinc-400">
             Stay type
           </span>
           <select
             name="bookingType"
             defaultValue="HOURLY"
-            className="mt-1 block w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm outline-none transition-colors focus:border-brass-400 dark:border-white/[0.08] dark:bg-ink-950 dark:focus:border-brass-500"
+            className="mt-1 block w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm outline-none transition-colors focus:border-coral-400 dark:border-white/[0.08] dark:bg-ink-950 dark:focus:border-coral-500"
           >
             <option value="HOURLY">Hourly</option>
             <option value="NIGHTLY">Nightly</option>
@@ -68,7 +68,7 @@ export function BookForm() {
             only the converted instants below are fit to send. */}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <label className="block">
-            <span className="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+            <span className="text-xs font-medium uppercase tracking-wider text-taupe-500 dark:text-zinc-400">
               Check-in
             </span>
             <input
@@ -76,11 +76,11 @@ export function BookForm() {
               required
               value={checkIn}
               onChange={(e) => setCheckIn(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm outline-none transition-colors focus:border-brass-400 dark:border-white/[0.08] dark:bg-ink-950 dark:focus:border-brass-500"
+              className="mt-1 block w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm outline-none transition-colors focus:border-coral-400 dark:border-white/[0.08] dark:bg-ink-950 dark:focus:border-coral-500"
             />
           </label>
           <label className="block">
-            <span className="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+            <span className="text-xs font-medium uppercase tracking-wider text-taupe-500 dark:text-zinc-400">
               Check-out
             </span>
             <input
@@ -88,7 +88,7 @@ export function BookForm() {
               required
               value={checkOut}
               onChange={(e) => setCheckOut(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm outline-none transition-colors focus:border-brass-400 dark:border-white/[0.08] dark:bg-ink-950 dark:focus:border-brass-500"
+              className="mt-1 block w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm outline-none transition-colors focus:border-coral-400 dark:border-white/[0.08] dark:bg-ink-950 dark:focus:border-coral-500"
             />
           </label>
         </div>
@@ -101,7 +101,7 @@ export function BookForm() {
         )}
 
         <label className="block">
-          <span className="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+          <span className="text-xs font-medium uppercase tracking-wider text-taupe-500 dark:text-zinc-400">
             Guests
           </span>
           <input
@@ -111,7 +111,7 @@ export function BookForm() {
             max={50}
             defaultValue={2}
             required
-            className="mt-1 block w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm outline-none transition-colors focus:border-brass-400 dark:border-white/[0.08] dark:bg-ink-950 dark:focus:border-brass-500"
+            className="mt-1 block w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm outline-none transition-colors focus:border-coral-400 dark:border-white/[0.08] dark:bg-ink-950 dark:focus:border-coral-500"
           />
         </label>
       </fieldset>
@@ -123,7 +123,7 @@ export function BookForm() {
       <button
         type="submit"
         disabled={pending || throttled}
-        className="w-full rounded-lg bg-brass-500 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-brass-600 disabled:opacity-50 dark:bg-brass-600 dark:hover:bg-brass-500"
+        className="w-full rounded-lg bg-coral-500 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-coral-600 disabled:opacity-50 dark:bg-coral-600 dark:hover:bg-coral-500"
       >
         {pending
           ? 'Placing hold...'

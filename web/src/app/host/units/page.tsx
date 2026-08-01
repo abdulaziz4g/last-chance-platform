@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function HostUnitsPage() {
   const host = await getHostOverview();
-  if (!host) return <p className="text-zinc-500">No host profile found.</p>;
+  if (!host) return <p className="text-taupe-500">No host profile found.</p>;
 
   // Photos are not part of the overview projection, so they are fetched
   // alongside it — one request per unit, in parallel.
@@ -19,13 +19,13 @@ export default async function HostUnitsPage() {
     <div className="space-y-6">
       <header>
         <h1 className="text-xl font-semibold">Units</h1>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="mt-1 text-sm text-taupe-500 dark:text-zinc-400">
           Photos are what guests judge a listing on — the first is the cover.
         </p>
       </header>
 
       {host.units.length === 0 ? (
-        <Card className="px-6 py-16 text-center text-zinc-500">
+        <Card className="px-6 py-16 text-center text-taupe-500">
           No units yet — list your first space.
         </Card>
       ) : (
@@ -35,7 +35,7 @@ export default async function HostUnitsPage() {
               <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold">{u.name}</p>
-                  <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                  <p className="mt-0.5 text-xs text-taupe-500 dark:text-zinc-400">
                     {u.propertyName}
                     {u.supportsHourly && u.hourlyRateMinor != null
                       ? ` · ${money(u.hourlyRateMinor, u.currency)}/hr`

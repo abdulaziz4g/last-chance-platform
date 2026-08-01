@@ -8,7 +8,7 @@ export default function BookPage() {
       <GuestHeader area="Book a stay">
         <Link
           href="/discover"
-          className="text-sm whitespace-nowrap text-zinc-500 transition-colors hover:text-brass-500 dark:text-zinc-400 dark:hover:text-brass-400"
+          className="text-sm whitespace-nowrap text-taupe-500 transition-colors hover:text-coral-500 dark:text-zinc-400 dark:hover:text-coral-400"
         >
           ← Back to search
         </Link>

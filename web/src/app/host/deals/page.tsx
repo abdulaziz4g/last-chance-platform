@@ -17,7 +17,7 @@ export default async function HostDealsPage() {
     <div className="space-y-8">
       <SectionTitle>Create flash deal</SectionTitle>
       {units.length === 0 ? (
-        <Card className="px-6 py-10 text-center text-zinc-500">
+        <Card className="px-6 py-10 text-center text-taupe-500">
           No units found. Add a unit to create flash deals.
         </Card>
       ) : (
@@ -29,7 +29,7 @@ export default async function HostDealsPage() {
         head={['Title', 'Property / Unit', 'Discount', 'Remaining', 'Ends', 'Status']}
         rows={deals.map((d) => [
           d.title,
-          <span key="u" className="text-xs text-zinc-500 dark:text-zinc-400">
+          <span key="u" className="text-xs text-taupe-500 dark:text-zinc-400">
             {d.propertyName} / {d.unitName}
           </span>,
           <span key="d" className="tnum font-semibold text-emerald-600 dark:text-emerald-400">

@@ -168,7 +168,7 @@ export function StripePayment({
 
       <div
         ref={mountRef}
-        className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-white/[0.06] dark:bg-ink-900"
+        className="rounded-card border border-zinc-200 bg-white p-4 dark:border-white/[0.06] dark:bg-ink-900"
       />
 
       {!ready && !error && (
@@ -181,7 +181,7 @@ export function StripePayment({
         type="button"
         onClick={pay}
         disabled={!ready || submitting}
-        className="w-full rounded-lg bg-brass-500 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-brass-600 disabled:opacity-50 dark:bg-brass-600 dark:hover:bg-brass-500"
+        className="w-full rounded-lg bg-coral-500 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-coral-600 disabled:opacity-50 dark:bg-coral-600 dark:hover:bg-coral-500"
       >
         {submitting ? 'Confirming…' : 'Pay now'}
       </button>

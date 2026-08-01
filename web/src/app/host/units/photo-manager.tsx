@@ -64,7 +64,7 @@ export function PhotoManager({
         ))}
 
         {photos.length === 0 && (
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+          <p className="text-xs text-taupe-500 dark:text-zinc-400">
             No photos yet — the first you add becomes the cover.
           </p>
         )}
@@ -81,7 +81,7 @@ export function PhotoManager({
           // Submitting on selection keeps this to one interaction; the form is
           // a single field, so a separate button would only add a step.
           onChange={(e) => e.currentTarget.form?.requestSubmit()}
-          className="block w-full max-w-xs text-xs text-zinc-500 file:mr-3 file:rounded-md file:border-0 file:bg-brass-500/10 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-brass-600 hover:file:bg-brass-500/20 dark:text-zinc-400 dark:file:text-brass-300"
+          className="block w-full max-w-xs text-xs text-taupe-500 file:mr-3 file:rounded-md file:border-0 file:bg-coral-500/10 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-coral-600 hover:file:bg-coral-500/20 dark:text-zinc-400 dark:file:text-coral-300"
         />
         {pending && (
           <span className="text-xs text-zinc-400">Uploading…</span>

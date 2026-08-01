@@ -34,7 +34,7 @@ export async function GuestHeader({
         <Link href="/" className="text-[13px] font-semibold tracking-[0.32em]">
           LAST&nbsp;CHANCE
         </Link>
-        <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.24em] text-brass-500 dark:text-brass-400">
+        <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.24em] text-coral-500 dark:text-coral-400">
           {area}
         </p>
       </div>
@@ -49,7 +49,7 @@ export async function GuestHeader({
           <form action={logoutAction}>
             <button
               type="submit"
-              className="text-sm whitespace-nowrap text-zinc-500 transition-colors hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+              className="text-sm whitespace-nowrap text-taupe-500 transition-colors hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
             >
               Sign out
             </button>
@@ -57,7 +57,7 @@ export async function GuestHeader({
         ) : (
           <Link
             href="/login"
-            className="text-sm whitespace-nowrap text-zinc-500 transition-colors hover:text-brass-500 dark:text-zinc-400 dark:hover:text-brass-400"
+            className="text-sm whitespace-nowrap text-taupe-500 transition-colors hover:text-coral-500 dark:text-zinc-400 dark:hover:text-coral-400"
           >
             Sign in
           </Link>

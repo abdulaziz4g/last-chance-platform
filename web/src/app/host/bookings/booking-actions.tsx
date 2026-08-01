@@ -65,7 +65,7 @@ function Complete({ bookingId, page }: { bookingId: string; page: number }) {
         <Pending>Completing…</Pending>
       ) : (
         <>
-          <span className="text-[11px] text-zinc-500">Release payout?</span>
+          <span className="text-[11px] text-taupe-500">Release payout?</span>
           <button
             type="submit"
             className={`${BTN} bg-emerald-600 text-white hover:bg-emerald-700`}
@@ -75,7 +75,7 @@ function Complete({ bookingId, page }: { bookingId: string; page: number }) {
           <button
             type="button"
             onClick={() => setArmed(false)}
-            className={`${BTN} text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300`}
+            className={`${BTN} text-taupe-500 hover:text-zinc-700 dark:hover:text-zinc-300`}
           >
             No
           </button>
@@ -104,7 +104,7 @@ function Cancel({
       <button
         type="button"
         onClick={() => setArmed(true)}
-        className={`${BTN} text-zinc-500 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-rose-400`}
+        className={`${BTN} text-taupe-500 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-rose-400`}
       >
         Cancel
       </button>
@@ -120,7 +120,7 @@ function Cancel({
         <Pending>Cancelling…</Pending>
       ) : (
         <>
-          <span className="text-[11px] text-zinc-500">
+          <span className="text-[11px] text-taupe-500">
             {paid ? 'Cancel and refund?' : 'Cancel booking?'}
           </span>
           <button
@@ -132,7 +132,7 @@ function Cancel({
           <button
             type="button"
             onClick={() => setArmed(false)}
-            className={`${BTN} text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300`}
+            className={`${BTN} text-taupe-500 hover:text-zinc-700 dark:hover:text-zinc-300`}
           >
             No
           </button>

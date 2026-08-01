@@ -30,7 +30,7 @@ export default async function LedgerPage({
     <div className="space-y-10">
       <header>
         <h1 className="text-xl font-semibold">Escrow ledger</h1>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="mt-1 text-sm text-taupe-500 dark:text-zinc-400">
           Double-entry, append-only. Every group balances — enforced at COMMIT
           by the database.
         </p>
@@ -39,19 +39,19 @@ export default async function LedgerPage({
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {balances.map((b) => (
           <Card key={`${b.account}-${b.currency}`} className="px-5 py-4">
-            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">
+            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-taupe-500 dark:text-zinc-400">
               {ACCOUNT_LABELS[b.account] ?? b.account}
             </p>
             <p className="tnum mt-1.5 text-xl font-semibold">
               {money(b.balanceMinor, b.currency)}
             </p>
-            <p className="mt-1 text-xs text-zinc-500">
+            <p className="mt-1 text-xs text-taupe-500">
               {b.entries} {b.entries === 1 ? 'entry' : 'entries'} · credit-positive
             </p>
           </Card>
         ))}
         {balances.length === 0 ? (
-          <p className="col-span-full text-zinc-500">No ledger activity yet.</p>
+          <p className="col-span-full text-taupe-500">No ledger activity yet.</p>
         ) : null}
       </section>
 
@@ -68,10 +68,10 @@ export default async function LedgerPage({
               {money(e.amountMinor, e.currency)}
             </span>,
             e.bookingCode ? <Mono key="b">{e.bookingCode}</Mono> : '—',
-            <span key="x" className="text-xs text-zinc-500 dark:text-zinc-400">
+            <span key="x" className="text-xs text-taupe-500 dark:text-zinc-400">
               {e.description}
             </span>,
-            <span key="t" className="text-xs text-zinc-500">
+            <span key="t" className="text-xs text-taupe-500">
               {dateTime(e.createdAt)}
             </span>,
           ])}

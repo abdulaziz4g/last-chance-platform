@@ -50,15 +50,15 @@ export function LiveDeal({
         <div className="flex items-center gap-2">
           <span
             className={`inline-flex h-2 w-2 rounded-full ${
-              soldOut ? 'bg-zinc-400' : 'animate-pulse bg-brass-400'
+              soldOut ? 'bg-zinc-400' : 'animate-pulse bg-coral-400'
             }`}
           />
           <p className="text-sm font-semibold">{title}</p>
-          <span className="rounded-full bg-brass-400 px-2 py-0.5 text-[11px] font-bold text-ink-950">
+          <span className="rounded-full bg-coral-400 px-2 py-0.5 text-[11px] font-bold text-ink-950">
             −{discountPct}%
           </span>
         </div>
-        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+        <p className="mt-1 text-xs text-taupe-500 dark:text-zinc-400">
           {soldOut ? (
             <span className="font-medium text-rose-500">Sold out</span>
           ) : (
@@ -76,7 +76,7 @@ export function LiveDeal({
       ) : (
         <Link
           href={`/deals/${dealId}/claim`}
-          className="rounded-lg bg-brass-500 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brass-600 dark:bg-brass-600 dark:hover:bg-brass-500"
+          className="rounded-lg bg-coral-500 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-coral-600 dark:bg-coral-600 dark:hover:bg-coral-500"
         >
           Claim deal
         </Link>
