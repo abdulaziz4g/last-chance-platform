@@ -15,12 +15,15 @@ import type { Map as MapboxMap } from 'mapbox-gl';
  * from the rest of the interface.
  */
 
-const SAND_LIGHT = '#f2e4d4';
-const SAND_MID = '#e6d2bb';
-const TERRACOTTA_ROAD = '#d99b7d';
-const TERRACOTTA_DEEP = '#c86d51';
-const WATER = '#9fb8bd';
-const SLATE_TEXT = '#1e232a';
+// Package anchors, matching globals.css and mobile's design_tokens.dart. The
+// map is a surface like any other: a basemap still tuned to the old sandstone
+// palette is the one place a rebrand visibly fails to land.
+const SAND_LIGHT = '#fff4ee'; // package background
+const SAND_MID = '#f2e7df'; // package sand
+const TERRACOTTA_ROAD = '#ffa093'; // coral-300 — roads read as a tint, not the CTA
+const TERRACOTTA_DEEP = '#ff5a4a'; // package coral
+const WATER = '#9fb8bd'; // unchanged: water is not a brand surface
+const SLATE_TEXT = '#2b1f1a'; // package ink
 
 const SAND_LIGHT_DARK = '#2a2520';
 const SAND_MID_DARK = '#332c25';
@@ -64,7 +67,7 @@ const OVERRIDES: PaintOverride[] = [
   { layer: 'road-secondary-tertiary', property: 'line-color', light: TERRACOTTA_ROAD, dark: ROAD_DARK },
   { layer: 'road-primary', property: 'line-color', light: TERRACOTTA_DEEP, dark: ROAD_DARK },
   { layer: 'road-motorway-trunk', property: 'line-color', light: TERRACOTTA_DEEP, dark: ROAD_DARK },
-  { layer: 'building', property: 'fill-color', light: '#dcc3a8', dark: '#3a322a' },
+  { layer: 'building', property: 'fill-color', light: '#e6d5c9', dark: '#3a322a' },
   { layer: 'settlement-major-label', property: 'text-color', light: SLATE_TEXT, dark: TEXT_DARK },
   { layer: 'settlement-minor-label', property: 'text-color', light: SLATE_TEXT, dark: TEXT_DARK },
   { layer: 'road-label', property: 'text-color', light: '#6b5240', dark: '#a08a72' },

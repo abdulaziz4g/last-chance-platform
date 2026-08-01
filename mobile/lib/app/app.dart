@@ -35,7 +35,22 @@ class LastChanceApp extends StatelessWidget {
     return MaterialApp(
       onGenerateTitle: (context) => LcStrings.of(context).appTitle,
       debugShowCheckedModeBanner: false,
-      theme: buildDarkTheme(),
+      theme: buildLightTheme(),
+      // Pinned. The design package describes ONE appearance and says so —
+      // "not a dark luxury brand" — so there is no dark form to switch to. A
+      // device in dark mode would otherwise get a half-inverted approximation
+      // of a design that was never drawn that way.
+      themeMode: ThemeMode.light,
+
+      // The Arabic type scale is applied HERE, not in `theme:` above.
+      // `locale` may be null (follow the device), so the effective locale is
+      // not known until Localizations has resolved it — which happens below
+      // MaterialApp. Reading it here is what lets an Arabic device get Tajawal
+      // instead of a Latin family with no Arabic glyphs.
+      builder: (context, child) => Theme(
+        data: themeForLocale(Localizations.maybeLocaleOf(context)),
+        child: child ?? const SizedBox.shrink(),
+      ),
 
       // Text direction follows from this. GlobalWidgetsLocalizations maps an
       // Arabic locale to TextDirection.rtl for the whole subtree, so every

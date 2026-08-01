@@ -8,7 +8,7 @@ import { useActionToast } from '@/components/toast';
 import { guestTimeZone, localInputInHours, localInputToIso } from '@/lib/local-time';
 
 const inputCls =
-  'mt-1 block w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm outline-none transition-colors focus:border-brass-400 dark:border-white/[0.08] dark:bg-ink-950 dark:focus:border-brass-500';
+  'mt-1 block w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm outline-none transition-colors focus:border-coral-400 dark:border-white/[0.08] dark:bg-ink-950 dark:focus:border-coral-500';
 
 export function DealForm({ units }: { units: HostUnit[] }) {
   const [state, formAction, pending] = useActionState(createDealAction, null);
@@ -33,7 +33,7 @@ export function DealForm({ units }: { units: HostUnit[] }) {
       <form action={formAction} className="space-y-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label className="block">
-            <span className="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+            <span className="text-xs font-medium uppercase tracking-wider text-taupe-500 dark:text-zinc-400">
               Unit
             </span>
             <select name="unitId" required className={inputCls}>
@@ -46,7 +46,7 @@ export function DealForm({ units }: { units: HostUnit[] }) {
           </label>
 
           <label className="block">
-            <span className="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+            <span className="text-xs font-medium uppercase tracking-wider text-taupe-500 dark:text-zinc-400">
               Title
             </span>
             <input
@@ -62,7 +62,7 @@ export function DealForm({ units }: { units: HostUnit[] }) {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <label className="block">
-            <span className="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+            <span className="text-xs font-medium uppercase tracking-wider text-taupe-500 dark:text-zinc-400">
               Discount %
             </span>
             <input
@@ -77,7 +77,7 @@ export function DealForm({ units }: { units: HostUnit[] }) {
           </label>
 
           <label className="block">
-            <span className="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+            <span className="text-xs font-medium uppercase tracking-wider text-taupe-500 dark:text-zinc-400">
               Quantity
             </span>
             <input
@@ -95,7 +95,7 @@ export function DealForm({ units }: { units: HostUnit[] }) {
         {/* Unnamed: the hidden fields below carry the converted instants. */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label className="block">
-            <span className="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+            <span className="text-xs font-medium uppercase tracking-wider text-taupe-500 dark:text-zinc-400">
               Starts at
             </span>
             <input
@@ -108,7 +108,7 @@ export function DealForm({ units }: { units: HostUnit[] }) {
           </label>
 
           <label className="block">
-            <span className="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+            <span className="text-xs font-medium uppercase tracking-wider text-taupe-500 dark:text-zinc-400">
               Ends at
             </span>
             <input
@@ -131,7 +131,7 @@ export function DealForm({ units }: { units: HostUnit[] }) {
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-brass-500 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brass-600 disabled:opacity-50 dark:bg-brass-600 dark:hover:bg-brass-500"
+          className="rounded-lg bg-coral-500 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-coral-600 disabled:opacity-50 dark:bg-coral-600 dark:hover:bg-coral-500"
         >
           {pending ? 'Creating...' : 'Create deal'}
         </button>

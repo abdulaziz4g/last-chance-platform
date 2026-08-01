@@ -19,9 +19,9 @@ export default function Loading() {
       <Skeleton className="mt-2 h-3 w-48" />
 
       <div className="mt-8 mb-8 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <Skeleton className="h-52 rounded-2xl" />
-        <Skeleton className="h-52 rounded-2xl" />
-        <Skeleton className="h-52 rounded-2xl" />
+        <Skeleton className="h-52 rounded-card" />
+        <Skeleton className="h-52 rounded-card" />
+        <Skeleton className="h-52 rounded-card" />
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">

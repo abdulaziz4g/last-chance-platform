@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../../app/theme.dart';
+import '../../../app/design_tokens.dart';
 import '../../../core/money.dart';
 
 /// The signature UX of the platform: the 10-minute payment-hold countdown.
@@ -70,7 +70,7 @@ class _HoldCountdownState extends State<HoldCountdown> {
             fontSize: 11,
             letterSpacing: 3,
             fontWeight: FontWeight.w600,
-            color: Colors.white.withValues(alpha: 0.5),
+            color: LcBrand.muted,
           ),
         ),
         const SizedBox(height: 8),
@@ -80,7 +80,7 @@ class _HoldCountdownState extends State<HoldCountdown> {
             fontSize: 56,
             fontWeight: FontWeight.w600,
             fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
-            color: urgent ? LcColors.danger : LcColors.brass300,
+            color: urgent ? LcStatus.danger : LcBrand.coral,
           ),
         ),
         const SizedBox(height: 4),
@@ -88,7 +88,7 @@ class _HoldCountdownState extends State<HoldCountdown> {
           urgent ? 'Complete payment now' : 'Complete payment to confirm',
           style: TextStyle(
             fontSize: 13,
-            color: Colors.white.withValues(alpha: 0.6),
+            color: LcBrand.muted,
           ),
         ),
       ],

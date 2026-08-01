@@ -15,7 +15,7 @@ export default function LoginPage() {
       <h1 className="text-center text-2xl font-semibold tracking-[0.35em]">
         LAST&nbsp;CHANCE
       </h1>
-      <p className="mt-2 text-[11px] font-medium uppercase tracking-[0.28em] text-brass-500 dark:text-brass-400">
+      <p className="mt-2 text-[11px] font-medium uppercase tracking-[0.28em] text-coral-500 dark:text-coral-400">
         Sign in to continue
       </p>
 
@@ -31,7 +31,7 @@ export default function LoginPage() {
         )}
 
         <label className="block">
-          <span className="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+          <span className="text-xs font-medium uppercase tracking-wider text-taupe-500 dark:text-zinc-400">
             Email
           </span>
           <input
@@ -39,12 +39,12 @@ export default function LoginPage() {
             type="email"
             required
             autoComplete="email"
-            className="mt-1 block w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm outline-none transition-colors focus:border-brass-400 dark:border-white/[0.08] dark:bg-ink-900 dark:focus:border-brass-500"
+            className="mt-1 block w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm outline-none transition-colors focus:border-coral-400 dark:border-white/[0.08] dark:bg-ink-900 dark:focus:border-coral-500"
           />
         </label>
 
         <label className="block">
-          <span className="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+          <span className="text-xs font-medium uppercase tracking-wider text-taupe-500 dark:text-zinc-400">
             Password
           </span>
           <input
@@ -52,14 +52,14 @@ export default function LoginPage() {
             type="password"
             required
             autoComplete="current-password"
-            className="mt-1 block w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm outline-none transition-colors focus:border-brass-400 dark:border-white/[0.08] dark:bg-ink-900 dark:focus:border-brass-500"
+            className="mt-1 block w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm outline-none transition-colors focus:border-coral-400 dark:border-white/[0.08] dark:bg-ink-900 dark:focus:border-coral-500"
           />
         </label>
 
         <button
           type="submit"
           disabled={pending || throttled}
-          className="w-full rounded-lg bg-brass-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brass-600 disabled:opacity-50 dark:bg-brass-600 dark:hover:bg-brass-500"
+          className="w-full rounded-lg bg-coral-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-coral-600 disabled:opacity-50 dark:bg-coral-600 dark:hover:bg-coral-500"
         >
           {pending
             ? 'Signing in...'
@@ -69,11 +69,11 @@ export default function LoginPage() {
         </button>
       </form>
 
-      <p className="mt-6 text-sm text-zinc-500 dark:text-zinc-400">
+      <p className="mt-6 text-sm text-taupe-500 dark:text-zinc-400">
         Don&apos;t have an account?{' '}
         <Link
           href="/register"
-          className="text-brass-500 transition-colors hover:text-brass-600 dark:text-brass-400 dark:hover:text-brass-300"
+          className="text-coral-500 transition-colors hover:text-coral-600 dark:text-coral-400 dark:hover:text-coral-300"
         >
           Create one →
         </Link>

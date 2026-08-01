@@ -22,7 +22,7 @@ export function ThemeToggle({ compact = false }: { compact?: boolean }) {
   }, []);
 
   const base =
-    'shrink-0 rounded-full border border-zinc-300 text-xs text-zinc-600 transition-colors hover:border-brass-500 hover:text-brass-600 dark:border-white/10 dark:text-zinc-300 dark:hover:border-brass-400 dark:hover:text-brass-300';
+    'shrink-0 rounded-full border border-zinc-300 text-xs text-zinc-600 transition-colors hover:border-coral-500 hover:text-coral-600 dark:border-white/10 dark:text-zinc-300 dark:hover:border-coral-400 dark:hover:text-coral-300';
 
   if (compact) {
     return (

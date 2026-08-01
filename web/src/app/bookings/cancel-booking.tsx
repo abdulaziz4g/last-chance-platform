@@ -36,7 +36,7 @@ export function CancelBooking({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="text-xs font-medium text-zinc-500 underline-offset-4 transition-colors hover:text-rose-600 hover:underline dark:text-zinc-400 dark:hover:text-rose-400"
+        className="text-xs font-medium text-taupe-500 underline-offset-4 transition-colors hover:text-rose-600 hover:underline dark:text-zinc-400 dark:hover:text-rose-400"
       >
         Cancel booking
       </button>
@@ -62,7 +62,7 @@ export function CancelBooking({
       </div>
 
       <label className="block">
-        <span className="text-[11px] font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+        <span className="text-[11px] font-medium uppercase tracking-wider text-taupe-500 dark:text-zinc-400">
           Reason (optional)
         </span>
         <input
@@ -70,7 +70,7 @@ export function CancelBooking({
           type="text"
           maxLength={1000}
           placeholder="Change of plans"
-          className="mt-1 block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-brass-400 dark:border-white/[0.08] dark:bg-ink-950 dark:focus:border-brass-500"
+          className="mt-1 block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-coral-400 dark:border-white/[0.08] dark:bg-ink-950 dark:focus:border-coral-500"
         />
       </label>
 

@@ -27,7 +27,7 @@ export default async function HostBookingsPage({
     getHostOverview(),
     getHostBookings(page),
   ]);
-  if (!host) return <p className="text-zinc-500">No host profile found.</p>;
+  if (!host) return <p className="text-taupe-500">No host profile found.</p>;
 
   return (
     <div className="space-y-6">
@@ -52,10 +52,10 @@ export default async function HostBookingsPage({
           <Mono key="c">{b.bookingCode}</Mono>,
           b.guestName,
           `${b.propertyName} · ${b.unitName}`,
-          <span key="y" className="text-xs uppercase tracking-wide text-zinc-500">
+          <span key="y" className="text-xs uppercase tracking-wide text-taupe-500">
             {b.bookingType}
           </span>,
-          <span key="w" className="text-xs text-zinc-500 dark:text-zinc-400">
+          <span key="w" className="text-xs text-taupe-500 dark:text-zinc-400">
             {timeWindow(b.checkInUtc, b.checkOutUtc)}
           </span>,
           <span key="t" className="tnum font-medium">

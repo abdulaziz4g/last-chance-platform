@@ -5,55 +5,88 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  /* Brand accent — restrained brass, the one warm note in a neutral field. */
-  --color-brass-200: #e7d6b8;
-  --color-brass-300: #d8bd92;
-  --color-brass-400: #c8a878;
-  --color-brass-500: #b49164;
-  --color-brass-600: #96764e;
-  --color-brass-700: #755a3a;
+  /* =====================================================================
+     Last Chance Design & Developer Package.
 
-  /* Near-black canvas — softer than pure #000, Apple-dark. */
-  --color-ink-900: #131316;
-  --color-ink-950: #0a0a0c;
+     THE PACKAGE IS THE SOURCE OF TRUTH. The five anchors below are its exact
+     values and must stay byte-identical to mobile/lib/app/design_tokens.dart
+     — that file and this block are two transcriptions of one document, and
+     the whole point of them is that a guest cannot tell which client they are
+     looking at.
+
+     The package specifies single colours, not ramps. Everything that is not
+     an anchor is DERIVED around it, so components are never forced to invent
+     a tint — the same approach the previous palette used, and the reason the
+     derived steps carry no "brand" comment.
+     ===================================================================== */
+
+  /* Buttons, active icons, highlights, logo. Package anchor. */
+  --color-coral-50: #fff1ef;
+  --color-coral-100: #ffe0db;
+  --color-coral-200: #ffc3bb;
+  --color-coral-300: #ffa093;
+  --color-coral-400: #ff7c6b;
+  --color-coral-500: #ff5a4a; /* package anchor — exact */
+  --color-coral-600: #e5432f;
+  --color-coral-700: #be3223;
+  --color-coral-800: #94271b;
+  --color-coral-900: #6b1d14;
+
+  /* Main app background and soft sections. Package anchor at -100. */
+  --color-cream-50: #fffaf7;
+  --color-cream-100: #fff4ee; /* package anchor — exact */
+  --color-cream-200: #ffe9df;
+
+  /* Cards, secondary surfaces, icon backgrounds. Package anchor at -200. */
+  --color-sand-100: #faf3ee;
+  --color-sand-200: #f2e7df; /* package anchor — exact */
+  --color-sand-300: #e6d5c9;
+  --color-sand-400: #d6bfae;
+
+  /* Headings, body text, premium contrast. Package anchor at -900. */
+  --color-ink-500: #6b5a52;
+  --color-ink-700: #4a3830;
+  --color-ink-900: #2b1f1a; /* package anchor — exact */
+  --color-ink-950: #1c1310;
+
+  /* Secondary text, metadata, labels. Package anchor. */
+  --color-taupe-500: #7b6b63; /* package anchor — exact */
+  --color-taupe-600: #63544d;
+
+  /* Rating stars. Not in the colour table; taken from the package's own
+     starter code, which uses it for every star glyph. */
+  --color-star-500: #ffb547;
+
+  /* Status. NOT from the package, which specifies neither. Segregated so it
+     stays obvious which values the package authored. A failure painted in the
+     brand's call-to-action colour reads as an invitation. */
+  --color-danger-500: #b3261e;
+  --color-success-500: #2e7d5b;
 
   /* ---------------------------------------------------------------------
-     AlUla heritage palette.
-     Three brand anchors, each given a scale so components are not forced to
-     invent tints: terracotta (the sandstone of Hegra), sand gold (low sun on
-     the escarpment), and a dark slate that reads as basalt rather than grey.
-     The anchors are the exact brand values; the rest are derived around them.
+     Measurements (package §2). Mirrors mobile's LcRadius / LcShadow /
+     LcSpacing, with the spec's range recorded where it gives one.
      --------------------------------------------------------------------- */
-  --color-terracotta-50: #fbf1ed;
-  --color-terracotta-100: #f5ded4;
-  --color-terracotta-200: #eabca9;
-  --color-terracotta-300: #de9a7e;
-  --color-terracotta-400: #d38267;
-  --color-terracotta-500: #c86d51; /* brand primary */
-  --color-terracotta-600: #ab5941;
-  --color-terracotta-700: #8a4633;
-  --color-terracotta-800: #653325;
-  --color-terracotta-900: #422118;
+  --radius-card: 22px; /* spec 18-24 */
+  --radius-input: 16px; /* spec exact */
+  --radius-button: 18px;
+  --spacing-screen: 20px; /* spec 20-24 */
+  --spacing-section: 28px; /* spec 24-32 */
+  --spacing-grid: 14px; /* spec 12-16 */
+  --shadow-card: 0 10px 30px rgb(43 31 26 / 0.08); /* spec, exact */
 
-  --color-sandgold-50: #fdf8ee;
-  --color-sandgold-100: #f9edd4;
-  --color-sandgold-200: #f0d9a8;
-  --color-sandgold-300: #e5c47c;
-  --color-sandgold-400: #dcb468;
-  --color-sandgold-500: #d4a359; /* brand accent */
-  --color-sandgold-600: #b78843;
-  --color-sandgold-700: #916a33;
-  --color-sandgold-800: #6a4d25;
-  --color-sandgold-900: #453117;
-
-  --color-slate-deep-500: #4a525d;
-  --color-slate-deep-700: #2c333c;
-  --color-slate-deep-900: #1e232a; /* brand contrast */
-  --color-slate-deep-950: #14181d;
-
+  /* ---------------------------------------------------------------------
+     Typography (package §1). Families are declared here and self-hosted by
+     next/font in layout.tsx — never fetched from a Google origin at runtime,
+     which would leak every visitor's IP to a third party and block first
+     paint on a slow connection.
+     --------------------------------------------------------------------- */
+  --font-display: var(--font-cormorant), Georgia, "Times New Roman", serif;
   --font-sans:
-    -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display",
-    "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
+    var(--font-poppins), -apple-system, BlinkMacSystemFont,
+    "Segoe UI Variable Display", "Segoe UI", Inter, Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+  --font-arabic: var(--font-tajawal), "Noto Sans Arabic", "Segoe UI", sans-serif;
 }
 
 html {
@@ -62,7 +95,9 @@ html {
 }
 
 body {
-  @apply bg-zinc-50 text-zinc-900 dark:bg-ink-950 dark:text-zinc-100;
+  /* The package's warm cream canvas, not zinc-50. A neutral grey under a warm
+     palette is what makes a hospitality layout read as an admin tool. */
+  @apply bg-cream-100 text-ink-900 dark:bg-ink-950 dark:text-cream-100;
 }
 
 /* Money and metrics always align. */
@@ -122,7 +157,7 @@ body {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  border: 2px solid var(--color-sandgold-500);
+  border: 2px solid var(--color-star-500);
   animation: lc-deal-pulse 1.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
   pointer-events: none;
 }
@@ -158,11 +193,11 @@ body {
       var(--lc-motif) 0 1px,
       transparent 1px 10px
     );
-  --lc-motif: rgb(200 109 81 / 0.10);
+  --lc-motif: rgb(255 90 74 / 0.10);
 }
 
 .dark .lc-nabataean {
-  --lc-motif: rgb(212 163 89 / 0.09);
+  --lc-motif: rgb(255 181 71 / 0.09);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -180,5 +215,5 @@ body {
 }
 
 ::selection {
-  @apply bg-brass-400/30;
+  @apply bg-coral-400/30;
 }

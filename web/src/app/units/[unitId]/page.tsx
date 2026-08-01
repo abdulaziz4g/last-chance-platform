@@ -155,7 +155,7 @@ function duration(minutes: number): string {
 function Spec({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">
+      <dt className="text-[11px] font-medium uppercase tracking-[0.14em] text-taupe-500 dark:text-zinc-400">
         {label}
       </dt>
       <dd className="mt-1 text-sm font-medium">{value}</dd>
@@ -206,7 +206,7 @@ export default async function UnitDetailPage({
       <GuestHeader area="Stay details">
         <Link
           href="/discover"
-          className="text-sm whitespace-nowrap text-zinc-500 transition-colors hover:text-brass-500 dark:text-zinc-400 dark:hover:text-brass-400"
+          className="text-sm whitespace-nowrap text-taupe-500 transition-colors hover:text-coral-500 dark:text-zinc-400 dark:hover:text-coral-400"
         >
           ← Back to search
         </Link>
@@ -217,12 +217,12 @@ export default async function UnitDetailPage({
           <h1 className="text-2xl font-semibold">{property.name}</h1>
           {unit.instantBook ? <StatusChip status="ACTIVE" /> : null}
           {host.isSuperhost ? (
-            <span className="rounded-full bg-brass-400/15 px-2.5 py-0.5 text-[11px] font-medium text-brass-600 ring-1 ring-inset ring-brass-400/30 dark:text-brass-300">
+            <span className="rounded-full bg-coral-400/15 px-2.5 py-0.5 text-[11px] font-medium text-coral-600 ring-1 ring-inset ring-coral-400/30 dark:text-coral-300">
               Superhost
             </span>
           ) : null}
         </div>
-        <p className="mt-1.5 text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="mt-1.5 text-sm text-taupe-500 dark:text-zinc-400">
           {unit.name} · {property.city}, {property.countryCode}
           {property.ratingAvg
             ? ` · ★ ${property.ratingAvg} (${property.ratingCount})`
@@ -236,7 +236,7 @@ export default async function UnitDetailPage({
       />
 
       {activeDeal && (
-        <Card className="mb-8 border-brass-400/30 bg-gradient-to-b from-brass-400/[0.08] to-transparent p-5 dark:border-brass-500/25">
+        <Card className="mb-8 border-coral-400/30 bg-gradient-to-b from-coral-400/[0.08] to-transparent p-5 dark:border-coral-500/25">
           <LiveDeal
             unitId={unit.id}
             dealId={activeDeal.id}
@@ -309,15 +309,15 @@ export default async function UnitDetailPage({
             <SectionTitle>House rules</SectionTitle>
             <Card className="divide-y divide-zinc-100 dark:divide-white/[0.06]">
               <div className="flex justify-between gap-3 px-5 py-3 text-sm">
-                <span className="text-zinc-500 dark:text-zinc-400">Check-in</span>
+                <span className="text-taupe-500 dark:text-zinc-400">Check-in</span>
                 <span>from {property.defaultCheckInTime.slice(0, 5)}</span>
               </div>
               <div className="flex justify-between gap-3 px-5 py-3 text-sm">
-                <span className="text-zinc-500 dark:text-zinc-400">Check-out</span>
+                <span className="text-taupe-500 dark:text-zinc-400">Check-out</span>
                 <span>by {property.defaultCheckOutTime.slice(0, 5)}</span>
               </div>
               <div className="flex justify-between gap-3 px-5 py-3 text-sm">
-                <span className="text-zinc-500 dark:text-zinc-400">
+                <span className="text-taupe-500 dark:text-zinc-400">
                   Turnaround
                 </span>
                 <span>{duration(unit.turnaroundMinutes)} after checkout</span>
@@ -327,7 +327,7 @@ export default async function UnitDetailPage({
                   key={p.label}
                   className="flex justify-between gap-3 px-5 py-3 text-sm"
                 >
-                  <span className="text-zinc-500 capitalize dark:text-zinc-400">
+                  <span className="text-taupe-500 capitalize dark:text-zinc-400">
                     {p.label}
                   </span>
                   <span className="text-right">{p.value}</span>
@@ -345,13 +345,13 @@ export default async function UnitDetailPage({
               <div className="flex items-center gap-3">
                 <span
                   aria-hidden
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brass-400/15 text-sm font-semibold text-brass-600 dark:text-brass-300"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-coral-400/15 text-sm font-semibold text-coral-600 dark:text-coral-300"
                 >
                   {host.displayName.charAt(0).toUpperCase()}
                 </span>
                 <div>
                   <p className="text-sm font-semibold">{host.displayName}</p>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  <p className="text-xs text-taupe-500 dark:text-zinc-400">
                     {host.ratingAvg
                       ? `★ ${host.ratingAvg} · ${host.ratingCount} reviews`
                       : 'No reviews yet'}
@@ -374,7 +374,7 @@ export default async function UnitDetailPage({
                 : 'Reviews'}
             </SectionTitle>
             {reviews.length === 0 ? (
-              <Card className="px-5 py-10 text-center text-sm text-zinc-500">
+              <Card className="px-5 py-10 text-center text-sm text-taupe-500">
                 No reviews yet — be the first to stay here.
               </Card>
             ) : (
@@ -383,7 +383,7 @@ export default async function UnitDetailPage({
                   <Card key={r.id} className="p-5">
                     <div className="flex items-center justify-between gap-3">
                       <p className="text-sm font-medium">{r.authorName}</p>
-                      <p className="tnum text-xs text-brass-500 dark:text-brass-300">
+                      <p className="tnum text-xs text-coral-500 dark:text-coral-300">
                         {'★'.repeat(r.overallRating)}
                         <span className="text-zinc-300 dark:text-zinc-700">
                           {'★'.repeat(5 - r.overallRating)}
@@ -396,8 +396,8 @@ export default async function UnitDetailPage({
                       </p>
                     )}
                     {r.hostReply && (
-                      <div className="mt-3 border-l-2 border-brass-400/40 pl-3">
-                        <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">
+                      <div className="mt-3 border-l-2 border-coral-400/40 pl-3">
+                        <p className="text-[11px] font-medium uppercase tracking-wider text-taupe-500">
                           {host.displayName} replied
                         </p>
                         <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
@@ -419,10 +419,10 @@ export default async function UnitDetailPage({
               {hourly != null && (
                 <div className="flex items-baseline justify-between gap-3">
                   <div>
-                    <p className="tnum text-xl font-semibold text-brass-500 dark:text-brass-300">
+                    <p className="tnum text-xl font-semibold text-coral-500 dark:text-coral-300">
                       {money(discounted(hourly) ?? hourly, unit.currency)}
                     </p>
-                    <p className="text-[11px] text-zinc-500">per hour</p>
+                    <p className="text-[11px] text-taupe-500">per hour</p>
                   </div>
                   {discounted(hourly) != null && (
                     <p className="tnum text-xs text-zinc-400 line-through">
@@ -434,10 +434,10 @@ export default async function UnitDetailPage({
               {nightly != null && (
                 <div className="flex items-baseline justify-between gap-3">
                   <div>
-                    <p className="tnum text-xl font-semibold text-brass-500 dark:text-brass-300">
+                    <p className="tnum text-xl font-semibold text-coral-500 dark:text-coral-300">
                       {money(discounted(nightly) ?? nightly, unit.currency)}
                     </p>
-                    <p className="text-[11px] text-zinc-500">per night</p>
+                    <p className="text-[11px] text-taupe-500">per night</p>
                   </div>
                   {discounted(nightly) != null && (
                     <p className="tnum text-xs text-zinc-400 line-through">
@@ -450,7 +450,7 @@ export default async function UnitDetailPage({
 
             <div className="my-4 border-t border-zinc-100 dark:border-white/[0.06]" />
 
-            <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+            <p className="text-xs leading-relaxed text-taupe-500 dark:text-zinc-400">
               Up to {unit.maxGuests} guests.{' '}
               {unit.instantBook
                 ? 'Confirms immediately once paid.'
@@ -459,7 +459,7 @@ export default async function UnitDetailPage({
 
             <Link
               href={`/book/${unit.id}`}
-              className="mt-4 block rounded-lg bg-brass-500 px-4 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-brass-600 dark:bg-brass-600 dark:hover:bg-brass-500"
+              className="mt-4 block rounded-lg bg-coral-500 px-4 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-coral-600 dark:bg-coral-600 dark:hover:bg-coral-500"
             >
               Book this stay
             </Link>

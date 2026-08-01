@@ -29,7 +29,7 @@ const BLOCKER_LABELS: Record<string, string> = {
 function Field({ label, value }: { label: string; value: string | null }) {
   return (
     <div>
-      <dt className="text-xs uppercase tracking-wide text-zinc-500">{label}</dt>
+      <dt className="text-xs uppercase tracking-wide text-taupe-500">{label}</dt>
       <dd className={value ? 'mt-0.5 text-sm' : 'mt-0.5 text-sm text-zinc-400'}>
         {value ?? '— not provided —'}
       </dd>
@@ -59,7 +59,7 @@ export default async function ModerationDetailPage({
       <div>
         <Link
           href="/admin/moderation"
-          className="text-sm text-zinc-500 underline underline-offset-4"
+          className="text-sm text-taupe-500 underline underline-offset-4"
         >
           ← Back to the queue
         </Link>
@@ -68,7 +68,7 @@ export default async function ModerationDetailPage({
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold">{property.name}</h1>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+          <p className="mt-1 text-sm text-taupe-500 dark:text-zinc-400">
             {property.propertyType} · {property.city}
             {property.district ? `, ${property.district}` : ''} ·{' '}
             {property.unitCount} unit{property.unitCount === 1 ? '' : 's'} ·
@@ -130,7 +130,7 @@ export default async function ModerationDetailPage({
               {units.length === 1 ? '' : 's'})
             </SectionTitle>
             {units.length === 0 ? (
-              <p className="rounded-lg border border-dashed border-zinc-300 px-4 py-8 text-center text-sm text-zinc-500 dark:border-zinc-700">
+              <p className="rounded-lg border border-dashed border-zinc-300 px-4 py-8 text-center text-sm text-taupe-500 dark:border-zinc-700">
                 This listing has no units.
               </p>
             ) : (
@@ -139,7 +139,7 @@ export default async function ModerationDetailPage({
                   <li key={unit.unitId}>
                     <div className="flex flex-wrap items-baseline gap-x-3 text-sm">
                       <span className="font-medium">{unit.name}</span>
-                      <span className="text-xs text-zinc-500">
+                      <span className="text-xs text-taupe-500">
                         {unit.unitType} · sleeps {unit.maxGuests} · {unit.status}
                       </span>
                     </div>
@@ -170,7 +170,7 @@ export default async function ModerationDetailPage({
           <section>
             <SectionTitle>Documents ({documents.length})</SectionTitle>
             {documents.length === 0 ? (
-              <p className="rounded-lg border border-dashed border-zinc-300 px-4 py-8 text-center text-sm text-zinc-500 dark:border-zinc-700">
+              <p className="rounded-lg border border-dashed border-zinc-300 px-4 py-8 text-center text-sm text-taupe-500 dark:border-zinc-700">
                 No documents uploaded.
               </p>
             ) : (
@@ -189,7 +189,7 @@ export default async function ModerationDetailPage({
                         <h3 className="text-sm font-semibold">
                           {DOC_LABELS[doc.documentType] ?? doc.documentType}
                         </h3>
-                        <div className="flex items-center gap-3 text-xs text-zinc-500">
+                        <div className="flex items-center gap-3 text-xs text-taupe-500">
                           {expired ? (
                             <span className="font-medium text-red-600 dark:text-red-400">
                               Expired {doc.expiresOn}
@@ -235,7 +235,7 @@ export default async function ModerationDetailPage({
           <section>
             <SectionTitle>Decision history</SectionTitle>
             {history.length === 0 ? (
-              <p className="text-sm text-zinc-500">
+              <p className="text-sm text-taupe-500">
                 No decisions recorded yet.
               </p>
             ) : (
@@ -248,7 +248,7 @@ export default async function ModerationDetailPage({
                     <span className="font-medium">
                       {event.fromStatus ?? '—'} → {event.toStatus}
                     </span>
-                    <span className="text-xs text-zinc-500">
+                    <span className="text-xs text-taupe-500">
                       {event.actorType} · {dateTime(event.createdAt)}
                     </span>
                     {event.reasonCode ? (
@@ -267,7 +267,7 @@ export default async function ModerationDetailPage({
         <aside className="lg:sticky lg:top-6 lg:self-start">
           <div className="rounded-lg border border-zinc-200 p-5 dark:border-zinc-800">
             <h2 className="text-sm font-semibold">Decision</h2>
-            <p className="mt-1 text-xs text-zinc-500">
+            <p className="mt-1 text-xs text-taupe-500">
               Recorded permanently against this listing.
             </p>
             <div className="mt-4">

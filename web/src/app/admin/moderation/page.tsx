@@ -35,7 +35,7 @@ export default async function ModerationQueuePage({
     <div className="space-y-8">
       <header>
         <h1 className="text-xl font-semibold">Listing review</h1>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="mt-1 text-sm text-taupe-500 dark:text-zinc-400">
           Nothing reaches the public map until it clears this queue. Check the
           title deed against the National Address, and the permit against the
           Ministry of Tourism register.
@@ -77,7 +77,7 @@ export default async function ModerationQueuePage({
         </SectionTitle>
 
         {items.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-zinc-300 px-4 py-10 text-center text-sm text-zinc-500 dark:border-zinc-700">
+          <p className="rounded-lg border border-dashed border-zinc-300 px-4 py-10 text-center text-sm text-taupe-500 dark:border-zinc-700">
             Nothing here. {status === 'PENDING_APPROVAL' ? 'The queue is clear.' : null}
           </p>
         ) : (
@@ -96,11 +96,11 @@ export default async function ModerationQueuePage({
             rows={items.map((item) => [
               <div key="n">
                 <div className="font-medium">{item.name}</div>
-                <div className="text-xs text-zinc-500">{item.propertyType}</div>
+                <div className="text-xs text-taupe-500">{item.propertyType}</div>
               </div>,
               <div key="h">
                 <div>{item.hostDisplayName}</div>
-                <div className="text-xs text-zinc-500">
+                <div className="text-xs text-taupe-500">
                   KYC {item.hostKycStatus.toLowerCase().replace('_', ' ')}
                 </div>
               </div>,
@@ -109,7 +109,7 @@ export default async function ModerationQueuePage({
                   {item.city}
                   {item.district ? `, ${item.district}` : ''}
                 </div>
-                <div className="font-mono text-xs text-zinc-500">
+                <div className="font-mono text-xs text-taupe-500">
                   {item.nationalShortAddress ?? '— no National Address —'}
                 </div>
               </div>,
@@ -136,7 +136,7 @@ export default async function ModerationQueuePage({
                   {item.blockers.length === 1 ? '' : 's'}
                 </span>
               ),
-              <span key="s" className="text-xs text-zinc-500">
+              <span key="s" className="text-xs text-taupe-500">
                 {dateTime(item.submittedAt)}
               </span>,
               <Link

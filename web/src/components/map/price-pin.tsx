@@ -40,10 +40,10 @@ export function PricePin({
         // Selected wins over deal styling: the user's own choice should be the
         // most prominent thing on the map, not the marketing.
         selected
-          ? 'z-20 scale-110 bg-slate-deep-900 text-white ring-slate-deep-900'
+          ? 'z-20 scale-110 bg-ink-900 text-white ring-ink-900'
           : hasDeal
-            ? 'z-10 bg-sandgold-500 text-slate-deep-900 ring-sandgold-600'
-            : 'bg-white text-slate-deep-900 ring-black/10 dark:bg-slate-deep-900 dark:text-white dark:ring-white/20',
+            ? 'z-10 bg-star-500 text-ink-900 ring-star-500'
+            : 'bg-white text-ink-900 ring-black/10 dark:bg-ink-900 dark:text-white dark:ring-white/20',
         hasDeal && !selected ? 'lc-deal-pulse' : '',
       ].join(' ')}
     >
@@ -79,13 +79,13 @@ export function PinPreviewCard({
       onFocus={() => onSelect(pin.unitId)}
       className={[
         'block w-64 shrink-0 overflow-hidden rounded-xl border bg-white transition',
-        'dark:bg-slate-deep-900',
+        'dark:bg-ink-900',
         selected
-          ? 'border-terracotta-500 ring-2 ring-terracotta-500/40'
-          : 'border-black/10 hover:border-terracotta-300 dark:border-white/10',
+          ? 'border-coral-500 ring-2 ring-coral-500/40'
+          : 'border-black/10 hover:border-coral-300 dark:border-white/10',
       ].join(' ')}
     >
-      <div className="relative h-32 w-full bg-sandgold-100 dark:bg-slate-deep-700">
+      <div className="relative h-32 w-full bg-sand-100 dark:bg-ink-700">
         {pin.photos[0] ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -98,7 +98,7 @@ export function PinPreviewCard({
           <div className="lc-nabataean h-full w-full" aria-hidden="true" />
         )}
         {pin.deal ? (
-          <span className="absolute left-2 top-2 rounded-full bg-sandgold-500 px-2 py-0.5 text-[10px] font-bold text-slate-deep-900">
+          <span className="absolute left-2 top-2 rounded-full bg-star-500 px-2 py-0.5 text-[10px] font-bold text-ink-900">
             −{pin.deal.discountPct}% flash deal
           </span>
         ) : null}
@@ -106,7 +106,7 @@ export function PinPreviewCard({
 
       <div className="space-y-1 p-3">
         <p className="truncate text-sm font-medium">{pin.propertyName}</p>
-        <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
+        <p className="truncate text-xs text-taupe-500 dark:text-zinc-400">
           {pin.unitName} · {pin.city}
           {pin.district ? `, ${pin.district}` : ''}
         </p>
@@ -119,10 +119,10 @@ export function PinPreviewCard({
           <span className="font-semibold tabular-nums">
             {formatPinPrice(pin.priceMinor, pin.currency)}
           </span>
-          <span className="text-xs text-zinc-500"> / {perUnit}</span>
+          <span className="text-xs text-taupe-500"> / {perUnit}</span>
         </p>
         {pin.ratingAvg !== null ? (
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-taupe-500">
             ★ {pin.ratingAvg.toFixed(2)}{' '}
             <span className="text-zinc-400">({pin.ratingCount})</span>
           </p>

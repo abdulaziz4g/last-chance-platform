@@ -32,7 +32,7 @@ export default async function AdminOverviewPage({
     <div className="space-y-10">
       <header>
         <h1 className="text-xl font-semibold">Operations overview</h1>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="mt-1 text-sm text-taupe-500 dark:text-zinc-400">
           Live platform state — refreshed on every load.
         </p>
       </header>
@@ -77,14 +77,14 @@ export default async function AdminOverviewPage({
             <Mono key="c">{b.bookingCode}</Mono>,
             b.guestName,
             `${b.propertyName} · ${b.unitName}`,
-            <span key="w" className="text-xs text-zinc-500 dark:text-zinc-400">
+            <span key="w" className="text-xs text-taupe-500 dark:text-zinc-400">
               {timeWindow(b.checkInUtc, b.checkOutUtc)}
             </span>,
             <span key="t" className="tnum font-medium">
               {money(b.totalAmountMinor, b.currency)}
             </span>,
             <StatusChip key="s" status={b.status} />,
-            <span key="d" className="text-xs text-zinc-500">
+            <span key="d" className="text-xs text-taupe-500">
               {dateTime(b.createdAt)}
             </span>,
           ])}

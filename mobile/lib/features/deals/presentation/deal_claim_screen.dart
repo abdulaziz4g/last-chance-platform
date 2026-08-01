@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../app/theme.dart';
+import '../../../app/design_tokens.dart';
 import '../../../core/config.dart';
 import '../../../core/money.dart';
 import '../../booking/application/hold_flow_controller.dart';
@@ -89,7 +89,7 @@ class _DealClaimScreenState extends ConsumerState<DealClaimScreen> {
             ),
           HoldExpired() => HoldNoticeView(
               icon: Icons.hourglass_disabled,
-              color: LcColors.danger,
+              color: LcStatus.danger,
               title: 'Hold expired',
               body: 'The 10-minute window lapsed and the unit was released.',
               actionLabel: 'Back to deals',
@@ -99,7 +99,7 @@ class _DealClaimScreenState extends ConsumerState<DealClaimScreen> {
               icon: code == 'FLASH_DEAL_SOLD_OUT'
                   ? Icons.local_fire_department
                   : Icons.error_outline,
-              color: LcColors.danger,
+              color: LcStatus.danger,
               title: switch (code) {
                 'FLASH_DEAL_SOLD_OUT' => 'Just sold out',
                 'UNIT_UNAVAILABLE' => 'That slot is taken',
@@ -165,7 +165,7 @@ class _Offer extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11,
                     letterSpacing: 2,
-                    color: LcColors.brass300,
+                    color: LcBrand.coral,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -177,7 +177,7 @@ class _Offer extends StatelessWidget {
                   '${deal.unitName} · ${deal.city}',
                   style: TextStyle(
                     fontSize: 13,
-                    color: Colors.white.withValues(alpha: 0.6),
+                    color: LcBrand.muted,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -190,7 +190,7 @@ class _Offer extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.w700,
-                          color: LcColors.brass300,
+                          color: LcBrand.coral,
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -201,7 +201,7 @@ class _Offer extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 15,
                             decoration: TextDecoration.lineThrough,
-                            color: Colors.white.withValues(alpha: 0.4),
+                            color: LcBrand.muted,
                           ),
                         ),
                       ),
@@ -211,7 +211,7 @@ class _Offer extends StatelessWidget {
                           deal.isHourly ? ' / hour' : ' / night',
                           style: TextStyle(
                             fontSize: 13,
-                            color: Colors.white.withValues(alpha: 0.5),
+                            color: LcBrand.muted,
                           ),
                         ),
                       ),
@@ -222,7 +222,7 @@ class _Offer extends StatelessWidget {
                   '${deal.quantityRemaining} of ${deal.quantityTotal} discounted spots left',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.white.withValues(alpha: 0.6),
+                    color: LcBrand.muted,
                   ),
                 ),
               ],
@@ -235,7 +235,7 @@ class _Offer extends StatelessWidget {
           style: TextStyle(
             fontSize: 11,
             letterSpacing: 2,
-            color: Colors.white.withValues(alpha: 0.5),
+            color: LcBrand.muted,
           ),
         ),
         const SizedBox(height: 10),
@@ -256,7 +256,7 @@ class _Offer extends StatelessWidget {
                     '${_fmtTime(ci)} – ${_fmtTime(co)} UTC',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.white.withValues(alpha: 0.6),
+                      color: LcBrand.muted,
                     ),
                   ),
                 ],
@@ -275,7 +275,7 @@ class _Offer extends StatelessWidget {
             child: Text(
               'Set --dart-define=LC_GUEST_ID to reserve in this dev build.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.5)),
+              style: TextStyle(fontSize: 12, color: LcBrand.muted),
             ),
           ),
         FilledButton(
@@ -286,7 +286,7 @@ class _Offer extends StatelessWidget {
         Text(
           'A 10-minute hold is placed; no charge until you pay.',
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.45)),
+          style: TextStyle(fontSize: 12, color: LcBrand.muted),
         ),
       ],
     );

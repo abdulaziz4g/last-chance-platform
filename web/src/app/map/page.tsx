@@ -13,13 +13,13 @@ export default function MapPage() {
       <GuestHeader area="Map">
         <Link
           href="/discover"
-          className="text-sm whitespace-nowrap text-zinc-500 transition-colors hover:text-terracotta-500 dark:text-zinc-400 dark:hover:text-terracotta-400"
+          className="text-sm whitespace-nowrap text-taupe-500 transition-colors hover:text-coral-500 dark:text-zinc-400 dark:hover:text-coral-400"
         >
           List view
         </Link>
         <Link
           href="/bookings"
-          className="text-sm whitespace-nowrap text-zinc-500 transition-colors hover:text-brass-500 dark:text-zinc-400 dark:hover:text-brass-400"
+          className="text-sm whitespace-nowrap text-taupe-500 transition-colors hover:text-coral-500 dark:text-zinc-400 dark:hover:text-coral-400"
         >
           My bookings
         </Link>
@@ -27,7 +27,7 @@ export default function MapPage() {
 
       <div className="pb-4">
         <h1 className="text-xl font-semibold">Stays around AlUla</h1>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="mt-1 text-sm text-taupe-500 dark:text-zinc-400">
           Pan the map to search this area. Gold pins are live flash deals.
         </p>
       </div>

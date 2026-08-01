@@ -58,11 +58,11 @@ export function DealStrip({ deals }: { deals: FlashDealView[] }) {
         <span
           className={`inline-flex h-2 w-2 rounded-full ${
             status === 'live'
-              ? 'animate-pulse bg-brass-400'
+              ? 'animate-pulse bg-coral-400'
               : 'bg-zinc-300 dark:bg-zinc-700'
           }`}
         />
-        <h2 className="text-[11px] font-semibold uppercase tracking-[0.24em] text-brass-500 dark:text-brass-400">
+        <h2 className="text-[11px] font-semibold uppercase tracking-[0.24em] text-coral-500 dark:text-coral-400">
           Flash deals{status === 'live' ? ' · live' : ''}
         </h2>
       </div>
@@ -79,22 +79,22 @@ export function DealStrip({ deals }: { deals: FlashDealView[] }) {
           return (
             <div
               key={d.id}
-              className="min-w-[240px] shrink-0 rounded-2xl border border-brass-400/30 bg-gradient-to-b from-brass-400/[0.08] to-transparent p-4 dark:border-brass-500/25"
+              className="min-w-[240px] shrink-0 rounded-card border border-coral-400/30 bg-gradient-to-b from-coral-400/[0.08] to-transparent p-4 dark:border-coral-500/25"
             >
               <div className="flex items-start justify-between">
                 <p className="text-sm font-semibold">{d.propertyName}</p>
-                <span className="rounded-full bg-brass-400 px-2 py-0.5 text-[11px] font-bold text-ink-950">
+                <span className="rounded-full bg-coral-400 px-2 py-0.5 text-[11px] font-bold text-ink-950">
                   −{d.discountPct}%
                 </span>
               </div>
-              <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+              <p className="mt-0.5 text-xs text-taupe-500 dark:text-zinc-400">
                 {d.unitName} · {d.city}
               </p>
               <div className="mt-3 flex items-end justify-between">
                 <div>
                   {netRate != null && rate != null ? (
                     <p className="tnum">
-                      <span className="text-base font-semibold text-brass-500 dark:text-brass-300">
+                      <span className="text-base font-semibold text-coral-500 dark:text-coral-300">
                         {money(netRate, d.currency)}
                       </span>
                       <span className="ml-1.5 text-xs text-zinc-400 line-through">
@@ -106,7 +106,7 @@ export function DealStrip({ deals }: { deals: FlashDealView[] }) {
                     className={`mt-0.5 text-[11px] ${
                       soldOut
                         ? 'font-medium text-rose-500'
-                        : 'text-zinc-500'
+                        : 'text-taupe-500'
                     }`}
                   >
                     {soldOut
@@ -126,7 +126,7 @@ export function DealStrip({ deals }: { deals: FlashDealView[] }) {
               {secondsLeft > 0 && !soldOut && (
                 <Link
                   href={`/deals/${d.id}/claim`}
-                  className="mt-3 block rounded-lg bg-brass-500 px-3 py-1.5 text-center text-xs font-semibold text-white transition-colors hover:bg-brass-600 dark:bg-brass-600 dark:hover:bg-brass-500"
+                  className="mt-3 block rounded-lg bg-coral-500 px-3 py-1.5 text-center text-xs font-semibold text-white transition-colors hover:bg-coral-600 dark:bg-coral-600 dark:hover:bg-coral-500"
                 >
                   Claim deal
                 </Link>

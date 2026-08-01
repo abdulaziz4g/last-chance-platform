@@ -18,7 +18,7 @@ export function PhotoGallery({
 }) {
   if (photos.length === 0) {
     return (
-      <div className="mb-8 flex h-40 items-center justify-center rounded-2xl border border-dashed border-zinc-200 text-xs text-zinc-400 dark:border-white/[0.08] dark:text-zinc-600">
+      <div className="mb-8 flex h-40 items-center justify-center rounded-card border border-dashed border-zinc-200 text-xs text-zinc-400 dark:border-white/[0.08] dark:text-zinc-600">
         No photos yet
       </div>
     );
@@ -30,7 +30,7 @@ export function PhotoGallery({
   return (
     <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
       <div
-        className={`relative aspect-[4/3] overflow-hidden rounded-2xl bg-zinc-100 dark:bg-white/[0.04] ${
+        className={`relative aspect-[4/3] overflow-hidden rounded-card bg-zinc-100 dark:bg-white/[0.04] ${
           secondary.length === 0 ? 'sm:col-span-2' : ''
         }`}
       >
@@ -53,7 +53,7 @@ export function PhotoGallery({
           {secondary.map((src, i) => (
             <div
               key={src}
-              className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-zinc-100 dark:bg-white/[0.04]"
+              className="relative aspect-[4/3] overflow-hidden rounded-card bg-zinc-100 dark:bg-white/[0.04]"
             >
               <Image
                 src={src}

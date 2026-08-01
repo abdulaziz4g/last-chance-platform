@@ -23,6 +23,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   mapbox_maps_flutter: ^2.27.0
+  google_fonts: ^8.2.1
 
 dev_dependencies:
   flutter_test:

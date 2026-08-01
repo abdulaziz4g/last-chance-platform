@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../app/design_tokens.dart';
 import '../../../app/l10n.dart';
 import '../../../core/money.dart';
 import '../../booking/domain/booking.dart';
@@ -50,13 +51,14 @@ class PinDetailSheet extends StatelessWidget {
         child: Material(
         // From the theme, never a hardcoded Colors.white: this app ships a
         // dark theme, so a white sheet would be an unreadable slab of glare.
-        color: theme.colorScheme.surfaceContainer,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        color: LcBrand.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(LcRadius.card)),
         clipBehavior: Clip.antiAlias,
         child: SafeArea(
           top: false,
           child: Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 16),
+            padding: const EdgeInsetsDirectional.fromSTEB(
+              LcSpacing.screenPadding, 12, LcSpacing.screenPadding, LcSpacing.screenPadding),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -102,13 +104,13 @@ class PinDetailSheet extends StatelessWidget {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFD4A359),
-                          borderRadius: BorderRadius.circular(999),
+                          color: LcBrand.star,
+                          borderRadius: LcRadius.pillBorder,
                         ),
                         child: Text(
                           strings.discountBadge(pin.deal!.discountPct),
                           style: theme.textTheme.labelSmall?.copyWith(
-                            color: const Color(0xFF1E232A),
+                            color: LcBrand.text,
                             fontWeight: FontWeight.w700,
                           ),
                         ),

@@ -54,26 +54,26 @@ export function PayForm({
       <input type="hidden" name="bookingId" value={bookingId} />
       <input type="hidden" name="unitId" value={unitId} />
 
-      <fieldset className="space-y-3 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-white/[0.06] dark:bg-ink-900">
-        <legend className="px-2 text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+      <fieldset className="space-y-3 rounded-card border border-zinc-200 bg-white p-5 dark:border-white/[0.06] dark:bg-ink-900">
+        <legend className="px-2 text-xs font-medium uppercase tracking-wider text-taupe-500 dark:text-zinc-400">
           Payment method
         </legend>
 
         {methods.map((m, i) => (
           <label
             key={m.value}
-            className="flex cursor-pointer items-center gap-3 rounded-lg border border-zinc-200 px-4 py-3 transition-colors hover:border-brass-400 has-[:checked]:border-brass-500 has-[:checked]:bg-brass-500/5 dark:border-white/[0.08] dark:hover:border-brass-500 dark:has-[:checked]:border-brass-500"
+            className="flex cursor-pointer items-center gap-3 rounded-lg border border-zinc-200 px-4 py-3 transition-colors hover:border-coral-400 has-[:checked]:border-coral-500 has-[:checked]:bg-coral-500/5 dark:border-white/[0.08] dark:hover:border-coral-500 dark:has-[:checked]:border-coral-500"
           >
             <input
               type="radio"
               name="method"
               value={m.value}
               defaultChecked={i === 0}
-              className="accent-brass-500"
+              className="accent-coral-500"
             />
             <div>
               <p className="text-sm font-medium">{m.label}</p>
-              <p className="text-[11px] text-zinc-500">{m.hint}</p>
+              <p className="text-[11px] text-taupe-500">{m.hint}</p>
             </div>
           </label>
         ))}
@@ -82,7 +82,7 @@ export function PayForm({
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-lg bg-brass-500 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-brass-600 disabled:opacity-50 dark:bg-brass-600 dark:hover:bg-brass-500"
+        className="w-full rounded-lg bg-coral-500 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-coral-600 disabled:opacity-50 dark:bg-coral-600 dark:hover:bg-coral-500"
       >
         {pending
           ? 'Processing payment...'

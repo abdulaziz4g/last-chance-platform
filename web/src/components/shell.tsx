@@ -44,7 +44,7 @@ export function Shell({
             <span className="block truncate text-[15px] font-semibold tracking-[0.2em] sm:tracking-[0.32em]">
               LAST&nbsp;CHANCE
             </span>
-            <span className="mt-1 block truncate text-[10px] font-medium uppercase tracking-[0.18em] text-brass-500 sm:tracking-[0.24em] dark:text-brass-400">
+            <span className="mt-1 block truncate text-[10px] font-medium uppercase tracking-[0.18em] text-coral-500 sm:tracking-[0.24em] dark:text-coral-400">
               {area}
             </span>
           </Link>
@@ -73,7 +73,7 @@ export function Shell({
           <ThemeToggle />
           {userEmail && (
             <div className="space-y-1">
-              <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
+              <p className="truncate text-xs text-taupe-500 dark:text-zinc-400">
                 {userEmail}
               </p>
               {signOut}

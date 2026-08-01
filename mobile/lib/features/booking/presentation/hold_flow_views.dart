@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../app/theme.dart';
+import '../../../app/design_tokens.dart';
 import '../../../core/money.dart';
 import '../domain/booking.dart';
 import 'hold_countdown.dart';
@@ -69,7 +69,7 @@ class HoldActiveView extends StatelessWidget {
         Text(
           booking.bookingCode,
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.4)),
+          style: TextStyle(fontSize: 12, color: LcBrand.muted),
         ),
       ],
     );
@@ -84,7 +84,7 @@ class HoldActiveView extends StatelessWidget {
     final style = TextStyle(
       fontSize: emphasized ? 17 : 14,
       fontWeight: emphasized ? FontWeight.w600 : FontWeight.w400,
-      color: accent ? LcColors.brass300 : null,
+      color: accent ? LcBrand.coral : null,
     );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -110,7 +110,7 @@ class HoldConfirmedView extends StatelessWidget {
   Widget build(BuildContext context) {
     return HoldNoticeView(
       icon: Icons.check_circle_outline,
-      color: LcColors.success,
+      color: LcStatus.success,
       title: 'Booking confirmed',
       body: 'Reference ${booking.bookingCode}. Check-in details and your '
           'digital key arrive before the stay.',
@@ -155,7 +155,7 @@ class HoldNoticeView extends StatelessWidget {
         Text(
           body,
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 14, color: Colors.white.withValues(alpha: 0.6)),
+          style: TextStyle(fontSize: 14, color: LcBrand.muted),
         ),
         const Spacer(),
         FilledButton(onPressed: onAction, child: Text(actionLabel)),

@@ -54,7 +54,7 @@ export default async function MyBookingsPage({
       <GuestHeader area="My bookings">
         <Link
           href="/discover"
-          className="text-sm whitespace-nowrap text-brass-500 transition-colors hover:text-brass-600 dark:text-brass-400 dark:hover:text-brass-300"
+          className="text-sm whitespace-nowrap text-coral-500 transition-colors hover:text-coral-600 dark:text-coral-400 dark:hover:text-coral-300"
         >
           Discover →
         </Link>
@@ -66,10 +66,10 @@ export default async function MyBookingsPage({
 
       {bookings.length === 0 ? (
         <Card className="px-6 py-16 text-center">
-          <p className="text-zinc-500 dark:text-zinc-400">No bookings yet.</p>
+          <p className="text-taupe-500 dark:text-zinc-400">No bookings yet.</p>
           <Link
             href="/discover"
-            className="mt-3 inline-block text-sm text-brass-500 hover:text-brass-600 dark:text-brass-400"
+            className="mt-3 inline-block text-sm text-coral-500 hover:text-coral-600 dark:text-coral-400"
           >
             Browse stays →
           </Link>
@@ -81,7 +81,7 @@ export default async function MyBookingsPage({
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <Mono>{b.bookingCode}</Mono>
-                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                  <p className="mt-1 text-xs text-taupe-500 dark:text-zinc-400">
                     {b.bookingType} · {b.guestsCount} {b.guestsCount === 1 ? 'guest' : 'guests'}
                   </p>
                 </div>
@@ -90,11 +90,11 @@ export default async function MyBookingsPage({
 
               <div className="mt-3 flex items-end justify-between text-sm">
                 <div>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  <p className="text-xs text-taupe-500 dark:text-zinc-400">
                     <LocalTimeWindow fromIso={b.checkInUtc} toIso={b.checkOutUtc} />
                   </p>
                 </div>
-                <p className="tnum font-semibold text-brass-500 dark:text-brass-300">
+                <p className="tnum font-semibold text-coral-500 dark:text-coral-300">
                   {money(b.totalAmountMinor, b.currency)}
                 </p>
               </div>
@@ -104,7 +104,7 @@ export default async function MyBookingsPage({
                   {b.status === 'PENDING_PAYMENT' && (
                     <Link
                       href={`/book/${b.unitId}/pay?bookingId=${b.id}`}
-                      className="block text-xs font-medium text-brass-500 hover:text-brass-600 dark:text-brass-400"
+                      className="block text-xs font-medium text-coral-500 hover:text-coral-600 dark:text-coral-400"
                     >
                       Complete payment →
                     </Link>

@@ -115,7 +115,7 @@ export function MapExplorer({
               aria-pressed={bookingType === t}
               className={
                 bookingType === t
-                  ? 'rounded-full bg-terracotta-500 px-3 py-1 text-xs font-semibold text-white'
+                  ? 'rounded-full bg-coral-500 px-3 py-1 text-xs font-semibold text-white'
                   : 'rounded-full px-3 py-1 text-xs text-zinc-600 dark:text-zinc-300'
               }
             >
@@ -124,7 +124,7 @@ export function MapExplorer({
           ))}
         </div>
 
-        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+        <p className="text-xs text-taupe-500 dark:text-zinc-400">
           {loading
             ? 'Searching this area…'
             : `${pins.length} stay${pins.length === 1 ? '' : 's'} in view`}
@@ -137,7 +137,7 @@ export function MapExplorer({
           <button
             type="button"
             onClick={() => setView(view === 'map' ? 'list' : 'map')}
-            className="rounded-full bg-slate-deep-900 px-4 py-1.5 text-xs font-semibold text-white dark:bg-white dark:text-slate-deep-900"
+            className="rounded-full bg-ink-900 px-4 py-1.5 text-xs font-semibold text-white dark:bg-white dark:text-ink-900"
           >
             {view === 'map' ? 'Show list' : 'Show map'}
           </button>
@@ -147,7 +147,7 @@ export function MapExplorer({
       {error ? (
         <p
           role="status"
-          className="mb-3 rounded-lg border border-terracotta-500/40 bg-terracotta-50 px-3 py-2 text-sm text-terracotta-900 dark:bg-terracotta-900/30 dark:text-terracotta-100"
+          className="mb-3 rounded-lg border border-coral-500/40 bg-coral-50 px-3 py-2 text-sm text-coral-900 dark:bg-coral-900/30 dark:text-coral-100"
         >
           {error}
         </p>
@@ -201,7 +201,7 @@ export function MapExplorer({
           ].join(' ')}
         >
           {pins.length === 0 && !loading ? (
-            <p className="rounded-lg border border-dashed border-zinc-300 px-4 py-10 text-center text-sm text-zinc-500 dark:border-zinc-700">
+            <p className="rounded-lg border border-dashed border-zinc-300 px-4 py-10 text-center text-sm text-taupe-500 dark:border-zinc-700">
               No stays in this area yet. Try panning out.
             </p>
           ) : null}
@@ -221,7 +221,7 @@ export function MapExplorer({
       </div>
 
       {selectedPin ? (
-        <p className="pt-2 text-xs text-zinc-500 dark:text-zinc-400">
+        <p className="pt-2 text-xs text-taupe-500 dark:text-zinc-400">
           Showing an approximate {selectedPin.privacyRadiusMetres} m area — the
           exact address is shared once your booking is confirmed.
         </p>
