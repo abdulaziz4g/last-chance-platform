@@ -21,6 +21,10 @@ class ApiException implements Exception {
   bool get isSoldOut => code == 'FLASH_DEAL_SOLD_OUT';
   bool get isNetwork => code == 'NETWORK';
 
+  /// We abandoned this request ourselves. Callers must swallow it rather than
+  /// surfacing anything — there is nothing for the user to act on.
+  bool get isCancelled => code == 'CANCELLED';
+
   @override
   String toString() => 'ApiException($code: $message)';
 }
@@ -30,6 +34,16 @@ Future<T> guardApi<T>(Future<T> Function() fn) async {
   try {
     return await fn();
   } on DioException catch (e) {
+    // A deliberately cancelled request is not a failure. Without this it fell
+    // through to code 'NETWORK', so every superseded map pan would have shown
+    // the user a connection error for a request we abandoned on purpose.
+    if (e.type == DioExceptionType.cancel) {
+      throw const ApiException(
+        code: 'CANCELLED',
+        message: 'Request superseded',
+      );
+    }
+
     final data = e.response?.data;
     if (data is Map<String, dynamic>) {
       final error = data['error'];
