@@ -87,6 +87,48 @@ class LcStrings {
         'خرائط Mapbox تحتاج إلى رمز وصول. الدبابيس والأسعار تعمل.',
         'Map tiles need a Mapbox token. Pins and pricing are live.',
       );
+
+  // ---- search & filter overlay ---------------------------------------------
+
+  String get filters => _pick('عوامل التصفية', 'Filters');
+  String get filterDates => _pick('التواريخ', 'Dates');
+  String get filterGuests => _pick('الضيوف', 'Guests');
+  String get filterPrice => _pick('السعر', 'Price');
+  String get anyDates => _pick('أي تاريخ', 'Any dates');
+  String get anyGuests => _pick('أي عدد', 'Any');
+  String get anyPrice => _pick('أي سعر', 'Any price');
+  String get applyFilters => _pick('عرض النتائج', 'Show results');
+  String get clearAll => _pick('مسح الكل', 'Clear all');
+  String get minPrice => _pick('الأدنى', 'Min');
+  String get maxPrice => _pick('الأقصى', 'Max');
+
+  /// The availability toggle's meaning, stated as what it does rather than as
+  /// a bare label: "Available" alone reads as a status of the listing, not as
+  /// a filter on the dates the guest picked.
+  String get onlyAvailable =>
+      _pick('المتاح في هذه التواريخ فقط', 'Only stays free on these dates');
+
+  /// Why the toggle is disabled. A control that cannot be used and does not
+  /// say why reads as a bug.
+  String get availabilityNeedsDates => _pick(
+        'اختر تواريخ لتصفية النتائج حسب التوفر',
+        'Pick dates to filter by availability',
+      );
+
+  String get priceRangeInverted => _pick(
+        'الحد الأقصى يجب أن يكون أكبر من الحد الأدنى',
+        'The maximum must be at least the minimum',
+      );
+
+  String guestsCount(int count) => _pick(
+        '$count ضيوف',
+        '$count ${count == 1 ? 'guest' : 'guests'}',
+      );
+
+  String filtersActive(int count) => _pick(
+        '$count عامل تصفية',
+        '$count ${count == 1 ? 'filter' : 'filters'}',
+      );
 }
 
 class _LcStringsDelegate extends LocalizationsDelegate<LcStrings> {

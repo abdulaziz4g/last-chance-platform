@@ -14,6 +14,8 @@ class MapSearchQuery {
     this.checkInUtc,
     this.checkOutUtc,
     this.guests,
+    this.minPriceMinor,
+    this.maxPriceMinor,
     this.limit,
   });
 
@@ -22,6 +24,12 @@ class MapSearchQuery {
   final DateTime? checkInUtc;
   final DateTime? checkOutUtc;
   final int? guests;
+
+  /// Minor units, matched against the discounted price the pin displays. Null
+  /// means unbounded on that side; 0 is a real floor and must survive the trip.
+  final int? minPriceMinor;
+  final int? maxPriceMinor;
+
   final int? limit;
 
   /// True when a date range is fully specified. Sending half a range makes the
@@ -42,6 +50,10 @@ class MapSearchQuery {
       params['check_out_utc'] = checkOutUtc!.toUtc().toIso8601String();
     }
     if (guests != null) params['guests'] = guests;
+    // `!= null`, never a truthiness check: a 0 floor is a filter the guest set
+    // deliberately, and dropping it would quietly widen their search.
+    if (minPriceMinor != null) params['min_price_minor'] = minPriceMinor;
+    if (maxPriceMinor != null) params['max_price_minor'] = maxPriceMinor;
     if (limit != null) params['limit'] = limit;
     return params;
   }

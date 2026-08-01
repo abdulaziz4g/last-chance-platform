@@ -7,6 +7,7 @@ import 'package:lastchance_mobile/app/l10n.dart';
 import 'package:lastchance_mobile/app/theme.dart';
 import 'package:lastchance_mobile/features/map/data/map_repository.dart';
 import 'package:lastchance_mobile/features/map/domain/map_pin.dart';
+import 'package:lastchance_mobile/features/map/presentation/filter_sheet.dart';
 import 'package:lastchance_mobile/features/map/presentation/map_screen.dart';
 import 'package:lastchance_mobile/features/map/presentation/pin_detail_sheet.dart';
 import 'package:lastchance_mobile/features/map/presentation/tile_layer.dart';
@@ -80,6 +81,19 @@ Future<void> pumpMap(
   );
   await tester.pumpAndSettle();
 }
+
+/// Controls inside the filter sheet, scoped so they cannot collide with the
+/// map's own — the zoom control and the guest stepper both use Icons.add, and
+/// the detail sheet also carries a FilledButton.
+Finder addGuestButton() => find.descendant(
+      of: find.byType(MapFilterSheet),
+      matching: find.byIcon(Icons.add),
+    );
+
+Finder applyButton() => find.descendant(
+      of: find.byType(MapFilterSheet),
+      matching: find.byType(FilledButton),
+    );
 
 void main() {
   testWidgets('renders the token-less layer when no token is configured',
@@ -178,5 +192,65 @@ void main() {
     await tester.tap(find.text('By the hour'));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
+  });
+
+  group('filters', () {
+    testWidgets('the filter button opens the overlay', (tester) async {
+      await pumpMap(tester);
+
+      await tester.tap(find.byIcon(Icons.tune));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(MapFilterSheet), findsOneWidget);
+    });
+
+    testWidgets('no filter chip is shown until something is applied',
+        (tester) async {
+      await pumpMap(tester);
+      expect(find.textContaining('filter'), findsNothing);
+    });
+
+    testWidgets('an applied filter shows on the map and clears from there',
+        (tester) async {
+      await pumpMap(tester);
+
+      await tester.tap(find.byIcon(Icons.tune));
+      await tester.pumpAndSettle();
+      // Scoped to the sheet: the map's own zoom control uses Icons.add too,
+      // so a bare byIcon finder matches two widgets.
+      await tester.tap(addGuestButton());
+      await tester.pumpAndSettle();
+      await tester.tap(applyButton());
+      await tester.pumpAndSettle();
+
+      // A guest who filtered, panned away and came back to an empty valley
+      // must be able to see WHY it is empty without reopening the sheet.
+      expect(find.text('1 filter'), findsOneWidget);
+
+      await tester.tap(find.text('1 filter'));
+      await tester.pumpAndSettle();
+      expect(find.text('1 filter'), findsNothing);
+    });
+
+    testWidgets('the filter entry point survives Arabic without overflowing',
+        (tester) async {
+      await pumpMap(tester, locale: const Locale('ar'));
+
+      await tester.tap(find.byIcon(Icons.tune));
+      await tester.pumpAndSettle();
+      await tester.tap(addGuestButton());
+      await tester.pumpAndSettle();
+      await tester.tap(applyButton());
+      await tester.pumpAndSettle();
+
+      // The count chip and the filter chip sit in one bounded row; Arabic
+      // renders both wider, which is exactly when it would overflow.
+      //
+      // Matched on the label alone, not on the full interpolated string: RTL
+      // makes the count APPEAR at the other end, and asserting the rendered
+      // order rather than the stored one is a trap worth not setting.
+      expect(find.textContaining('عامل تصفية'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
   });
 }

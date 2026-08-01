@@ -67,21 +67,21 @@ export class MapSearchRepository {
              v.photos,
              ST_Y(v.approx_location::geometry) AS lat,
              ST_X(v.approx_location::geometry) AS lng,
-             (CASE WHEN $5::boolean THEN v.base_hourly_rate_minor
-                   ELSE v.base_nightly_rate_minor END)::text AS base_price_minor,
-             -- A live deal changes the number ON the pin, not just the styling:
-             -- showing the undiscounted price next to a "deal" badge is the
-             -- kind of detail that reads as dishonest.
-             (round(
-                (CASE WHEN $5::boolean THEN v.base_hourly_rate_minor
-                      ELSE v.base_nightly_rate_minor END)
-                * (1 - COALESCE(d.discount_pct, 0) / 100.0)
-              ))::bigint::text AS effective_price_minor,
+             rate.base_minor::text AS base_price_minor,
+             price.effective_minor::text AS effective_price_minor,
              d.id           AS deal_id,
              d.discount_pct::text AS deal_discount_pct,
              d.ends_at      AS deal_ends_at
         FROM v_public_units v
         CROSS JOIN viewport vp
+        -- The mode's rate, named once. It is needed by the select, by the
+        -- "this unit has a price at all" guard and by the effective-price
+        -- calculation, and three spellings of one CASE is three chances for
+        -- them to disagree about which rate the pin is describing.
+        CROSS JOIN LATERAL (
+              SELECT (CASE WHEN $5::boolean THEN v.base_hourly_rate_minor
+                           ELSE v.base_nightly_rate_minor END) AS base_minor
+        ) rate
         -- Deal join is LATERAL so "the one live deal for this unit" is decided
         -- per row; flash_deals already forbids overlapping live deals per unit,
         -- so LIMIT 1 is belt to that suspenders.
@@ -95,12 +95,24 @@ export class MapSearchRepository {
                ORDER BY fd.discount_pct DESC
                LIMIT 1
         ) d ON true
+        -- A live deal changes the number ON the pin, not just the styling:
+        -- showing the undiscounted price next to a "deal" badge is the kind of
+        -- detail that reads as dishonest. Named here so the price filter below
+        -- and the figure the guest sees are the same expression by
+        -- construction, not by two authors keeping them in step.
+        CROSS JOIN LATERAL (
+              SELECT round(
+                       rate.base_minor * (1 - COALESCE(d.discount_pct, 0) / 100.0)
+                     )::bigint AS effective_minor
+        ) price
        WHERE ST_Intersects(v.approx_location, vp.box)
          AND ($5::boolean IS false OR v.supports_hourly)
          AND ($5::boolean IS true  OR v.supports_nightly)
-         AND (CASE WHEN $5::boolean THEN v.base_hourly_rate_minor
-                   ELSE v.base_nightly_rate_minor END) IS NOT NULL
+         AND rate.base_minor IS NOT NULL
          AND ($6::smallint IS NULL OR v.max_guests >= $6)
+         -- Bounds apply to the discounted price, matching what the pin shows.
+         AND ($10::bigint IS NULL OR price.effective_minor >= $10)
+         AND ($11::bigint IS NULL OR price.effective_minor <= $11)
          -- Availability. Both checks use fn_booking_block_range with the
          -- unit's own turnaround, so search agrees exactly with the EXCLUDE
          -- constraint that will arbitrate the booking. A pin the guest cannot
@@ -132,6 +144,8 @@ export class MapSearchRepository {
         q.checkInUtc ?? null,
         q.checkOutUtc ?? null,
         q.limit,
+        q.minPriceMinor ?? null,
+        q.maxPriceMinor ?? null,
       ],
     );
 

@@ -7,9 +7,18 @@ import '../../booking/domain/booking.dart';
 import '../application/map_search_controller.dart';
 import '../domain/map_pin.dart';
 import '../map_config.dart';
+import 'filter_sheet.dart';
 import 'map_projection.dart';
 import 'pin_detail_sheet.dart';
 import 'tile_layer.dart';
+
+/// The currency to label the price filter with.
+///
+/// Read from what is actually in view rather than assumed to be SAR, so a
+/// viewport in another market does not put the wrong unit on the guest's own
+/// numbers. Falls back only when there is nothing to read.
+String _currencyInView(MapSearchState state) =>
+    state.pins.isEmpty ? 'SAR' : state.pins.first.currency;
 
 /// The map explorer.
 ///
@@ -47,6 +56,23 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       appBar: AppBar(
         title: Text(strings.mapTitle),
         actions: <Widget>[
+          // In the app bar rather than over the map, so it is reachable from
+          // the list view too — the filters narrow both panes, not just the
+          // one with pins on it.
+          IconButton(
+            tooltip: strings.filters,
+            onPressed: () => MapFilterSheet.show(
+              context,
+              initial: state.filters,
+              currency: _currencyInView(state),
+              onApply: notifier.applyFilters,
+            ),
+            icon: Badge.count(
+              count: state.filters.activeCount,
+              isLabelVisible: !state.filters.isEmpty,
+              child: const Icon(Icons.tune),
+            ),
+          ),
           TextButton(
             onPressed: notifier.toggleViewMode,
             child: Text(
@@ -162,13 +188,42 @@ class _MapPane extends StatelessWidget {
             PositionedDirectional(
               top: 12,
               start: 12,
-              child: _Chip(
-                label: state.isLoading
-                    ? strings.searching
-                    : state.truncated
-                        ? '${strings.staysInView(state.pins.length)} — '
-                            '${strings.zoomForAll}'
-                        : strings.staysInView(state.pins.length),
+              // Bounded because the row sits in an expanded Stack with only a
+              // start edge pinned: without a ceiling the count and the filter
+              // chip together run off the end on a narrow phone, and Arabic
+              // renders both wider.
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: size.width - 24),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Flexible(
+                      child: _Chip(
+                        label: state.isLoading
+                            ? strings.searching
+                            : state.truncated
+                                ? '${strings.staysInView(state.pins.length)} — '
+                                    '${strings.zoomForAll}'
+                                : strings.staysInView(state.pins.length),
+                      ),
+                    ),
+                    // Applied filters have to be visible on the map itself. A
+                    // guest who set a price ceiling, panned away and came back
+                    // to an empty valley would otherwise read it as "nothing
+                    // here" rather than "nothing here under your ceiling".
+                    if (!state.filters.isEmpty) ...<Widget>[
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: _FilterChip(
+                          label: strings.filtersActive(
+                            state.filters.activeCount,
+                          ),
+                          onClear: notifier.clearFilters,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
 
@@ -618,6 +673,51 @@ class _Chip extends StatelessWidget {
           ),
         ),
       );
+}
+
+/// The active-filter chip. Tapping it clears, so the escape from an
+/// over-filtered map is on the map, not three taps into a sheet.
+class _FilterChip extends StatelessWidget {
+  const _FilterChip({required this.label, required this.onClear});
+
+  final String label;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = LcStrings.of(context);
+
+    return Semantics(
+      button: true,
+      label: '$label, ${strings.clearAll}',
+      child: Material(
+        color: const Color(AlUlaPalette.terracotta),
+        borderRadius: BorderRadius.circular(999),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(999),
+          onTap: onClear,
+          child: Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(10, 5, 8, 5),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: Colors.white, fontSize: 11),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                const Icon(Icons.close, size: 13, color: Colors.white),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _ErrorBanner extends StatelessWidget {
