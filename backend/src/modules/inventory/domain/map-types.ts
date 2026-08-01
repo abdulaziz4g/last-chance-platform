@@ -9,6 +9,19 @@ export interface MapSearchQuery {
   checkInUtc: Date | null;
   checkOutUtc: Date | null;
   guests: number | null;
+
+  /**
+   * Price bounds in MINOR units, compared against the EFFECTIVE price — the
+   * discounted figure the pin actually shows. Filtering on the base rate would
+   * hide a deal that falls inside the guest's budget precisely because it is
+   * discounted, which is the one case the filter exists to surface.
+   *
+   * Named to mirror the OpenSearch contract's minPriceMinor/maxPriceMinor so
+   * the two search paths describe the same filter the same way.
+   */
+  minPriceMinor: number | null;
+  maxPriceMinor: number | null;
+
   limit: number;
 }
 

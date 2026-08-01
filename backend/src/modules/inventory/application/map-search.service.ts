@@ -86,6 +86,17 @@ export class MapSearchService {
       throw new ValidationFailedError('guests must be a positive integer');
     }
 
+    const minPriceMinor = this.priceMinor(raw['min_price_minor'], 'min_price_minor');
+    const maxPriceMinor = this.priceMinor(raw['max_price_minor'], 'max_price_minor');
+    // An inverted range matches nothing, so the guest would see an empty map
+    // with no hint that the filter is the reason. Reject it instead.
+    if (minPriceMinor !== null && maxPriceMinor !== null && maxPriceMinor < minPriceMinor) {
+      throw new ValidationFailedError(
+        'max_price_minor must be greater than or equal to min_price_minor',
+        { minPriceMinor, maxPriceMinor },
+      );
+    }
+
     const limitRaw = Number(raw['limit']);
     const limit = Number.isInteger(limitRaw)
       ? Math.min(Math.max(limitRaw, 1), MAX_LIMIT)
@@ -100,8 +111,27 @@ export class MapSearchService {
       checkInUtc,
       checkOutUtc,
       guests,
+      minPriceMinor,
+      maxPriceMinor,
       limit,
     };
+  }
+
+  /**
+   * Minor units are integers by definition — 1450 halalas, never 14.5. A
+   * fractional bound means the client is sending major units, and silently
+   * rounding it would filter by a hundredth of what the guest asked for.
+   */
+  private priceMinor(value: string | undefined, field: string): number | null {
+    if (value === undefined || value === '') return null;
+    const parsed = Number(value);
+    if (!Number.isInteger(parsed) || parsed < 0) {
+      throw new ValidationFailedError(
+        `${field} must be a non-negative integer in minor units`,
+        { [field]: value },
+      );
+    }
+    return parsed;
   }
 
   private date(value: string | undefined, field: string): Date | null {
