@@ -116,7 +116,9 @@ async function main(): Promise<void> {
         title: 'Tonight only — 30% off',
         discountPct: 30,
         startsAt: new Date(Date.now() - 60_000), // already open
-        endsAt: dayAt(0, 23),
+        // Relative to now: an absolute 23:00 today inverts the window when the
+        // job runs after 23:00 UTC, which killed CI once already.
+        endsAt: new Date(Date.now() + 6 * 60 * 60_000),
         quantityTotal: 3,
       });
       assert(deal.status === 'ACTIVE', 'deal created ACTIVE');
@@ -207,7 +209,9 @@ async function main(): Promise<void> {
         title: 'Second deal',
         discountPct: 20,
         startsAt: new Date(Date.now() - 60_000),
-        endsAt: dayAt(0, 23),
+        // Relative to now: an absolute 23:00 today inverts the window when the
+        // job runs after 23:00 UTC, which killed CI once already.
+        endsAt: new Date(Date.now() + 6 * 60 * 60_000),
         quantityTotal: 2,
       });
       // day2 10:00-12:00 is already booked by the burst above -> overlap.

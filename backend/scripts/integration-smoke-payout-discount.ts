@@ -173,7 +173,13 @@ async function main(): Promise<void> {
         title: `${DISCOUNT_PCT}% off — settlement regression`,
         discountPct: DISCOUNT_PCT,
         startsAt: new Date(Date.now() - 60_000),
-        endsAt: dayAt(0, 23),
+        // RELATIVE to now, not a wall-clock hour today. `dayAt(0, 23)` meant
+        // this smoke created a deal ending at 23:00 UTC while starting one
+        // minute ago — so between 23:00 and midnight UTC the end preceded the
+        // start and the run died on "endsAt must be after startsAt". A window
+        // measured from now cannot invert whatever time the job happens to
+        // start.
+        endsAt: new Date(Date.now() + 6 * 60 * 60_000),
         quantityTotal: 1,
       });
       assert(deal.status === 'ACTIVE', 'flash deal created ACTIVE');
