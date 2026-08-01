@@ -8,6 +8,7 @@ import {
 import { ModerationFsmEngine } from './moderation-fsm.engine';
 import { ModerationRepository } from '../infrastructure/moderation.repository';
 import { HostNotifierService } from '../../notifications/application/host-notifier.service';
+import { UnitIndexer } from '../../search/infrastructure/unit-indexer.service';
 import type {
   ModerationEvent,
   ModerationQueueItem,
@@ -35,6 +36,7 @@ export class ModerationService {
     private readonly repo: ModerationRepository,
     private readonly fsm: ModerationFsmEngine,
     private readonly notifier: HostNotifierService,
+    private readonly indexer: UnitIndexer,
   ) {}
 
   queue(status: ModerationStatus | null, limit = 50): Promise<ModerationQueueItem[]> {
@@ -109,6 +111,7 @@ export class ModerationService {
     log.info({ propertyId }, 'Listing approved and published');
     // Post-commit and never awaited into the decision: see HostNotifierService.
     await this.notifier.listingApproved(propertyId);
+    await this.reindex(propertyId, 'approved');
     return result;
   }
 
@@ -121,6 +124,7 @@ export class ModerationService {
     const result = await this.move(propertyId, 'REJECTED', reasonCode, notes);
     log.info({ propertyId, reasonCode }, 'Listing rejected');
     await this.notifier.listingRejected(propertyId, reasonCode, notes);
+    await this.reindex(propertyId, 'rejected');
     return result;
   }
 
@@ -132,11 +136,14 @@ export class ModerationService {
     const result = await this.move(propertyId, 'SUSPENDED', reasonCode, notes);
     log.warn({ propertyId, reasonCode }, 'Live listing suspended');
     await this.notifier.listingSuspended(propertyId, reasonCode, notes);
+    await this.reindex(propertyId, 'suspended');
     return result;
   }
 
   async reinstate(propertyId: string, notes?: string): Promise<ModerationStatus> {
-    return this.move(propertyId, 'APPROVED', null, notes, true);
+    const result = await this.move(propertyId, 'APPROVED', null, notes, true);
+    await this.reindex(propertyId, 'reinstated');
+    return result;
   }
 
   /** Forces a re-review — used when a permit lapses or the host edits a listing materially. */
@@ -149,6 +156,46 @@ export class ModerationService {
   }
 
   // -------------------------------------------------------------------------
+
+  /**
+   * Brings the search index into line with a moderation decision.
+   *
+   * Both directions matter, and the removal direction matters MORE. Approval
+   * failing to index means a legitimate listing is missing from search — bad.
+   * Suspension failing to de-index means a listing an admin pulled is still
+   * being sold from the search results — which is the outcome the whole gate
+   * exists to prevent.
+   *
+   * Best-effort, exactly like the notifier: the decision is committed and
+   * recorded before this runs, and OpenSearch being down must not roll it back
+   * or fail the admin's request. The `reindexAll` sweep is the backstop for
+   * anything that slips.
+   */
+  private async reindex(propertyId: string, decision: string): Promise<void> {
+    try {
+      const units = await this.repo.listUnitsWithPhotos(propertyId);
+      const results = await Promise.allSettled(
+        units.map((u) => this.indexer.indexUnit(u.unitId)),
+      );
+      const failed = results.filter((r) => r.status === 'rejected').length;
+      if (failed > 0) {
+        log.error(
+          { propertyId, decision, failed, total: units.length },
+          'Search reindex partially failed after a moderation decision',
+        );
+        return;
+      }
+      log.info(
+        { propertyId, decision, units: units.length },
+        'Search index updated after moderation decision',
+      );
+    } catch (err) {
+      log.error(
+        { err, propertyId, decision },
+        'Search reindex failed after a moderation decision',
+      );
+    }
+  }
 
   private async move(
     propertyId: string,

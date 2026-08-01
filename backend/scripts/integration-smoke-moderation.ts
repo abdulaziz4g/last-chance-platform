@@ -81,6 +81,19 @@ function dayAt(daysAhead: number, hour: number): string {
   return d.toISOString();
 }
 
+/**
+ * Is this unit currently a document in the search index? Asked of OpenSearch
+ * directly rather than through /search, so a query-relevance quirk cannot make
+ * a missing document look present or vice versa.
+ */
+async function inIndex(unitId: string): Promise<boolean> {
+  const base = process.env.OPENSEARCH_URL ?? 'http://localhost:9200';
+  const res = await fetch(`${base}/units/_doc/${unitId}`);
+  if (res.status === 404) return false;
+  const body = (await res.json()) as { found?: boolean };
+  return body.found === true;
+}
+
 /** A viewport comfortably around AlUla. */
 const VIEWPORT = `min_lng=37.80&min_lat=26.50&max_lng=38.05&max_lat=26.72`;
 
@@ -308,6 +321,11 @@ async function main(): Promise<void> {
   const pin = afterMap.json.pins.find((p) => p.unitId === unitId);
   assert(pin !== undefined, 'approved listing appears on the map');
 
+  // Approval must also push the listing into OpenSearch, or it is on the map
+  // but missing from text search — the gap that made approval feel flaky.
+  const indexed = await inIndex(unitId);
+  assert(indexed, 'approval pushes the unit into the search index');
+
   // ---- 8. the privacy guard actually displaces the pin --------------------
   if (pin) {
     const distance = await db.query<{ metres: string }>(
@@ -401,6 +419,13 @@ async function main(): Promise<void> {
   assert(
     !suspendedMap.json.pins.some((p) => p.unitId === unitId),
     'suspended listing disappears from the map immediately',
+  );
+
+  // The direction that matters more: a listing an admin pulled must stop being
+  // sold from search results, not merely stop appearing on the map.
+  assert(
+    !(await inIndex(unitId)),
+    'suspension evicts the unit from the search index',
   );
 
   const suspendedHold = await http('POST', '/bookings/hold', {

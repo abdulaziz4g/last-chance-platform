@@ -22,6 +22,9 @@ const envSchema = z.object({
   /** Delay before executing a created payout (real platforms hold days). */
   PAYOUT_EXECUTE_DELAY_MS: z.coerce.number().int().min(0).default(3000),
   JWT_SECRET: z.string().min(16).default('dev_jwt_secret_change_me_32chars'),
+  // Keys the HMAC that OTP codes are stored under. Separate from JWT_SECRET so
+  // rotating one does not invalidate the other.
+  OTP_SECRET: z.string().min(16).default('dev_otp_secret_change_me_32chars'),
   JWT_TTL_SECONDS: z.coerce.number().int().min(60).default(3600),
 });
 
@@ -91,6 +94,16 @@ export class AppConfigService {
       throw new Error('JWT_SECRET must be set in production');
     }
     return this.env.JWT_SECRET;
+  }
+
+  get otpSecret(): string {
+    if (
+      this.nodeEnv === 'production' &&
+      this.env.OTP_SECRET === 'dev_otp_secret_change_me_32chars'
+    ) {
+      throw new Error('OTP_SECRET must be set in production');
+    }
+    return this.env.OTP_SECRET;
   }
 
   get jwtTtlSeconds(): number {

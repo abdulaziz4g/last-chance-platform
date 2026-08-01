@@ -1,5 +1,6 @@
 import { Global, Module } from '@nestjs/common';
 import { HostNotifierService } from './application/host-notifier.service';
+import { OtpNotifierService } from './application/otp-notifier.service';
 import { MockNotificationProvider } from './infrastructure/mock-notification.provider';
 import { NOTIFICATION_PORT } from './domain/notification.port';
 
@@ -15,7 +16,8 @@ import { NOTIFICATION_PORT } from './domain/notification.port';
     MockNotificationProvider,
     { provide: NOTIFICATION_PORT, useExisting: MockNotificationProvider },
     HostNotifierService,
+    OtpNotifierService,
   ],
-  exports: [HostNotifierService, NOTIFICATION_PORT],
+  exports: [HostNotifierService, OtpNotifierService, NOTIFICATION_PORT],
 })
 export class NotificationsModule {}
