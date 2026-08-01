@@ -14,6 +14,16 @@ import { rootLogger } from '../../../common/logger/logger';
 
 const log = rootLogger.child({ component: 'SearchService' });
 
+/**
+ * The ceiling on how far an indexed coordinate sits from the true one.
+ *
+ * fn_property_set_approx_location (0016) projects 250–500 m, so 500 is the
+ * bound rather than the actual displacement — publishing the real per-property
+ * offset would hand back exactly what the displacement exists to withhold.
+ * Same figure the map endpoint reports.
+ */
+const PRIVACY_RADIUS_METRES = 500;
+
 interface OsHit {
   _id: string;
   _score: number | null;
@@ -94,7 +104,10 @@ export class SearchService {
       propertyName: hit._source.propertyName,
       propertyType: hit._source.propertyType,
       city: hit._source.city,
+      // The indexed point is already the displaced one — see
+      // UnitSearchDocument.location. Nothing here needs to redact it.
       location: hit._source.location,
+      privacyRadiusMetres: PRIVACY_RADIUS_METRES,
       // Compute distance from the document's own coordinates — robust across
       // every sort mode (reading it out of hit.sort only works when distance
       // is the active sort key, and silently returns the price otherwise).

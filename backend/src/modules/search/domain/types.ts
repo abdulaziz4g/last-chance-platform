@@ -16,7 +16,13 @@ export interface UnitSearchDocument {
   city: string;
   cityText: string;
   countryCode: string;
-  /** OpenSearch geo_point: { lat, lon }. */
+  /**
+   * OpenSearch geo_point: { lat, lon } — the APPROXIMATE point from
+   * `properties.approx_location`, displaced 250–500 m on a bearing derived
+   * from the property id. Never the true location: this index backs a public
+   * endpoint whose geo filter and sort would otherwise let the real position
+   * be bisected out of it.
+   */
   location: { lat: number; lon: number };
   supportsHourly: boolean;
   supportsNightly: boolean;
@@ -64,7 +70,15 @@ export interface SearchResultItem {
   propertyName: string;
   propertyType: string;
   city: string;
+  /** Approximate — see UnitSearchDocument.location. */
   location: { lat: number; lon: number };
+  /**
+   * How far off that point may be, in metres. Sent explicitly so a client
+   * cannot mistake a search coordinate for an exact one; matches the value
+   * the map endpoint publishes alongside its own pins.
+   */
+  privacyRadiusMetres: number;
+  /** Measured from the approximate point, so it inherits the same slack. */
   distanceKm: number | null;
   currency: string;
   hourlyRateMinor: number | null;

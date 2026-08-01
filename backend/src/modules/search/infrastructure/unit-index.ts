@@ -7,7 +7,18 @@
 export const UNIT_ALIAS = 'units';
 export const UNIT_INDEX_V1 = 'units_v1';
 export const UNIT_INDEX_V2 = 'units_v2';
-export const UNIT_INDEX_CURRENT = UNIT_INDEX_V2;
+/**
+ * v3 carries APPROXIMATE property coordinates; v1 and v2 were built from the
+ * true `properties.location`.
+ *
+ * The mapping did not change, so this bump is not about shape — it is about
+ * the values. A rebuild in place would have worked mechanically, but it would
+ * have left "is the live index still the leaking one?" unanswerable. A version
+ * boundary makes the contaminated documents a named artefact that the alias
+ * moves off, rather than a state someone has to remember to have fixed.
+ */
+export const UNIT_INDEX_V3 = 'units_v3';
+export const UNIT_INDEX_CURRENT = UNIT_INDEX_V3;
 
 export const unitIndexBody = {
   settings: {
