@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_exception.dart';
 import '../../booking/domain/booking.dart';
 import '../data/map_repository.dart';
+import '../domain/map_filters.dart';
 import '../domain/map_pin.dart';
 
 /// Which pane the phone is showing. Desktop shows both; a phone cannot.
@@ -39,9 +40,7 @@ class MapSearchState {
     this.selectedUnitId,
     this.error,
     this.viewMode = MapViewMode.map,
-    this.checkInUtc,
-    this.checkOutUtc,
-    this.guests,
+    this.filters = MapFilters.none,
   });
 
   factory MapSearchState.initial() => const MapSearchState(
@@ -66,9 +65,7 @@ class MapSearchState {
   final String? selectedUnitId;
   final ApiException? error;
   final MapViewMode viewMode;
-  final DateTime? checkInUtc;
-  final DateTime? checkOutUtc;
-  final int? guests;
+  final MapFilters filters;
 
   MapPin? get selectedPin {
     final id = selectedUnitId;
@@ -89,16 +86,13 @@ class MapSearchState {
     bool? truncated,
     bool? isLoading,
     MapViewMode? viewMode,
-    DateTime? checkInUtc,
-    DateTime? checkOutUtc,
-    int? guests,
+    MapFilters? filters,
     // Explicit clear flags: copyWith cannot distinguish "leave it" from "set
     // it to null" with nullable parameters alone.
     bool clearSelection = false,
     String? selectedUnitId,
     bool clearError = false,
     ApiException? error,
-    bool clearDates = false,
   }) {
     return MapSearchState(
       bounds: bounds ?? this.bounds,
@@ -111,9 +105,7 @@ class MapSearchState {
           clearSelection ? null : (selectedUnitId ?? this.selectedUnitId),
       error: clearError ? null : (error ?? this.error),
       viewMode: viewMode ?? this.viewMode,
-      checkInUtc: clearDates ? null : (checkInUtc ?? this.checkInUtc),
-      checkOutUtc: clearDates ? null : (checkOutUtc ?? this.checkOutUtc),
-      guests: guests ?? this.guests,
+      filters: filters ?? this.filters,
     );
   }
 }
@@ -173,21 +165,49 @@ class MapSearchController extends AutoDisposeNotifier<MapSearchState> {
     _search(state.bounds, force: true);
   }
 
-  void setDateRange(DateTime? checkInUtc, DateTime? checkOutUtc) {
-    if (checkInUtc == null || checkOutUtc == null) {
-      state = state.copyWith(clearDates: true);
-    } else {
-      state = state.copyWith(
-        checkInUtc: checkInUtc,
-        checkOutUtc: checkOutUtc,
-      );
-    }
+  /// Commits a whole draft from the filter overlay in ONE search.
+  ///
+  /// The overlay edits its own copy and calls this once on Apply. Setting each
+  /// field through its own action instead would fire a search per field and
+  /// leave the map repainting behind the sheet while the guest is still
+  /// choosing.
+  void applyFilters(MapFilters filters) {
+    // Opening the sheet and applying what was already set is not a new search.
+    if (filters == state.filters) return;
+    state = state.copyWith(filters: filters);
     _search(state.bounds, force: true);
   }
 
+  void clearFilters() => applyFilters(MapFilters.none);
+
+  void setDateRange(DateTime? checkInUtc, DateTime? checkOutUtc) {
+    applyFilters(
+      checkInUtc == null || checkOutUtc == null
+          ? state.filters.copyWith(clearDates: true)
+          : state.filters.copyWith(
+              checkInUtc: checkInUtc,
+              checkOutUtc: checkOutUtc,
+            ),
+    );
+  }
+
   void setGuests(int? guests) {
-    state = state.copyWith(guests: guests);
-    _search(state.bounds, force: true);
+    applyFilters(
+      guests == null
+          ? state.filters.copyWith(clearGuests: true)
+          : state.filters.copyWith(guests: guests),
+    );
+  }
+
+  void setPriceRange(int? minPriceMinor, int? maxPriceMinor) {
+    applyFilters(
+      state.filters.copyWith(
+        minPriceMinor: minPriceMinor,
+        maxPriceMinor: maxPriceMinor,
+        clearMinPrice: minPriceMinor == null,
+        clearMaxPrice: maxPriceMinor == null,
+      ),
+    );
   }
 
   void select(String? unitId) {
@@ -237,9 +257,11 @@ class MapSearchController extends AutoDisposeNotifier<MapSearchState> {
             MapSearchQuery(
               bounds: requestBounds,
               bookingType: state.bookingType,
-              checkInUtc: state.checkInUtc,
-              checkOutUtc: state.checkOutUtc,
-              guests: state.guests,
+              checkInUtc: state.filters.checkInUtc,
+              checkOutUtc: state.filters.checkOutUtc,
+              guests: state.filters.guests,
+              minPriceMinor: state.filters.minPriceMinor,
+              maxPriceMinor: state.filters.maxPriceMinor,
             ),
             cancelToken: token,
           );

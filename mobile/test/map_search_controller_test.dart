@@ -5,6 +5,7 @@ import 'package:lastchance_mobile/core/api/api_exception.dart';
 import 'package:lastchance_mobile/features/booking/domain/booking.dart';
 import 'package:lastchance_mobile/features/map/application/map_search_controller.dart';
 import 'package:lastchance_mobile/features/map/data/map_repository.dart';
+import 'package:lastchance_mobile/features/map/domain/map_filters.dart';
 import 'package:lastchance_mobile/features/map/domain/map_pin.dart';
 
 import 'map_domain_test.dart' show pinJson;
@@ -264,5 +265,108 @@ void main() {
     final params = repo.queries.last.toQueryParameters();
     expect(params.containsKey('check_in_utc'), isFalse);
     expect(params.containsKey('check_out_utc'), isFalse);
+  });
+
+  test('price bounds reach the wire in minor units', () async {
+    final h = harness((_) async => resultWith(<String>['a']));
+    final container = h.container;
+    final repo = h.repo;
+    addTearDown(container.dispose);
+    await settle();
+
+    container.read(mapSearchProvider.notifier).setPriceRange(10000, 90000);
+    await settle();
+
+    final params = repo.queries.last.toQueryParameters();
+    expect(params['min_price_minor'], 10000);
+    expect(params['max_price_minor'], 90000);
+  });
+
+  test('a zero floor survives the trip to the server', () async {
+    // The falsy-check bug in transit: dropping a 0 bound would quietly widen
+    // the search past what the guest asked for.
+    final h = harness((_) async => resultWith(<String>['a']));
+    final container = h.container;
+    final repo = h.repo;
+    addTearDown(container.dispose);
+    await settle();
+
+    container.read(mapSearchProvider.notifier).setPriceRange(0, null);
+    await settle();
+
+    final params = repo.queries.last.toQueryParameters();
+    expect(params['min_price_minor'], 0);
+    expect(params.containsKey('max_price_minor'), isFalse);
+  });
+
+  test('one bound alone omits the other rather than sending null', () async {
+    final h = harness((_) async => resultWith(<String>['a']));
+    final container = h.container;
+    final repo = h.repo;
+    addTearDown(container.dispose);
+    await settle();
+
+    container.read(mapSearchProvider.notifier).setPriceRange(null, 90000);
+    await settle();
+
+    final params = repo.queries.last.toQueryParameters();
+    expect(params.containsKey('min_price_minor'), isFalse);
+    expect(params['max_price_minor'], 90000);
+  });
+
+  test('applying the filters already in force does not refetch', () async {
+    // Opening the sheet, changing nothing and tapping Apply is not a search.
+    final h = harness((_) async => resultWith(<String>['a']));
+    final container = h.container;
+    final repo = h.repo;
+    addTearDown(container.dispose);
+    await settle();
+
+    final notifier = container.read(mapSearchProvider.notifier);
+    notifier.applyFilters(const MapFilters(guests: 2));
+    await settle();
+    final afterFirst = repo.queries.length;
+
+    notifier.applyFilters(const MapFilters(guests: 2));
+    await settle();
+
+    expect(repo.queries.length, afterFirst);
+  });
+
+  test('clearing filters refetches without them', () async {
+    final h = harness((_) async => resultWith(<String>['a']));
+    final container = h.container;
+    final repo = h.repo;
+    addTearDown(container.dispose);
+    await settle();
+
+    final notifier = container.read(mapSearchProvider.notifier);
+    notifier.applyFilters(const MapFilters(guests: 2, maxPriceMinor: 90000));
+    await settle();
+    expect(repo.queries.last.toQueryParameters()['guests'], 2);
+
+    notifier.clearFilters();
+    await settle();
+
+    final params = repo.queries.last.toQueryParameters();
+    expect(params.containsKey('guests'), isFalse);
+    expect(params.containsKey('max_price_minor'), isFalse);
+    expect(container.read(mapSearchProvider).filters.isEmpty, isTrue);
+  });
+
+  test('a filter change refetches even inside the prefetched box', () async {
+    // Price and availability both change which units qualify, so this can
+    // never be served from what is already in hand.
+    final h = harness((_) async => resultWith(<String>['a']));
+    final container = h.container;
+    final repo = h.repo;
+    addTearDown(container.dispose);
+    await settle();
+
+    final before = repo.queries.length;
+    container.read(mapSearchProvider.notifier).setPriceRange(null, 50000);
+    await settle();
+
+    expect(repo.queries.length, greaterThan(before));
   });
 }
