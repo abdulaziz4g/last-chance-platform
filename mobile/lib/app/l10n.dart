@@ -125,6 +125,53 @@ class LcStrings {
         '$count ${count == 1 ? 'guest' : 'guests'}',
       );
 
+  // ---- design-package vocabulary -------------------------------------------
+
+  String get seeAll => _pick('عرض الكل', 'See all');
+  String get hotels => _pick('فنادق', 'Hotels');
+  String get stayUnits => _pick('وحدات سكنية', 'Stay Units');
+  String get seaView => _pick('إطلالة بحرية', 'Sea View');
+
+  /// The wordmark subtitle. Latin stays uppercase Latin in both locales — it
+  /// is the logotype, not copy.
+  String get brandSubtitle => _pick('فنادق ووحدات سكنية', 'HOTELS & STAY UNITS');
+
+  /// Hero headline, split so "last chance." can take the coral emphasis the
+  /// package specifies without a rich-text parser.
+  String get heroLead => _pick('احجز', 'Find your');
+  String get heroEmphasis => _pick('فرصتك الأخيرة.', 'last chance.');
+  String get heroSupport => _pick(
+        'أفضل الفنادق والوحدات السكنية بأفضل الأسعار.',
+        'Best hotels & stay units at the best prices.',
+      );
+  String get explore => _pick('استكشف', 'Explore');
+  String get searchHint =>
+      _pick('ابحث عن فنادق أو وحدات…', 'Search hotels, units...');
+  String get bestHotels => _pick('أفضل الفنادق', 'Best Hotels');
+  String get topStayUnits => _pick('أبرز الوحدات السكنية', 'Top Stay Units');
+
+  // ---- flash deals ----------------------------------------------------------
+
+  String get flashDeals => _pick('عروض سريعة', 'Flash deals');
+  String get bookDirectly => _pick('احجز مباشرة', 'Book directly');
+  String get refresh => _pick('تحديث', 'Refresh');
+  String get dealsWarmingUp =>
+      _pick('العروض في الطريق.', 'Deals are warming up.');
+  String get noLiveDeals => _pick(
+        'لا توجد عروض حالياً.\nعُد قريباً.',
+        'No live deals right now.\nCheck back soon.',
+      );
+  String get dealEnded => _pick('انتهى', 'Ended');
+
+  String quantityLeft(int remaining, int total) => _pick(
+        'بقي $remaining من $total',
+        '$remaining of $total left',
+      );
+
+  /// Compact per-unit suffix for a dense price row.
+  String perUnitShort({required bool hourly}) =>
+      hourly ? _pick('/س', '/hr') : _pick('/ليلة', '/night');
+
   String filtersActive(int count) => _pick(
         '$count عامل تصفية',
         '$count ${count == 1 ? 'filter' : 'filters'}',
