@@ -18,6 +18,10 @@ dependencies:
   # WebSocket client for the live availability/deal feed (WS push).
   web_socket_channel: ^3.0.1
   intl: ^0.20.0
+  # Ships GlobalMaterialLocalizations. Without it a MaterialApp with an
+  # Arabic locale asserts in debug, and text direction never flips.
+  flutter_localizations:
+    sdk: flutter
 
 dev_dependencies:
   flutter_test:
