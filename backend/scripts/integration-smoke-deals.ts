@@ -174,8 +174,13 @@ async function main(): Promise<void> {
         base_amount_minor: number;
         discount_minor: number;
         total_amount_minor: number;
+        check_in_utc: Date;
+        check_out_utc: Date;
       }>(
-        `SELECT flash_deal_id, base_amount_minor, discount_minor, total_amount_minor
+        // The window comes back too, because the overlap check further down
+        // needs a window that is ACTUALLY booked — see the note there.
+        `SELECT flash_deal_id, base_amount_minor, discount_minor, total_amount_minor,
+                check_in_utc, check_out_utc
          FROM bookings WHERE id = $1`,
         [sampleWin.value.id],
       );
@@ -214,15 +219,25 @@ async function main(): Promise<void> {
         endsAt: new Date(Date.now() + 6 * 60 * 60_000),
         quantityTotal: 2,
       });
-      // day2 10:00-12:00 is already booked by the burst above -> overlap.
+      // Reuse a window the burst DEMONSTRABLY booked, read back from one of
+      // the winning bookings.
+      //
+      // This used to hardcode day 2, on the reasoning that the burst had
+      // booked it. But the burst is a RACE by design — 6 claims across days
+      // 2..7 against inventory of 3 — so which three windows end up booked is
+      // exactly the thing the test refuses to pin down. When the day-2 claim
+      // lost, that window was free, this claim legitimately succeeded, and the
+      // assertion failed with claimed=1 while reporting itself as an
+      // atomicity bug. Locally the claims dispatch in a stable order and day 2
+      // almost always wins, which is why it only ever failed on CI.
       let unavailable = false;
       try {
         await deals.claim({
           dealId: deal2.id,
           guestId,
           bookingType: 'HOURLY',
-          checkInUtc: dayAt(2, 10),
-          checkOutUtc: dayAt(2, 12),
+          checkInUtc: b.check_in_utc,
+          checkOutUtc: b.check_out_utc,
           guestsCount: 1,
         });
       } catch (e) {
