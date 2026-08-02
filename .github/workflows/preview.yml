@@ -1,0 +1,135 @@
+name: preview
+
+# A throwaway deployment of the web client per pull request, so a UI change can
+# be looked at on a real device instead of reviewed as a diff. Every design
+# change so far has been merged without anyone seeing it rendered.
+#
+# NOT GitHub Pages: Pages serves static files, and this app has middleware,
+# server actions, API routes and dynamic segments. `output: 'export'` is
+# incompatible with all four — hosting it there would mean gutting the app
+# rather than configuring it.
+
+on:
+  pull_request:
+    # Only when the web client (or this workflow) changes. A mobile-only or
+    # backend-only PR has nothing to preview, and a deploy per push would burn
+    # build minutes to produce an identical URL.
+    paths:
+      - 'web/**'
+      - '.github/workflows/preview.yml'
+
+# A new push supersedes the previous preview of the same PR. Without this a
+# quick series of commits leaves several builds racing, and whichever finishes
+# last wins — which is not necessarily the newest.
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  web-preview:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # To post the URL back onto the PR.
+      pull-requests: write
+
+    steps:
+      # Secrets are absent until someone configures Vercel, and absent for
+      # pull requests from forks — by design, since a fork must not be handed
+      # deployment credentials. Both cases SKIP with an explanation rather than
+      # failing, so this workflow never shows up as a red check for a reason
+      # the author cannot fix.
+      - name: Check whether previews are configured
+        id: guard
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          if [ -n "$VERCEL_TOKEN" ] && [ -n "$VERCEL_ORG_ID" ] && [ -n "$VERCEL_PROJECT_ID" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Preview skipped — Vercel secrets are not set on this repository (or this is a fork PR). See docs/web-preview.md."
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.guard.outputs.ready == 'true'
+
+      - uses: actions/setup-node@v4
+        if: steps.guard.outputs.ready == 'true'
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      # Pinned rather than @latest: a deploy tool that silently changes version
+      # turns "the preview broke" into a question about the CI runner instead of
+      # about the change under review.
+      - name: Install Vercel CLI
+        if: steps.guard.outputs.ready == 'true'
+        run: npm install --global vercel@48.2.0
+
+      - name: Build and deploy the preview
+        if: steps.guard.outputs.ready == 'true'
+        id: deploy
+        working-directory: web
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          vercel pull --yes --environment=preview --token="${{ secrets.VERCEL_TOKEN }}"
+          # Built HERE, not on Vercel's builders, so the preview is compiled by
+          # the same Node and lockfile CI already verifies.
+          vercel build --token="${{ secrets.VERCEL_TOKEN }}"
+          url=$(vercel deploy --prebuilt --token="${{ secrets.VERCEL_TOKEN }}")
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Preview: $url"
+
+      # Updates one comment rather than adding a new one per push, so a busy PR
+      # does not end up with a column of stale links and no signal about which
+      # is current.
+      - name: Comment the preview URL on the PR
+        if: steps.guard.outputs.ready == 'true'
+        uses: actions/github-script@v7
+        env:
+          PREVIEW_URL: ${{ steps.deploy.outputs.url }}
+        with:
+          script: |
+            const url = process.env.PREVIEW_URL;
+            const marker = '<!-- web-preview -->';
+            const body = [
+              marker,
+              '### Web preview',
+              '',
+              `**${url}**`,
+              '',
+              `Commit \`${context.sha.slice(0, 7)}\` · updated ${new Date().toISOString()}`,
+              '',
+              '<details><summary>What this preview can and cannot show</summary>',
+              '',
+              'The backend is **not** deployed, so `BACKEND_URL` has nowhere to point unless',
+              'one is configured in the Vercel project. Layout, palette, typography, spacing',
+              'and component states all render correctly; anything data-driven — listings,',
+              'deals, map pins — shows its empty or error state.',
+              '',
+              'That is enough to review a design change and not enough to review a feature.',
+              '</details>',
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              ...context.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find((c) => c.body?.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                ...context.repo, comment_id: existing.id, body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                ...context.repo, issue_number: context.issue.number, body,
+              });
+            }
