@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-import '../features/deals/presentation/deals_screen.dart';
 import 'l10n.dart';
+import 'shell.dart';
 import 'theme.dart';
 
 /// Picks the locale to run in.
@@ -66,9 +66,10 @@ class LastChanceApp extends StatelessWidget {
       ],
       localeResolutionCallback: resolveLocale,
 
-      // The flash-deal feed is the guest home; the direct-booking flow is one
-      // tap away (app-bar action) from there.
-      home: const DealsScreen(),
+      // The five-section shell is the app. Explore is its first tab and folds
+      // in the flash-deal feed and the map, so nothing that used to be a
+      // top-level screen became unreachable.
+      home: const LcShell(),
     );
   }
 }

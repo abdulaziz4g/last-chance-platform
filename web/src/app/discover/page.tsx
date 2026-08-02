@@ -12,6 +12,7 @@ import {
 import { Pagination } from '@/components/pagination';
 import { money } from '@/lib/format';
 import { GuestHeader } from '@/components/guest-header';
+import { GuestNav, GuestNavSpacer } from '@/components/guest-nav';
 import { DealStrip } from '@/components/deal-strip';
 
 export const dynamic = 'force-dynamic';
@@ -83,6 +84,7 @@ export default async function DiscoverPage({
           My bookings
         </Link>
       </GuestHeader>
+      <GuestNav />
 
       <DealStrip deals={deals} />
 
@@ -227,6 +229,7 @@ export default async function DiscoverPage({
         pageSize={results.pageSize}
         total={results.total}
       />
+      <GuestNavSpacer />
     </div>
   );
 }

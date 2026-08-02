@@ -13,6 +13,7 @@ import { money } from '@/lib/format';
 import { LocalTimeWindow } from '@/components/local-time';
 import { Card, StatusChip, Mono, SectionTitle } from '@/components/ui';
 import { GuestHeader } from '@/components/guest-header';
+import { GuestNav, GuestNavSpacer } from '@/components/guest-nav';
 import { getSession } from '@/lib/session';
 import { redirect } from 'next/navigation';
 
@@ -59,6 +60,7 @@ export default async function MyBookingsPage({
           Discover →
         </Link>
       </GuestHeader>
+      <GuestNav />
 
       <SectionTitle>
         {total} {total === 1 ? 'booking' : 'bookings'}
@@ -131,6 +133,7 @@ export default async function MyBookingsPage({
         pageSize={BOOKINGS_PAGE_SIZE}
         total={total}
       />
+      <GuestNavSpacer />
     </div>
   );
 }

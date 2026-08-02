@@ -150,6 +150,81 @@ class LcStrings {
   String get bestHotels => _pick('أفضل الفنادق', 'Best Hotels');
   String get topStayUnits => _pick('أبرز الوحدات السكنية', 'Top Stay Units');
 
+  // ---- app shell: the five sections -----------------------------------------
+
+  String get tabExplore => _pick('استكشف', 'Explore');
+  String get tabWishlists => _pick('المفضلة', 'Wishlists');
+  String get tabTrips => _pick('رحلاتي', 'Trips');
+  String get tabMessages => _pick('الرسائل', 'Messages');
+  String get tabProfile => _pick('حسابي', 'Profile');
+
+  // ---- search sheet ---------------------------------------------------------
+
+  String get searchWhere => _pick('أين؟', 'Where?');
+  String get searchWhen => _pick('متى', 'When');
+  String get searchWho => _pick('من', 'Who');
+  String get searchDestinations =>
+      _pick('ابحث عن وجهة', 'Search destinations');
+  String get suggestedDestinations =>
+      _pick('وجهات مقترحة', 'Suggested destinations');
+  String get nearby => _pick('بالقرب مني', 'Nearby');
+  String get nearbySubtitle =>
+      _pick('اكتشف ما حولك', 'Find what\'s around you');
+  String get addDates => _pick('أضف التواريخ', 'Add dates');
+  String get addGuests => _pick('أضف الضيوف', 'Add guests');
+  String get search => _pick('بحث', 'Search');
+  String get startYourSearch => _pick('ابدأ البحث', 'Start your search');
+
+  // ---- wishlists ------------------------------------------------------------
+
+  String get noWishlistsYet =>
+      _pick('لا توجد قوائم مفضلة بعد', 'No wishlists yet');
+  String get wishlistsEmptyBody => _pick(
+        'احفظ الإقامات التي تعجبك لتجدها هنا.',
+        'Save the stays you like and they will appear here.',
+      );
+  String get recentlyViewed => _pick('شوهدت مؤخراً', 'Recently viewed');
+  String savedCount(int count) => _pick('$count محفوظة', '$count saved');
+  String get addToWishlist => _pick('أضف إلى المفضلة', 'Save');
+  String get removeFromWishlist => _pick('إزالة من المفضلة', 'Remove from saved');
+
+  // ---- trips ----------------------------------------------------------------
+
+  String get noTripsYet => _pick('لا توجد رحلات بعد', 'No trips yet');
+  String get tripsEmptyBody => _pick(
+        'عندما تحجز إقامة ستظهر رحلتك هنا.',
+        'Once you book a stay, your trip shows up here.',
+      );
+  String get buildATrip => _pick('ابدأ رحلة', 'Start searching');
+  String get upcoming => _pick('القادمة', 'Upcoming');
+  String get past => _pick('السابقة', 'Past');
+
+  // ---- messages -------------------------------------------------------------
+
+  String get messagesAll => _pick('الكل', 'All');
+  String get messagesTravelling => _pick('السفر', 'Travelling');
+  String get messagesSupport => _pick('الدعم', 'Support');
+  String get noMessagesYet => _pick('لا توجد رسائل', 'No messages yet');
+  String get messagesEmptyBody => _pick(
+        'رسائلك مع المضيفين والدعم تظهر هنا.',
+        'Messages with hosts and support appear here.',
+      );
+
+  // ---- profile --------------------------------------------------------------
+
+  String get becomeAHost => _pick('كن مضيفاً', 'Become a host');
+  String get becomeAHostBody => _pick(
+        'ابدأ الاستضافة واربح دخلاً إضافياً.',
+        'It\'s easy to start hosting and earn extra income.',
+      );
+  String get accountSettings => _pick('إعدادات الحساب', 'Account settings');
+  String get getHelp => _pick('المساعدة', 'Get help');
+  String get viewProfile => _pick('عرض الملف الشخصي', 'View profile');
+  String get privacy => _pick('الخصوصية', 'Privacy');
+  String get legal => _pick('الشروط والأحكام', 'Legal');
+  String get logOut => _pick('تسجيل الخروج', 'Log out');
+  String get notifications => _pick('الإشعارات', 'Notifications');
+
   // ---- flash deals ----------------------------------------------------------
 
   String get flashDeals => _pick('عروض سريعة', 'Flash deals');
