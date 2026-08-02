@@ -34,3 +34,12 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    # The design package's three families, bundled.
+    #
+    # No `fonts:` block: google_fonts resolves a family by scanning the asset
+    # manifest for a file whose name matches `{Family}-{Weight}`, so declaring
+    # the DIRECTORY is what wires them up. Declaring them under `fonts:`
+    # instead would register them with Flutter but leave google_fonts still
+    # reaching for the network.
+    - assets/fonts/

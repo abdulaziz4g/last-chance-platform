@@ -16,13 +16,11 @@ void main() {
   // — neither of which a booking app should do silently, least of all in a
   // market where connectivity is uneven.
   //
-  // With this false, google_fonts uses a bundled file when present and falls
-  // back to the platform font when not. It never reaches the network.
-  //
-  // ACTION REQUIRED: the .ttf files are not in the repo yet. Until they are
-  // added under assets/fonts/ and declared in pubspec.yaml, the app renders in
-  // the platform default rather than Poppins/Cormorant/Tajawal. See
-  // mobile/assets/fonts/README.md.
+  // The families ship in assets/fonts/, so this makes the app resolve them
+  // locally and never reach the network. It also means a MISSING file is a
+  // silent platform fallback rather than a crash — which is why
+  // test/bundled_fonts_test.dart asserts the asset manifest, and why
+  // assets/fonts/README.md spells out the two filename traps.
   GoogleFonts.config.allowRuntimeFetching = false;
 
   runApp(const ProviderScope(child: LastChanceApp()));
